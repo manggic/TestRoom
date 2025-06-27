@@ -10,8 +10,7 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-               <Route index element={<Home />} /> 
-                {/* <Route path="about" element={<About />} />  */}
+                <Route index element={<Home />} />
 
                 <Route element={<AuthLayout />}>
                     <Route path="login" element={<LoginForm />} />
