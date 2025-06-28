@@ -76,7 +76,7 @@ export default function SignUpForm() {
         };
 
         register(newUser);
-        navigate("/dashboard");
+        navigate("/");
     };
 
     return (

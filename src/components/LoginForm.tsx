@@ -34,7 +34,7 @@ export default function LoginForm() {
 
         if (IsUserValid) {
             toast("Login successful" + ` Welcome, ${user.name}`);
-            navigate("/dashboard");
+            navigate("/");
         } else {
             toast("Login failed" + "Incorrect email or password");
         }

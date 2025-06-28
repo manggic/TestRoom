@@ -5,6 +5,8 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import AuthLayout from "@/components/layouts/AuthLayout";
 import NotFound from "@/components/NotFound";
 import Home from "@/components/Home";
+import CreateTest from "./components/CreateTest";
+import TestPaper from "./components/TestPaper";
 
 function App() {
     return (
@@ -13,6 +15,8 @@ function App() {
                 <Route index element={<Home />} />
 
                 <Route element={<AuthLayout />}>
+                    <Route path="create-test" element={<CreateTest />} />
+                    <Route path="test" element={<TestPaper />} />
                     <Route path="login" element={<LoginForm />} />
                     <Route path="register" element={<SignUpForm />} />
                 </Route>
