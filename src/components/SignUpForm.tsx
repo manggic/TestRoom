@@ -5,12 +5,12 @@ import { Label } from "@/components/ui/label";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useAuth } from "@/context/useAuth";
 import { useNavigate } from "react-router";
 import { Link } from "react-router";
+import { toast } from "sonner";
+import { signupUser } from "@/services/auth";
 
 export default function SignUpForm() {
-    const { register } = useAuth();
     const navigate = useNavigate();
 
     const [form, setForm] = useState({
@@ -63,20 +63,22 @@ export default function SignUpForm() {
         return isValid;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!validateForm()) return;
 
-        const newUser = {
-            id: Date.now().toString(),
+        const res = await signupUser(form.email, form.password, {
+            role: "student",
+            testPaperAttempted: 0,
             name: form.name,
-            email: form.email,
-            password: form.password,
-        };
+        });
 
-        register(newUser);
-        navigate("/");
+        if (res.success) {
+            navigate("/");
+        } else {
+            toast(res?.message || "something went wrong");
+        }
     };
 
     return (

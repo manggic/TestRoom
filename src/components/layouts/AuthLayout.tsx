@@ -10,12 +10,6 @@ export default function AuthLayout() {
         transition={{ duration: 0.4 }}
         className="w-full"
       >
-        {/* Optional Header or Logo */}
-        {/* <div className="text-center mb-6">
-          <img src="/logo.svg" alt="Logo" className="h-10 mx-auto" />
-          <h1 className="text-xl font-semibold mt-2">Welcome to TestRoom</h1>
-        </div> */}
-
         <Outlet />
       </motion.div>
     </div>

@@ -1,13 +1,25 @@
-// src/context/types.ts
-export type User = {
-  id: string;
-  name: string;
-  email: string;
+import type { User } from "firebase/auth";
+
+export type UserProfile = {
+    name: string;
+    email: string;
+    role: "teacher" | "student" | "admin";
+    isActive: boolean;
+    createdAt: any;
+    updatedAt: any;
+};
+
+export type AuthContextUser = {
+    firebaseUser: User;
+    profile: UserProfile | null;
 };
 
 export type AuthContextType = {
-  user: User | null;
-  login: (user: User) => void;
-  logout: () => void;
-  register: (user: User) => void;
+    currentUser: AuthContextUser | null;
+    loading: boolean;
+    signOut: () => Promise<void>;
+};
+
+export type AuthProviderProps = {
+    children: React.ReactNode;
 };
