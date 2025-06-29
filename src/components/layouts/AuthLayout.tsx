@@ -1,5 +1,6 @@
 import { Outlet } from "react-router";
 import { motion } from "framer-motion";
+import Navbar from "../Navbar";
 
 export default function AuthLayout() {
   return (
@@ -10,6 +11,7 @@ export default function AuthLayout() {
         transition={{ duration: 0.4 }}
         className="w-full"
       >
+        <Navbar />
         <Outlet />
       </motion.div>
     </div>

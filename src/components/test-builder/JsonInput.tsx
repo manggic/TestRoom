@@ -1,5 +1,6 @@
-// src/components/test-builder/JSONInput.tsx
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 export function JsonInput() {
   const [copyMsgVisible, setCopyMsgVisible] = useState(false);
@@ -61,9 +62,15 @@ export function JsonInput() {
         <span className="text-green-400 text-sm">✅ Copied!</span>
       )}
 
-      <button onClick={addQuestions} className="mt-4 cursor-pointer w-full bg-blue-600 text-white py-2 rounded-md">
-        Add JSON Questions
-      </button>
+      <div className="mt-4">
+        <Button
+          onClick={addQuestions}
+          className="bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-200 dark:text-black dark:hover:bg-white gap-2"
+        >
+          <Plus size={16} />
+          Add JSON Questions
+        </Button>
+      </div>
     </div>
   );
 }

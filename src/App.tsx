@@ -8,6 +8,8 @@ import Home from "@/components/Home";
 import CreateTest from "./components/CreateTest";
 import TestPaper from "./components/TestPaper";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import TestPreviewPage from "./components/teacher/TestPreviewPage";
+import EditTestPage from "./components/teacher/EditTestPage";
 
 function App() {
     return (
@@ -21,6 +23,9 @@ function App() {
                         <Route index element={<Home />} />
                         <Route path="create-test" element={<CreateTest />} />
                         <Route path="test" element={<TestPaper />} />
+
+                           <Route path="/testpaper/maths/preview" element={<TestPreviewPage />} />
+                           <Route path="/testpaper/maths/edit" element={<EditTestPage />} />
                     </Route>
                 </Route>
 
