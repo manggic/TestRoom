@@ -1,69 +1,81 @@
-# React + TypeScript + Vite
+-   Users Schema
+    -   name ( string )
+    -   email ( string )
+    -   createdAt
+    -   updatedAt
+    -   role ( string ) - ( admin / student / teacher )
+    -   attemptedTests ( number )
+    -   isActive ( boolean )
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```json
+{
+    "name": "Aarav Mehta",
+    "email": "aarav.mehta@example.com",
+    "createdAt": "2025-06-20T10:30:00.000Z",
+    "updatedAt": "2025-06-29T18:45:00.000Z",
+    "role": "student",
+    "attemptedTests": 3,
+    "isActive": true
+}
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+-   Tests Schema
+    -   testName ( string )
+    -   questions ( array )
+    -   description ( string )
+    -   durationMinutes ( number )
+    -   createdBy ( object ) - ( name , id )
+    -   status ( string ) - ( draft / published )
+    -   highestScore ( number )
+    -   attempts ( number )
+    -   totalMarks ( number )
+    -   createdAt
+    -   updatedAt
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
+```json
+{
+    "testName": "Class 10 Science - Cells",
+    "description": "This test covers structure and function of cell organelles.",
+    "questions": ["q1", "q2", "q3"],
+    "durationMinutes": 30,
+    "createdBy": {
+        "id": "uid_neha123",
+        "name": "Neha Sharma"
     },
-  },
-])
+    "status": "published",
+    "highestScore": 19,
+    "attempts": 42,
+    "totalMarks": 20,
+    "createdAt": "2025-06-21T15:00:00.000Z",
+    "updatedAt": "2025-06-26T12:30:00.000Z"
+}
 ```
+
+-   Questions Schema
+    -   questionText ( string )
+    -   options ( object ) - { a : "nucleus" }
+    -   correctAnswer ( string )
+    -   marks ( number )
+    -   createdAt
+    -   updatedAt
+
+```json
+{
+    "questionText": "Which organelle is known as the powerhouse of the cell?",
+    "options": {
+        "a": "Nucleus",
+        "b": "Mitochondria",
+        "c": "Ribosome",
+        "d": "Chloroplast"
+    },
+    "correctAnswer": "b",
+    "marks": 2,
+    "createdAt": "2025-06-21T15:10:00.000Z",
+    "updatedAt": "2025-06-21T15:10:00.000Z"
+}
+```
+
+todo
+
+-   create Test
+-   Edit Test

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useState } from "react";
 import { FormInput } from "./test-builder/FormInput";
 import { QuestionPreview } from "./test-builder/QuestionPreview";
 import { Controls } from "./test-builder/Controls";
@@ -6,104 +6,96 @@ import { JsonInput } from "./test-builder/JsonInput";
 import { BackButton } from "./BackButton";
 
 export default function CreateTest() {
-  const [theme, setTheme] = useState("light");
-  const [useJSON, setUseJSON] = useState(true);
+    const [useJSON, setUseJSON] = useState(true);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    if (saved === "dark") {
-      setTheme("dark");
-      document.documentElement.classList.add("dark");
-    }
-  }, []);
+    return (
+        <div className="min-h-screen px-4 py-10 bg-slate-100 dark:bg-zinc-900 text-gray-900 dark:text-white">
+            <div className="max-w-4xl mx-auto space-y-6">
+                {/* Back Button + Header */}
+                <div className="flex items-center justify-between">
+                    <BackButton />
+                </div>
 
-  useEffect(() => {
-    localStorage.setItem("theme", theme);
-    document.documentElement.classList.toggle("dark", theme === "dark");
-  }, [theme]);
+                <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-md p-6 space-y-6 border border-gray-200 dark:border-zinc-700">
+                    {/* Title */}
+                    <div className="flex justify-between items-center border-b pb-4 border-gray-200 dark:border-zinc-700">
+                        <h2 className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                            📝 Create New MCQ Test
+                        </h2>
+                    </div>
 
-  return (
-    <div className="min-h-screen px-4 py-10 bg-slate-100 dark:bg-zinc-900 text-gray-900 dark:text-white">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Back Button + Header */}
-        <div className="flex items-center justify-between">
-          <BackButton />
-        </div>
+                    {/* Metadata Inputs */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label
+                                htmlFor="test-name-input"
+                                className="block text-sm font-medium mb-1"
+                            >
+                                Test Name
+                            </label>
+                            <input
+                                type="text"
+                                id="test-name-input"
+                                className="w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 bg-white dark:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g. Science Test"
+                                required
+                            />
+                        </div>
 
-        <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-md p-6 space-y-6 border border-gray-200 dark:border-zinc-700">
-          {/* Title */}
-          <div className="flex justify-between items-center border-b pb-4 border-gray-200 dark:border-zinc-700">
-            <h2 className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
-              📝 Create New MCQ Test
-            </h2>
-          </div>
+                        <div>
+                            <label
+                                htmlFor="duration"
+                                className="block text-sm font-medium mb-1"
+                            >
+                                Total Test Time (minutes)
+                            </label>
+                            <input
+                                type="number"
+                                id="duration"
+                                className="w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 bg-white dark:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g. 10"
+                                required
+                            />
+                        </div>
+                    </div>
 
-          {/* Metadata Inputs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="test-name-input" className="block text-sm font-medium mb-1">
-                Test Name
-              </label>
-              <input
-                type="text"
-                id="test-name-input"
-                className="w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 bg-white dark:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g. Science Test"
-                required
-              />
+                    {/* Toggle Switch */}
+                    <div className="flex items-center gap-4 pt-2">
+                        <span className="text-sm font-medium">JSON Mode</span>
+                        <button
+                            type="button"
+                            onClick={() => setUseJSON((prev) => !prev)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                useJSON ? "bg-gray-400" : "bg-blue-600"
+                            }`}
+                            role="switch"
+                            aria-checked={!useJSON}
+                        >
+                            <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                    useJSON ? "translate-x-1" : "translate-x-6"
+                                }`}
+                            />
+                        </button>
+                        <span className="text-sm font-medium">Form Mode</span>
+                    </div>
+
+                    {/* Input Mode (JSON or Form) */}
+                    <div className="pt-2">
+                        {useJSON ? <JsonInput /> : <FormInput />}
+                    </div>
+
+                    {/* Preview */}
+                    <div className="pt-2">
+                        <QuestionPreview />
+                    </div>
+
+                    {/* Save Button */}
+                    <div className="pt-2 border-t border-gray-200 dark:border-zinc-700">
+                        <Controls />
+                    </div>
+                </div>
             </div>
-
-            <div>
-              <label htmlFor="duration" className="block text-sm font-medium mb-1">
-                Total Test Time (minutes)
-              </label>
-              <input
-                type="number"
-                id="duration"
-                className="w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 bg-white dark:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g. 10"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Toggle Switch */}
-          <div className="flex items-center gap-4 pt-2">
-            <span className="text-sm font-medium">JSON Mode</span>
-            <button
-              type="button"
-              onClick={() => setUseJSON((prev) => !prev)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                useJSON ? "bg-gray-400" : "bg-blue-600"
-              }`}
-              role="switch"
-              aria-checked={!useJSON}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  useJSON ? "translate-x-1" : "translate-x-6"
-                }`}
-              />
-            </button>
-            <span className="text-sm font-medium">Form Mode</span>
-          </div>
-
-          {/* Input Mode (JSON or Form) */}
-          <div className="pt-2">
-            {useJSON ? <JsonInput /> : <FormInput />}
-          </div>
-
-          {/* Preview */}
-          <div className="pt-2">
-            <QuestionPreview />
-          </div>
-
-          {/* Save Button */}
-          <div className="pt-2 border-t border-gray-200 dark:border-zinc-700">
-            <Controls />
-          </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }

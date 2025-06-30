@@ -1,13 +1,19 @@
 // src/routes/ProtectedRoute.tsx
-import { Navigate, Outlet } from 'react-router';
-import { useAuth } from '@/context/useAuth';
+import { Navigate, Outlet } from "react-router";
+import { useAuth } from "@/context/useAuth";
 
 export default function ProtectedRoute() {
   const { currentUser, loading } = useAuth();
 
+
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="text-center p-4">Loading authentication...</div>;
   }
 
-  return currentUser ? <Outlet /> : <Navigate to="/login" replace />;
+  // 👇 Prevent early redirect if currentUser is not yet available
+  if (!currentUser || !currentUser.profile?.email) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
 }

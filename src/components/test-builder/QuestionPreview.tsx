@@ -5,11 +5,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 export function QuestionPreview() {
   const [questions, setQuestions] = useState<any[]>([]);
 
-  useEffect(() => {
-    const form = JSON.parse(localStorage.getItem("mcq_form") || "[]");
-    const json = JSON.parse(localStorage.getItem("mcq_json") || "[]");
-    setQuestions([...form, ...json]);
-  }, []);
 
   if (!questions.length) return null;
 

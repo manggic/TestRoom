@@ -4,65 +4,56 @@ import { useEffect, useState } from "react";
 import { performSignOut, subscribeToAuthChanges } from "./authUtils";
 import { AuthContext } from "./AuthContext";
 import type { AuthProviderProps, AuthContextUser, UserProfile } from "./types";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import type { User } from "firebase/auth";
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [currentUser, setCurrentUser] = useState<AuthContextUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // <- controls ProtectedRoute access
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges(async (firebaseUser: User | null) => {
       if (firebaseUser) {
-        console.log({ firebaseUser });
+        console.log("✅ Firebase user detected:", firebaseUser);
 
         try {
           const userDocRef = doc(db, "users", firebaseUser.uid);
           let userDoc = await getDoc(userDocRef);
+          let profile: UserProfile;
 
-          // 👇 If Firestore profile doesn't exist, create it
           if (!userDoc.exists()) {
-            console.warn("User profile not found in Firestore. Creating...");
+            console.warn("Firestore profile missing, creating...");
 
             const defaultProfile: UserProfile = {
               name: firebaseUser.displayName || "Unnamed",
               email: firebaseUser.email || "",
-              role: "student", // default role
+              role: "student",
               isActive: true,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp(),
+              createdAt: Timestamp.now(),
+              updatedAt: Timestamp.now(),
             };
 
-            try {
-              await setDoc(userDocRef, defaultProfile);
-              console.log("✅ User profile created in Firestore.");
-              userDoc = await getDoc(userDocRef); // Re-fetch after creation
-            } catch (setDocError) {
-              console.error("🔥 Failed to create Firestore profile:", setDocError);
-              setCurrentUser({ firebaseUser, profile: null });
-              setLoading(false);
-              return;
-            }
+            await setDoc(userDocRef, defaultProfile);
+            console.log("✅ Profile created.");
+
+            userDoc = await getDoc(userDocRef); // ensure fresh data
           }
 
-          const profile = userDoc.data() as UserProfile;
+          profile = userDoc.data() as UserProfile;
+          console.log("✅ Final profile ready:", profile);
 
-          setCurrentUser({
-            firebaseUser,
-            profile,
-          });
-        } catch (error) {
-          console.error("🔥 Error fetching Firestore user profile:", error);
-          setCurrentUser({
-            firebaseUser,
-            profile: null,
-          });
+          setCurrentUser({ firebaseUser, profile });
+        } catch (err) {
+          console.error("🔥 Error building current user:", err);
+          setCurrentUser({ firebaseUser, profile: null });
         }
       } else {
+        console.log("🟨 No user logged in.");
         setCurrentUser(null);
       }
 
+      // ✅ Do this last — only once currentUser is ready
       setLoading(false);
     });
 
@@ -74,15 +65,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await performSignOut();
       setCurrentUser(null);
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.error("❌ Error signing out:", error);
     }
   };
 
-  const value = {
-    currentUser,
-    loading,
-    signOut,
-  };
+  const value = { currentUser, loading, signOut };
 
   return (
     <AuthContext.Provider value={value}>

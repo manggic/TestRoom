@@ -3,15 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { logInUser } from "@/services/auth";
-// import { useAuth } from "@/context/useAuth";
+import { useAuth } from "@/context/useAuth";
 
 export default function LoginForm() {
-    // const { currentUser } = useAuth();
+    const { currentUser } = useAuth();
     const [form, setForm] = useState({
         email: "",
         password: "",
@@ -26,6 +26,13 @@ export default function LoginForm() {
         });
     };
 
+    useEffect(() => {
+    if (currentUser && currentUser.profile?.email) {
+      // ✅ Safe to navigate now
+      navigate("/", { replace: true });
+    }
+  }, [currentUser, navigate]);
+
     // useEffect(() => {
     //     if (currentUser) {
     //         navigate("/");
@@ -35,11 +42,11 @@ export default function LoginForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const res = await logInUser(form.email, form.password);
+        const res = await logInUser(form.email, form.password);        
 
         if (res.success) {
-            // toast("Login successful" + ` Welcome, ${user.name}`);
-            navigate("/");
+            toast("Login successful");
+            // navigate("/", { replace: true });
         } else {
             toast("Login failed" + " Invalid credentials");
         }
