@@ -24,6 +24,7 @@ export default function TestPreviewPage() {
         questions,
     } = test || {};
 
+
     useEffect(() => {
         if (!test && testId) {
             const fetchTest = async () => {
@@ -86,29 +87,44 @@ export default function TestPreviewPage() {
                         {questions?.map((q: any, idx: number) => (
                             <li
                                 key={idx}
-                                className="p-4 rounded-md border bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700"
+                                className="p-4 rounded-md border bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 space-y-4"
                             >
-                                <p className="font-medium mb-3">
-                                    Q{idx + 1}. {q.questionText}{" "}
-                                    <span className="text-xs text-gray-500">
-                                        ({q.marks || 1} marks)
-                                    </span>
-                                </p>
+                                <div>
+                                    <p className="font-medium mb-2">
+                                        Q{idx + 1}. {q.questionText}{" "}
+                                        <span className="text-xs text-gray-500">
+                                            ({q.marks || 1} marks)
+                                        </span>
+                                    </p>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {Object.entries(q.options).map(
-                                        ([key, value]) => (
-                                            <div
-                                                key={key}
-                                                className="px-4 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 text-sm text-gray-800 dark:text-gray-100 break-words"
-                                            >
-                                                <strong className="mr-1">
-                                                    {key.toUpperCase()}.
-                                                </strong>{" "}
-                                                {value}
-                                            </div>
-                                        )
-                                    )}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {["a", "b", "c", "d"].map((key) => {
+                                            const isCorrect =
+                                                q.correctAnswer === key;
+                                            return (
+                                                <div
+                                                    key={key}
+                                                    className={`px-4 py-2 rounded-md border ${
+                                                        isCorrect
+                                                            ? "border-green-500 bg-green-50 dark:bg-green-900"
+                                                            : "border-gray-300 dark:border-zinc-600"
+                                                    } text-sm break-words text-gray-800 dark:text-gray-100`}
+                                                >
+                                                    <strong className="mr-1">
+                                                        {key.toUpperCase()}.
+                                                    </strong>{" "}
+                                                    {q.options[key]}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div className="mt-2 text-sm text-green-600 dark:text-green-400 font-medium">
+                                    ✅ Correct Answer:{" "}
+                                    <span className="inline-block bg-green-100 dark:bg-green-800 px-2 py-0.5 rounded">
+                                        {q.correctAnswer?.toUpperCase()}
+                                    </span>
                                 </div>
                             </li>
                         ))}

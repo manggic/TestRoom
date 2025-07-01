@@ -13,8 +13,8 @@ export default function CreateTest() {
 
     console.log({ currentUser });
 
-    const [testName, setTestName] = useState("algebra");
-    const [durationMinutes, setDurationMinutes] = useState(20);
+    const [testName, setTestName] = useState("");
+    const [durationMinutes, setDurationMinutes] = useState(null);
     const [description, setDescription] = useState("");
 
     const [jsonData, setJsonData] = useState([]);

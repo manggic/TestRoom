@@ -17,13 +17,20 @@ import {
     getDocs,
     deleteDoc,
     setDoc,
+    serverTimestamp,
 } from "firebase/firestore";
+
+
 import { db } from "@/firebase/config";
 import { toast } from "sonner";
-
+import { useAuth } from "@/context/useAuth";
+import { normalizeCreatedAt } from "@/lib/utils";
 const optionKeys = ["a", "b", "c", "d"];
 
 export default function EditTestPage() {
+    const { currentUser } = useAuth();
+
+    const { firebaseUser, profile } = currentUser || {};
     const { state } = useLocation();
     const { testId } = useParams();
     const navigate = useNavigate();
@@ -31,6 +38,8 @@ export default function EditTestPage() {
     const [test, setTest] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(0);
+    const [errors, setErrors] = useState<{ [index: number]: boolean }>({});
+
     const questionsPerPage = 10;
 
     useEffect(() => {
@@ -101,14 +110,25 @@ export default function EditTestPage() {
         field: string,
         value: string | number
     ) => {
-        // console.log({index}, {field}, {value});
-        // return
-
         const updatedQuestions = [...test.questions];
+        const newValue =
+            typeof value === "string" ? value.toLowerCase().trim() : value;
+
         updatedQuestions[index] = {
             ...updatedQuestions[index],
-            [field]: value,
+            [field]: newValue,
         };
+
+        // Validation for correctAnswer
+        if (field === "correctAnswer") {
+            const isValid = optionKeys.includes(newValue as string);
+
+            setErrors((prev) => ({
+                ...prev,
+                [index]: !isValid,
+            }));
+        }
+
         setTest({ ...test, questions: updatedQuestions });
     };
 
@@ -138,9 +158,9 @@ export default function EditTestPage() {
 
     const handleAddQuestion = () => {
         const newQuestion = {
-            question: "New Question?",
-            options: ["", "", "", ""],
-            correct: 0,
+            questionText: "New Question?",
+            options: { a: null, b: null, c: null, d: null },
+            correctAnswer: null,
             marks: 1,
         };
         setTest({ ...test, questions: [...test.questions, newQuestion] });
@@ -151,6 +171,21 @@ export default function EditTestPage() {
         let existingQuestionsData: any[] = []; // ✅ declare outside try to allow rollback
 
         try {
+            const invalidQuestions = Object.entries(errors)
+                .filter(([_, hasError]) => hasError)
+                .map(([index]) => Number(index) + 1); // human-readable 1-based index
+
+            if (invalidQuestions.length > 0) {
+                toast.error(
+                    `Please fix correct answer in question(s): ${invalidQuestions.join(
+                        ", "
+                    )}`
+                );
+                return;
+            }
+
+            console.log("TEST DATA BEFORE EDIT ", test);
+
             const testRef = doc(db, "tests", test.id);
             const questionsRef = collection(testRef, "questions");
 
@@ -177,7 +212,11 @@ export default function EditTestPage() {
                 description: test.description,
                 durationMinutes: test.durationMinutes,
                 totalMarks: updatedTotalMarks,
-                updatedAt: new Date(),
+                updatedAt: serverTimestamp(),
+                lastUpdatedBy: {
+                    id: firebaseUser?.uid,
+                    name: profile?.name,
+                },
             });
 
             // ✅ 4. Add updated questions
@@ -190,8 +229,8 @@ export default function EditTestPage() {
                     options: question.options,
                     correctAnswer: question.correctAnswer,
                     marks: question.marks,
-                    createdAt: question.createdAt || new Date(),
-                    updatedAt: new Date(),
+                    createdAt: normalizeCreatedAt(question.createdAt),
+                    updatedAt: serverTimestamp(),
                 });
             }
 
@@ -250,16 +289,39 @@ export default function EditTestPage() {
                 </div>
 
                 <Card className="p-6 space-y-6 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Test Name</label>
-                        <input
-                            type="text"
-                            className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                            value={test.testName}
-                            onChange={(e) =>
-                                setTest({ ...test, testName: e.target.value })
-                            }
-                        />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">
+                                Test Name
+                            </label>
+                            <input
+                                type="text"
+                                className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
+                                value={test.testName}
+                                onChange={(e) =>
+                                    setTest({
+                                        ...test,
+                                        testName: e.target.value,
+                                    })
+                                }
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">
+                                Test Duration (minutes)
+                            </label>
+                            <input
+                                type="number"
+                                className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
+                                value={test.durationMinutes}
+                                onChange={(e) =>
+                                    setTest({
+                                        ...test,
+                                        durationMinutes: +e.target.value,
+                                    })
+                                }
+                            />
+                        </div>
                     </div>
 
                     <div className="space-y-2">
@@ -274,23 +336,6 @@ export default function EditTestPage() {
                                 setTest({
                                     ...test,
                                     description: e.target.value,
-                                })
-                            }
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">
-                            Test Duration (minutes)
-                        </label>
-                        <input
-                            type="number"
-                            className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                            value={test.durationMinutes}
-                            onChange={(e) =>
-                                setTest({
-                                    ...test,
-                                    durationMinutes: +e.target.value,
                                 })
                             }
                         />
@@ -333,14 +378,19 @@ export default function EditTestPage() {
                                 />
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {Object.entries(q.options).map(
-                                        ([key, value], optIndex) => {
-                                            return (
+                                    {["a", "b", "c", "d"].map((key) => {
+                                        return (
+                                            <div
+                                                key={key}
+                                                className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 p-3 rounded-md border border-gray-200 dark:border-zinc-700"
+                                            >
+                                                <div className="font-bold w-6 text-center text-sm text-gray-700 dark:text-gray-300">
+                                                    {key.toUpperCase()}.
+                                                </div>
                                                 <input
-                                                    key={key}
                                                     type="text"
-                                                    className="rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                                                    value={value}
+                                                    className="flex-1 text-sm rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary"
+                                                    value={q?.options?.[key]}
                                                     onChange={(e) =>
                                                         handleOptionChange(
                                                             qIndex + start,
@@ -348,24 +398,27 @@ export default function EditTestPage() {
                                                             e.target.value
                                                         )
                                                     }
-                                                    placeholder={`Option ${optionKeys[
-                                                        optIndex
-                                                    ].toUpperCase()}`}
+                                                    placeholder={`Enter option ${key.toUpperCase()}`}
                                                 />
-                                            );
-                                        }
-                                    )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
 
                                 <div className="flex gap-4">
                                     <div className="w-full">
                                         <label className="text-sm font-medium">
-                                            Correct Answer (Index 0–3)
+                                            Correct Answer (Enter one of: a, b,
+                                            c, or d)
                                         </label>
                                         <input
                                             type="string"
-                                            className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                                            value={q.options[q.correctAnswer]}
+                                            className={`w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border ${
+                                                errors[qIndex + start]
+                                                    ? "border-red-500 dark:border-red-400"
+                                                    : "border-gray-300 dark:border-zinc-600"
+                                            }`}
+                                            value={q.correctAnswer}
                                             onChange={(e) =>
                                                 handleInputChange(
                                                     qIndex + start,
@@ -374,6 +427,12 @@ export default function EditTestPage() {
                                                 )
                                             }
                                         />
+                                        {errors[qIndex + start] && (
+                                            <p className="text-sm text-red-500 mt-1">
+                                                Please enter one of: a, b, c, or
+                                                d.
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="w-full">

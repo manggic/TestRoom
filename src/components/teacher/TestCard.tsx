@@ -37,7 +37,13 @@ export function TestCard({ test }: { test: any }) {
                     <BarChart2 size={16} /> Highest Score: {highestScore}
                 </div>
                 <div className="flex items-center gap-2">
-                    <User size={16} /> Created By: {createdBy.name}
+                    <User size={16} />
+                    <span
+                        className="truncate whitespace-nowrap overflow-hidden max-w-[180px]"
+                        title={createdBy.name}
+                    >
+                        Created By: {createdBy.name}
+                    </span>
                 </div>
                 <div className="flex items-center gap-2">
                     <Calendar size={16} /> Status: {status}

@@ -4,7 +4,7 @@ import {
     addDoc,
     query,
     where,
-    Timestamp,
+    serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/firebase/config"; // your Firestore config
 import { apiHandler } from "../utils";
@@ -36,8 +36,8 @@ export async function createTest(testDataToCreate: TEST_DATA_TO_CREATE) {
             status,
             highestScore: 0,
             attempts: 0,
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now(),
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
             totalMarks, // ✅ dynamic
         };
 
@@ -47,7 +47,11 @@ export async function createTest(testDataToCreate: TEST_DATA_TO_CREATE) {
         // ✅ Add questions to subcollection
         const questionsRef = collection(testRef, "questions");
         for (const q of questions || []) {
-            await addDoc(questionsRef, q);
+            await addDoc(questionsRef, {
+                ...q,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            });
         }
 
         console.log("✅ Test and questions added successfully!");

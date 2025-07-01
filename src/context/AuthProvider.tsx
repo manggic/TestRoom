@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { performSignOut, subscribeToAuthChanges } from "./authUtils";
 import { AuthContext } from "./AuthContext";
 import type { AuthProviderProps, AuthContextUser, UserProfile } from "./types";
-import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import type { User } from "firebase/auth";
 
@@ -30,8 +30,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
               email: firebaseUser.email || "",
               role: "student",
               isActive: true,
-              createdAt: Timestamp.now(),
-              updatedAt: Timestamp.now(),
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
             };
 
             await setDoc(userDocRef, defaultProfile);
