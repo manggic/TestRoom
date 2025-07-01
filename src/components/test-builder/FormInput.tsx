@@ -1,74 +1,105 @@
 // src/components/test-builder/FormInput.tsx
-export function FormInput() {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
-    const getValue = (id: string) =>
-      (document.getElementById(id) as HTMLInputElement).value;
+export function FormInput({ setFormData }) {
+    const [questionAdded, setQuestionAdded] = useState(false);
 
-    const question = getValue("question");
-    const options = [1, 2, 3, 4].map((i) => getValue("option" + i));
-    const correct = +getValue("correct");
-    const marks = +getValue("marks");
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
 
-    const questions = JSON.parse(localStorage.getItem("mcq_form") || "[]");
-    questions.push({ question, options, correct, marks });
-    localStorage.setItem("mcq_form", JSON.stringify(questions));
+        const getValue = (id: string) =>
+            (document.getElementById(id) as HTMLInputElement).value;
 
-    alert("✅ Question added!");
-    (e.target as HTMLFormElement).reset();
-  };
+        const questionText = getValue("question");
+        const optionA = getValue("option1");
+        const optionB = getValue("option2");
+        const optionC = getValue("option3");
+        const optionD = getValue("option4");
+        const correctAnswer = getValue("correct");
+        const marks = +getValue("marks");
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <h3 className="text-lg font-semibold mb-2">Add Question via Form</h3>
+        const options = {
+            a: optionA,
+            b: optionB,
+            c: optionC,
+            d: optionD,
+        };
 
-      <input
-        id="question"
-        placeholder="Enter question"
-        required
-        className="w-full border rounded-md px-3 py-2 bg-white dark:bg-zinc-700"
-      />
+        const question = { questionText, options, correctAnswer, marks };
 
-      {[1, 2, 3, 4].map((i) => (
-        <input
-          key={i}
-          id={`option${i}`}
-          placeholder={`Option ${i}`}
-          required
-          className="w-full border rounded-md px-3 py-2 bg-white dark:bg-zinc-700"
-        />
-      ))}
+        // questions.push();
 
-      <select
-        id="correct"
-        required
-        className="w-full border rounded-md px-3 py-2 bg-white dark:bg-zinc-700"
-      >
-        <option value="" disabled selected>
-          Select Correct Answer
-        </option>
-        {[1, 2, 3, 4].map((i) => (
-          <option key={i - 1} value={i - 1}>
-            Option {i}
-          </option>
-        ))}
-      </select>
+        setFormData((prev) => [...prev, question]);
+        // localStorage.setItem("mcq_form", JSON.stringify(questions));
 
-      <input
-        id="marks"
-        type="number"
-        placeholder="Marks for this question"
-        required
-        className="w-full border rounded-md px-3 py-2 bg-white dark:bg-zinc-700"
-      />
+        setQuestionAdded(true);
+        setTimeout(() => setQuestionAdded(false), 2000);
+        (e.target as HTMLFormElement).reset();
+    };
 
-      <button
-        type="submit"
-        className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition-colors"
-      >
-        Add Question
-      </button>
-    </form>
-  );
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <h3 className="text-lg font-semibold mb-2">
+                Add Question via Form
+            </h3>
+
+            <input
+                id="question"
+                placeholder="Enter question"
+                required
+                className="w-full border rounded-md px-3 py-2 bg-white dark:bg-zinc-700"
+            />
+
+            {["Option A", "Option B", "Option C", "Option D"].map(
+                (label, i) => (
+                    <input
+                        key={i}
+                        id={`option${i + 1}`}
+                        placeholder={label}
+                        required
+                        className="w-full border rounded-md px-3 py-2 bg-white dark:bg-zinc-700"
+                    />
+                )
+            )}
+
+            <select
+                id="correct"
+                required
+                defaultValue=""
+                className="w-full border rounded-md px-3 py-2 bg-white dark:bg-zinc-700"
+            >
+                <option value="" disabled>
+                    Select Correct Answer
+                </option>
+                <option value="a">Option A</option>
+                <option value="b">Option B</option>
+                <option value="c">Option C</option>
+                <option value="d">Option D</option>
+            </select>
+
+            <input
+                id="marks"
+                type="number"
+                placeholder="Marks for this question"
+                required
+                className="w-full border rounded-md px-3 py-2 bg-white dark:bg-zinc-700"
+            />
+
+            <Button
+                type="submit"
+                className="bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-200 dark:text-black dark:hover:bg-white gap-2"
+            >
+                <Plus size={16} />
+                Add Question
+            </Button>
+
+            {questionAdded && (
+                <span className="text-green-500 text-sm">
+                    ✅ Question added!
+                </span>
+            )}
+        </form>
+    );
 }

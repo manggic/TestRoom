@@ -1,12 +1,50 @@
-import {useState } from "react";
+import { useState } from "react";
 import { FormInput } from "./test-builder/FormInput";
 import { QuestionPreview } from "./test-builder/QuestionPreview";
 import { Controls } from "./test-builder/Controls";
 import { JsonInput } from "./test-builder/JsonInput";
 import { BackButton } from "./BackButton";
+import { toast } from "sonner";
+import { createTest } from "@/lib/apiCalls/tests";
+import { useAuth } from "@/context/useAuth";
 
 export default function CreateTest() {
+    const { currentUser } = useAuth();
+
+    console.log({ currentUser });
+
+    const [testName, setTestName] = useState("algebra");
+    const [durationMinutes, setDurationMinutes] = useState(20);
+    const [description, setDescription] = useState("");
+
+    const [jsonData, setJsonData] = useState([]);
+    const [formData, setFormData] = useState([]);
+
     const [useJSON, setUseJSON] = useState(true);
+
+    const handleSave = (status: "Draft" | "Published") => {
+        if (!testName) return toast.error("Please enter test name");
+        if (!durationMinutes) return toast.error("Please enter duration");
+        if (jsonData.length === 0 && formData.length === 0)
+            return toast.error("Please add questions");
+
+        const questions = [...jsonData, ...formData];
+
+        createTest({
+            testName,
+            durationMinutes,
+            questions,
+            createdBy: {
+                id: currentUser?.firebaseUser?.uid,
+                name: currentUser?.profile.name,
+            },
+            status,
+        });
+
+        toast.success(`✅ Test saved as ${status}`);
+    };
+
+    console.log("Questions >>>>>", [...jsonData, ...formData]);
 
     return (
         <div className="min-h-screen px-4 py-10 bg-slate-100 dark:bg-zinc-900 text-gray-900 dark:text-white">
@@ -38,7 +76,9 @@ export default function CreateTest() {
                                 id="test-name-input"
                                 className="w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 bg-white dark:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="e.g. Science Test"
+                                value={testName}
                                 required
+                                onChange={(e) => setTestName(e.target.value)}
                             />
                         </div>
 
@@ -55,6 +95,10 @@ export default function CreateTest() {
                                 className="w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 bg-white dark:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="e.g. 10"
                                 required
+                                value={durationMinutes}
+                                onChange={(e) =>
+                                    setDurationMinutes(parseInt(e.target.value))
+                                }
                             />
                         </div>
                     </div>
@@ -82,17 +126,43 @@ export default function CreateTest() {
 
                     {/* Input Mode (JSON or Form) */}
                     <div className="pt-2">
-                        {useJSON ? <JsonInput /> : <FormInput />}
+                        {useJSON ? (
+                            <JsonInput setJsonData={setJsonData} />
+                        ) : (
+                            <FormInput setFormData={setFormData} />
+                        )}
                     </div>
 
                     {/* Preview */}
+                    {/* Preview */}
                     <div className="pt-2">
-                        <QuestionPreview />
+                        <QuestionPreview
+                            questions={[...jsonData, ...formData]}
+                            onDelete={(indexToDelete) => {
+                                const total = [...jsonData, ...formData];
+                                const fromJson =
+                                    indexToDelete < jsonData.length;
+                                if (fromJson) {
+                                    const updated = jsonData.filter(
+                                        (_, idx) => idx !== indexToDelete
+                                    );
+                                    setJsonData(updated);
+                                } else {
+                                    const offset =
+                                        indexToDelete - jsonData.length;
+                                    const updated = formData.filter(
+                                        (_, idx) => idx !== offset
+                                    );
+                                    setFormData(updated);
+                                }
+                                toast.success("🗑️ Question deleted.");
+                            }}
+                        />
                     </div>
 
                     {/* Save Button */}
                     <div className="pt-2 border-t border-gray-200 dark:border-zinc-700">
-                        <Controls />
+                        <Controls handleSave={handleSave} />
                     </div>
                 </div>
             </div>
