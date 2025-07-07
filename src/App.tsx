@@ -13,11 +13,11 @@ import EditTestPage from "./components/teacher/EditTestPage";
 import { useAuth } from "./context/useAuth";
 
 function App() {
-  const { loading } = useAuth();
+    const { loading } = useAuth();
 
     if (loading) {
-    return <div className="text-center p-6">Loading App...</div>; // Block premature route render
-  }
+        return <div className="text-center p-6">Loading App...</div>; // Block premature route render
+    }
     return (
         <BrowserRouter>
             <Routes>
@@ -30,8 +30,14 @@ function App() {
                         <Route path="create-test" element={<CreateTest />} />
                         <Route path="test" element={<TestPaper />} />
 
-                           <Route path="/testpaper/preview/:testId" element={<TestPreviewPage />} />
-                          <Route path="/testpaper/edit/:testId" element={<EditTestPage />} />
+                        <Route
+                            path="/testpaper/preview/:testId"
+                            element={<TestPreviewPage />}
+                        />
+                        <Route
+                            path="/testpaper/edit/:testId"
+                            element={<EditTestPage />}
+                        />
                     </Route>
                 </Route>
 

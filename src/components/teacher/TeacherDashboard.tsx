@@ -7,14 +7,16 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TestCard } from "@/components/teacher/TestCard";
 import { Plus } from "lucide-react";
 import { getAllTests, getMyTest } from "@/lib/apiCalls/tests";
+import { toast } from "sonner";
+
+import type { Test } from "@/types/test";
 
 export default function TeacherDashboard() {
     const [allTests, setAllTests] = useState([]);
-    const [myTests, setMyTests] = useState([]);
+    const [myTests, setMyTests] = useState<Array<Test>>([]);
     const [isTestDataloading, setIsTestDataLoading] = useState(true);
     const { currentUser, loading } = useAuth();
     const { profile, firebaseUser } = currentUser || {};
-
 
     const navigate = useNavigate();
     const [tab, setTab] = useState("my");
@@ -30,10 +32,14 @@ export default function TeacherDashboard() {
         async function loadMyTest() {
             try {
                 if (firebaseUser?.uid) {
-                    const result = await getMyTest(firebaseUser?.uid);
+                    const response = await getMyTest(firebaseUser?.uid);
 
-
-                    setMyTests(result);
+                    if (response.success) {
+                        setMyTests(response.data);
+                    } else {
+                        toast(response.message);
+                        setMyTests([]);
+                    }
                 } else {
                     alert("user uid is not fetched");
                 }

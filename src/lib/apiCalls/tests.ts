@@ -7,14 +7,32 @@ import {
     serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/firebase/config"; // your Firestore config
-import { apiHandler } from "../utils";
+import { errorHandler } from "../utils";
+import type {Test} from '@/types/test' 
 
-type TEST_DATA_TO_CREATE = {
+// types.ts or inside the same file above createTest()
+export type Question = {
+    questionText: string;
+    options: {
+        a: string;
+        b: string;
+        c: string;
+        d: string;
+    };
+    correctAnswer: string;
+    marks: number;
+};
+
+export type TEST_DATA_TO_CREATE = {
     testName: string;
     durationMinutes: number;
-    status: string;
-    questions: any;
-    createdBy: { id: string; name: string };
+    description?: string; // optional since you default to ""
+    createdBy: {
+        id: string | undefined;
+        name: string | undefined;
+    };
+    status: "Draft" | "Published";
+    questions: Question[];
 };
 
 export async function createTest(testDataToCreate: TEST_DATA_TO_CREATE) {
@@ -54,10 +72,12 @@ export async function createTest(testDataToCreate: TEST_DATA_TO_CREATE) {
             });
         }
 
-        console.log("✅ Test and questions added successfully!");
+        return {
+            success: true,
+            message: "Test and questions added successfully!",
+        };
     } catch (error) {
-        console.log(error);
-        apiHandler(error);
+        return errorHandler(error);
     }
 }
 
@@ -133,13 +153,12 @@ export async function getMyTest(teacherId: string) {
             })
         );
 
-        console.log({ teacherTests });
-        return teacherTests || [];
+        return {
+            success: true,
+            message: "fetch test successful",
+            data: teacherTests || [],
+        };
     } catch (error) {
-        console.error(
-            "🔥 Failed to fetch teacher tests with questions:",
-            error
-        );
-        return [];
+        return errorHandler<Test[]>(error);
     }
 }

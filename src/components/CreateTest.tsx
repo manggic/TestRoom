@@ -7,6 +7,7 @@ import { BackButton } from "./BackButton";
 import { toast } from "sonner";
 import { createTest } from "@/lib/apiCalls/tests";
 import { useAuth } from "@/context/useAuth";
+import { errorHandler } from "@/lib/utils";
 
 export default function CreateTest() {
     const { currentUser } = useAuth();
@@ -14,37 +15,51 @@ export default function CreateTest() {
     console.log({ currentUser });
 
     const [testName, setTestName] = useState("");
-    const [durationMinutes, setDurationMinutes] = useState(null);
-    const [description, setDescription] = useState("");
+    const [durationMinutes, setDurationMinutes] = useState<number | undefined>(
+        undefined
+    );
+    // const [description, setDescription] = useState("");
 
     const [jsonData, setJsonData] = useState([]);
     const [formData, setFormData] = useState([]);
 
     const [useJSON, setUseJSON] = useState(true);
 
-    const handleSave = (status: "Draft" | "Published") => {
-        if (!testName) return toast.error("Please enter test name");
-        if (!durationMinutes) return toast.error("Please enter duration");
-        if (jsonData.length === 0 && formData.length === 0)
-            return toast.error("Please add questions");
+    const handleSave = async (status: "Draft" | "Published") => {
+        try {
+            if (!testName) return toast.error("Please enter test name");
+            if (!durationMinutes) return toast.error("Please enter duration");
+            if (jsonData.length === 0 && formData.length === 0)
+                return toast.error("Please add questions");
 
-        const questions = [...jsonData, ...formData];
+            const questions = [...jsonData, ...formData];
 
-        createTest({
-            testName,
-            durationMinutes,
-            questions,
-            createdBy: {
-                id: currentUser?.firebaseUser?.uid,
-                name: currentUser?.profile.name,
-            },
-            status,
-        });
+            if (!currentUser?.profile || !currentUser.firebaseUser?.uid) {
+                return toast.error(
+                    "User is not logged in or profile is missing"
+                );
+            }
 
-        toast.success(`✅ Test saved as ${status}`);
+            const response = await createTest({
+                testName,
+                durationMinutes,
+                questions,
+                createdBy: {
+                    id: currentUser?.firebaseUser?.uid,
+                    name: currentUser?.profile.name,
+                },
+                status,
+            });
+
+            if (response.success) {
+                toast.success(`✅ Test saved as ${status}`);
+            } else {
+                toast('Create Test Failed');
+            }
+        } catch (error) {
+            toast(errorHandler(error).message);
+        }
     };
-
-    console.log("Questions >>>>>", [...jsonData, ...formData]);
 
     return (
         <div className="min-h-screen px-4 py-10 bg-slate-100 dark:bg-zinc-900 text-gray-900 dark:text-white">

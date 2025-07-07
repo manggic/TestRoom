@@ -5,7 +5,7 @@ import {
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 import { auth, db } from "../firebase/config";
-import { apiHandler } from "@/lib/utils";
+import { errorHandler } from "@/lib/utils";
 
 export const signupUser = async (
     email: string,
@@ -43,7 +43,7 @@ export const signupUser = async (
 
         return { success: true, data: user };
     } catch (error: unknown) {
-        return apiHandler(error);
+        return errorHandler(error);
     }
 };
 
@@ -66,6 +66,6 @@ export const logInUser = async (email: string, password: string) => {
             return { success: false, message: "Something went wrong" };
         }
     } catch (error: unknown) {
-        return apiHandler(error);
+        return errorHandler(error);
     }
 };
