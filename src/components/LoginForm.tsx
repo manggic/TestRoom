@@ -13,8 +13,8 @@ import { useAuth } from "@/context/useAuth";
 export default function LoginForm() {
     const { currentUser } = useAuth();
     const [form, setForm] = useState({
-        email: "manito@gmail.com",
-        password: "manito@123",
+        email: "",
+        password: "",
     });
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();

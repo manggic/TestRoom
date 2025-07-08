@@ -16,9 +16,9 @@ export default function SignUpForm() {
     const { setCurrentUser } = useAuth();
 
     const [form, setForm] = useState({
-        name: "manito",
-        email: "manito@gmail.com",
-        password: "manito@123",
+        name: "",
+        email: "",
+        password: "",
     });
 
     const [errors, setErrors] = useState({
