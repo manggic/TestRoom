@@ -3,8 +3,8 @@ import { useNavigate, useLocation, useParams } from "react-router";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/firebase/config";
+import { supabaseClient } from '@/supabase/config';
+import { useAuth } from "@/context/useAuth";
 
 import { ArrowLeft, FileText, Timer, User, Calendar } from "lucide-react";
 
@@ -12,33 +12,61 @@ export default function TestPreviewPage() {
     const navigate = useNavigate();
     const { state } = useLocation();
     const { testId } = useParams();
+    const { currentUser } = useAuth();
     const [test, setTest] = useState<any>(state?.test || null);
+    const [questions, setQuestions] = useState<any[]>(state?.test?.questions || []);
+    const [creatorName, setCreatorName] = useState<string>("");
     const [loading, setLoading] = useState(!state?.test);
 
-    const {
-        testName,
-        durationMinutes,
-        totalMarks,
-        status,
-        createdBy,
-        questions,
-    } = test || {};
-
-
     useEffect(() => {
-        if (!test && testId) {
-            const fetchTest = async () => {
-                setLoading(true);
-                const docRef = doc(db, "tests", testId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    setTest({ id: docSnap.id, ...docSnap.data() });
-                }
+        const fetchTestAndQuestions = async () => {
+            setLoading(true);
+            // Fetch test from Supabase
+            const { data: testData, error: testError } = await supabaseClient
+                .from('tests')
+                .select('*')
+                .eq('id', testId)
+                .single();
+            if (testError || !testData) {
+                setTest(null);
                 setLoading(false);
-            };
-            fetchTest();
+                return;
+            }
+            setTest(testData);
+            // Fetch questions for this test
+            const { data: questionsData, error: questionsError } = await supabaseClient
+                .from('questions')
+                .select('*')
+                .eq('test_id', testId);
+            setQuestions(questionsData || []);
+            // Fetch creator name
+            if (testData.created_by) {
+                if (currentUser?.user?.id === testData.created_by) {
+                    setCreatorName("You");
+                } else {
+                    const { data: userData, error: userError } = await supabaseClient
+                        .from('users')
+                        .select('name')
+                        .eq('id', testData.created_by)
+                        .single();
+                    setCreatorName(userData?.name || testData.created_by);
+                }
+            }
+            setLoading(false);
+        };
+        if (!state?.test && testId) {
+            fetchTestAndQuestions();
+        } else if (state?.test) {
+            setTest(state.test);
+            setQuestions(state.test.questions || []);
+            if (currentUser?.user?.id === (state.test.created_by || state.test.createdBy?.id)) {
+                setCreatorName("You");
+            } else {
+                setCreatorName(state.test.createdBy?.name || state.test.created_by || "");
+            }
+            setLoading(false);
         }
-    }, [test, testId]);
+    }, [state, testId, currentUser]);
 
     if (loading) return <div className="p-6 text-center">Loading test...</div>;
     if (!test)
@@ -56,29 +84,28 @@ export default function TestPreviewPage() {
                         className="flex items-center gap-2"
                         onClick={() => navigate(-1)}
                     >
-                        <ArrowLeft size={16} /> Back
+                        <ArrowLeft size={20} /> Back
                     </Button>
                 </div>
 
                 {/* Card Wrapper */}
                 <Card className="p-6 space-y-6 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700">
                     <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                        {testName}
+                        {test.test_name}
                     </h1>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700 dark:text-gray-300">
                         <div className="flex items-center gap-2">
-                            <Timer size={16} /> Duration: {durationMinutes} mins
+                            <Timer size={20} /> Duration: {test.duration_minutes} mins
                         </div>
                         <div className="flex items-center gap-2">
-                            <FileText size={16} /> Total Marks: {totalMarks}
+                            <FileText size={20} /> Total Marks: {test.total_marks}
                         </div>
                         <div className="flex items-center gap-2">
-                            <User size={16} /> Created By:{" "}
-                            {createdBy?.name || "You"}
+                            <User size={20} /> Created By: {creatorName || "Unknown"}
                         </div>
                         <div className="flex items-center gap-2">
-                            <Calendar size={16} /> Status: {status || "Draft"}
+                            <Calendar size={20} /> Status: {test.status || "draft"}
                         </div>
                     </div>
 
@@ -91,7 +118,7 @@ export default function TestPreviewPage() {
                             >
                                 <div>
                                     <p className="font-medium mb-2">
-                                        Q{idx + 1}. {q.questionText}{" "}
+                                        Q{idx + 1}. {q.question_text} {" "}
                                         <span className="text-xs text-gray-500">
                                             ({q.marks || 1} marks)
                                         </span>
@@ -100,7 +127,7 @@ export default function TestPreviewPage() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         {["a", "b", "c", "d"].map((key) => {
                                             const isCorrect =
-                                                q.correctAnswer === key;
+                                                q.correct_answer === key;
                                             return (
                                                 <div
                                                     key={key}
@@ -121,9 +148,9 @@ export default function TestPreviewPage() {
                                 </div>
 
                                 <div className="mt-2 text-sm text-green-600 dark:text-green-400 font-medium">
-                                    ✅ Correct Answer:{" "}
+                                    ✅ Correct Answer: {" "}
                                     <span className="inline-block bg-green-100 dark:bg-green-800 px-2 py-0.5 rounded">
-                                        {q.correctAnswer?.toUpperCase()}
+                                        {q.correct_answer?.toUpperCase()}
                                     </span>
                                 </div>
                             </li>

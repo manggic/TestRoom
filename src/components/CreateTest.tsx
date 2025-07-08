@@ -12,7 +12,6 @@ import { errorHandler } from "@/lib/utils";
 export default function CreateTest() {
     const { currentUser } = useAuth();
 
-    console.log({ currentUser });
 
     const [testName, setTestName] = useState("");
     const [durationMinutes, setDurationMinutes] = useState<number | undefined>(
@@ -25,30 +24,30 @@ export default function CreateTest() {
 
     const [useJSON, setUseJSON] = useState(true);
 
-    const handleSave = async (status: "Draft" | "Published") => {
+    const handleSave = async (status: "draft" | "published") => {
         try {
             if (!testName) return toast.error("Please enter test name");
             if (!durationMinutes) return toast.error("Please enter duration");
             if (jsonData.length === 0 && formData.length === 0)
                 return toast.error("Please add questions");
 
-            const questions = [...jsonData, ...formData];
+            const questions = [...jsonData, ...formData].map((q) => ({
+                question_text: q.questionText,
+                options: q.options,
+                correct_answer: q.correctAnswer,
+                marks: q.marks,
+            }));
 
-            if (!currentUser?.profile || !currentUser.firebaseUser?.uid) {
-                return toast.error(
-                    "User is not logged in or profile is missing"
-                );
+            if (!currentUser?.user?.id) {
+                return toast.error("User is not logged in");
             }
 
             const response = await createTest({
-                testName,
-                durationMinutes,
+                test_name: testName,
+                duration_minutes: durationMinutes,
                 questions,
-                createdBy: {
-                    id: currentUser?.firebaseUser?.uid,
-                    name: currentUser?.profile.name,
-                },
-                status,
+                created_by: currentUser.user.id,
+                status: status.toLowerCase(),
             });
 
             if (response.success) {

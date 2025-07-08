@@ -11,7 +11,7 @@ export default function ProtectedRoute() {
   }
 
   // 👇 Prevent early redirect if currentUser is not yet available
-  if (!currentUser || !currentUser.profile?.email) {
+  if (!currentUser || !currentUser.user?.email) {
     return <Navigate to="/login" replace />;
   }
 

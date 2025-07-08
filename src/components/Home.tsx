@@ -10,7 +10,16 @@ import TeacherDashboard from "./teacher/TeacherDashboard";
 export default function Home() {
   const { currentUser, loading } = useAuth();
 
-  const { profile } = currentUser || {}
+  
+
+  // const { profile } = currentUser || {}
+  let role = currentUser?.user?.role;
+  if (!role || !['student', 'teacher', 'admin'].includes(role)) {
+    role = currentUser?.user?.user_metadata?.role;
+  }
+  // Only allow valid roles
+  const allowedRoles = ['student', 'teacher', 'admin'];
+  const isValidRole = allowedRoles.includes(role);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,7 +28,7 @@ export default function Home() {
     }
   }, [currentUser, loading]);
 
-  console.log({currentUser});
+  
   
 
   if (loading || !currentUser) {
@@ -38,7 +47,14 @@ export default function Home() {
   }
 
   const renderDashboard = () => {
-    switch (profile?.role) {
+    if (!isValidRole) {
+      return (
+        <div className="text-center text-red-500">
+          Unknown or invalid role: {role}
+        </div>
+      );
+    }
+    switch (role) {
     //   case "admin":
     //     return <AdminDashboard />;
       case "teacher":
@@ -46,11 +62,7 @@ export default function Home() {
     //   case "student":
     //     return <StudentDashboard />;
       default:
-        return (
-          <div className="text-center text-red-500">
-            Unknown role: {profile?.role}
-          </div>
-        );
+        return null;
     }
   };
 

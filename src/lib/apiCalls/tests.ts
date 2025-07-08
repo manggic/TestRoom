@@ -1,80 +1,130 @@
-import {
-    collection,
-    getDocs,
-    addDoc,
-    query,
-    where,
-    serverTimestamp,
-} from "firebase/firestore";
-import { db } from "@/firebase/config"; // your Firestore config
-import { errorHandler } from "../utils";
-import type {Test} from '@/types/test' 
+import { supabaseClient } from '@/supabase/config';
+import { errorHandler } from '@/lib/utils';
+// TODO: Replace all Firestore logic with Supabase equivalents.
 
 // types.ts or inside the same file above createTest()
 export type Question = {
-    questionText: string;
+    question_text: string;
     options: {
         a: string;
         b: string;
         c: string;
         d: string;
     };
-    correctAnswer: string;
+    correct_answer: string;
     marks: number;
 };
 
 export type TEST_DATA_TO_CREATE = {
-    testName: string;
-    durationMinutes: number;
-    description?: string; // optional since you default to ""
-    createdBy: {
-        id: string | undefined;
-        name: string | undefined;
-    };
-    status: "Draft" | "Published";
+    test_name: string;
+    duration_minutes: number;
+    description?: string;
+    created_by: string; // user id
+    status: 'draft' | 'published';
     questions: Question[];
 };
 
 export async function createTest(testDataToCreate: TEST_DATA_TO_CREATE) {
     try {
-        const { testName, durationMinutes, createdBy, questions, status } =
-            testDataToCreate;
+        const { test_name, duration_minutes, created_by, questions, status, description } = testDataToCreate;
+        const total_marks = (questions || []).reduce((sum, q) => sum + (Number(q.marks) || 0), 0);
+        const now = new Date().toISOString();
 
-        // ✅ Dynamically calculate totalMarks
-        const totalMarks = (questions || []).reduce(
-            (sum, q) => sum + (Number(q.marks) || 0),
-            0
-        );
+        // Insert test
+        const { data: test, error: testError } = await supabaseClient
+            .from('tests')
+            .insert([{
+                test_name,
+                duration_minutes,
+                description: description || '',
+                created_by,
+                status,
+                highest_score: 0,
+                attempts: 0,
+                total_marks,
+                created_at: now,
+                updated_at: now,
+                last_updated_by: created_by,
+            }])
+            .select()
+            .single();
+        if (testError) throw testError;
 
-        const properData = {
-            testName,
-            durationMinutes,
-            description: "",
-            createdBy,
-            status,
-            highestScore: 0,
-            attempts: 0,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            totalMarks, // ✅ dynamic
-        };
-
-        // ✅ Add test doc
-        const testRef = await addDoc(collection(db, "tests"), properData);
-
-        // ✅ Add questions to subcollection
-        const questionsRef = collection(testRef, "questions");
+        // Insert questions
         for (const q of questions || []) {
-            await addDoc(questionsRef, {
-                ...q,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-            });
+            const { error: questionError } = await supabaseClient
+                .from('questions')
+                .insert({
+                    test_id: test.id,
+                    question_text: q.question_text,
+                    options: q.options,
+                    correct_answer: q.correct_answer,
+                    marks: q.marks,
+                    created_at: now,
+                    updated_at: now,
+                });
+            if (questionError) throw questionError;
         }
 
         return {
             success: true,
-            message: "Test and questions added successfully!",
+            message: 'Test and questions added successfully!',
+            data: test,
+        };
+    } catch (error) {
+        return errorHandler(error);
+    }
+}
+
+export async function updateTest(testId: string, testDataToUpdate: Partial<TEST_DATA_TO_CREATE>) {
+    try {
+        const { test_name, duration_minutes, created_by, questions, status, description } = testDataToUpdate;
+        const total_marks = (questions || []).reduce((sum, q) => sum + (Number(q.marks) || 0), 0);
+        const now = new Date().toISOString();
+
+        // Update test
+        const { error: testError } = await supabaseClient
+            .from('tests')
+            .update({
+                ...(test_name && { test_name }),
+                ...(duration_minutes && { duration_minutes }),
+                ...(description && { description }),
+                ...(created_by && { created_by }),
+                ...(status && { status }),
+                total_marks,
+                updated_at: now,
+            })
+            .eq('id', testId);
+        if (testError) throw testError;
+
+        // Delete existing questions for this test
+        if (questions) {
+            const { error: deleteError } = await supabaseClient
+                .from('questions')
+                .delete()
+                .eq('test_id', testId);
+            if (deleteError) throw deleteError;
+
+            // Insert updated questions
+            for (const q of questions) {
+                const { error: questionError } = await supabaseClient
+                    .from('questions')
+                    .insert({
+                        test_id: testId,
+                        question_text: q.question_text,
+                        options: q.options,
+                        correct_answer: q.correct_answer,
+                        marks: q.marks,
+                        created_at: now,
+                        updated_at: now,
+                    });
+                if (questionError) throw questionError;
+            }
+        }
+
+        return {
+            success: true,
+            message: 'Test and questions updated successfully!',
         };
     } catch (error) {
         return errorHandler(error);
@@ -83,36 +133,28 @@ export async function createTest(testDataToCreate: TEST_DATA_TO_CREATE) {
 
 export async function getAllTests() {
     try {
-        const testsRef = collection(db, "tests");
-        const snapshot = await getDocs(testsRef);
+        // Fetch all tests
+        const { data: tests, error: testsError } = await supabaseClient
+            .from('tests')
+            .select('*');
+        if (testsError) throw testsError;
 
-        const tests = await Promise.all(
-            snapshot.docs.map(async (docSnap) => {
-                const testId = docSnap.id;
-                const testData = docSnap.data();
-
-                // Fetch subcollection "questions"
-                const questionsRef = collection(
-                    db,
-                    "tests",
-                    testId,
-                    "questions"
-                );
-                const questionsSnap = await getDocs(questionsRef);
-                const questions = questionsSnap.docs.map((qDoc) => ({
-                    id: qDoc.id,
-                    ...qDoc.data(),
-                }));
-
+        // For each test, fetch its questions
+        const allTests = await Promise.all(
+            (tests || []).map(async (test) => {
+                const { data: questions, error: questionsError } = await supabaseClient
+                    .from('questions')
+                    .select('*')
+                    .eq('test_id', test.id);
+                if (questionsError) throw questionsError;
                 return {
-                    id: testId,
-                    ...testData,
-                    questions, // Include questions array
+                    ...test,
+                    questions: questions || [],
                 };
             })
         );
 
-        return tests;
+        return allTests;
     } catch (error) {
         console.error("🔥 Failed to fetch all tests with questions:", error);
         return [];
@@ -121,34 +163,24 @@ export async function getAllTests() {
 
 export async function getMyTest(teacherId: string) {
     try {
-        const q = query(
-            collection(db, "tests"),
-            where("createdBy.id", "==", teacherId)
-        );
-        const snapshot = await getDocs(q);
+        // Fetch tests created by this teacher
+        const { data: tests, error: testsError } = await supabaseClient
+            .from('tests')
+            .select('*')
+            .eq('created_by', teacherId);
+        if (testsError) throw testsError;
 
+        // For each test, fetch its questions
         const teacherTests = await Promise.all(
-            snapshot.docs.map(async (docSnap) => {
-                const testId = docSnap.id;
-                const testData = docSnap.data();
-
-                // Fetch questions subcollection
-                const questionsRef = collection(
-                    db,
-                    "tests",
-                    testId,
-                    "questions"
-                );
-                const questionsSnap = await getDocs(questionsRef);
-                const questions = questionsSnap.docs.map((qDoc) => ({
-                    id: qDoc.id,
-                    ...qDoc.data(),
-                }));
-
+            (tests || []).map(async (test) => {
+                const { data: questions, error: questionsError } = await supabaseClient
+                    .from('questions')
+                    .select('*')
+                    .eq('test_id', test.id);
+                if (questionsError) throw questionsError;
                 return {
-                    id: testId,
-                    ...testData,
-                    questions, // Include questions
+                    ...test,
+                    questions: questions || [],
                 };
             })
         );
@@ -159,6 +191,6 @@ export async function getMyTest(teacherId: string) {
             data: teacherTests || [],
         };
     } catch (error) {
-        return errorHandler<Test[]>(error);
+        return errorHandler(error);
     }
 }

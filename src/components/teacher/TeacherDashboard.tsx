@@ -8,6 +8,7 @@ import { TestCard } from "@/components/teacher/TestCard";
 import { Plus } from "lucide-react";
 import { getAllTests, getMyTest } from "@/lib/apiCalls/tests";
 import { toast } from "sonner";
+import { supabaseClient } from "@/supabase/config";
 
 import type { Test } from "@/types/test";
 
@@ -16,32 +17,52 @@ export default function TeacherDashboard() {
     const [myTests, setMyTests] = useState<Array<Test>>([]);
     const [isTestDataloading, setIsTestDataLoading] = useState(true);
     const { currentUser, loading } = useAuth();
-    const { profile, firebaseUser } = currentUser || {};
-
+    const user = currentUser?.user;
     const navigate = useNavigate();
     const [tab, setTab] = useState("my");
-    const [hasLoadedAllTests, setHasLoadedAllTests] = useState(false); // 👈 new flag
+    const [hasLoadedAllTests, setHasLoadedAllTests] = useState(false);
+    const [userNames, setUserNames] = useState<Record<string, string>>({});
+
+    // Helper to fetch user names for a list of user IDs
+    async function fetchUserNames(userIds: string[]): Promise<Record<string, string>> {
+        if (userIds.length === 0) return {};
+        const { data, error } = await supabaseClient
+            .from('users')
+            .select('id, name')
+            .in('id', userIds);
+        if (error) return {};
+        const map: Record<string, string> = {};
+        for (const u of data || []) {
+            map[u.id] = u.name;
+        }
+        return map;
+    }
+
 
     useEffect(() => {
-        if (!loading && profile?.role !== "teacher") {
+        if (!loading && user && user.role !== "teacher") {
             navigate("/unauthorized");
         }
-    }, [currentUser, loading]);
+    }, [currentUser, loading, user, navigate]);
 
     useEffect(() => {
         async function loadMyTest() {
             try {
-                if (firebaseUser?.uid) {
-                    const response = await getMyTest(firebaseUser?.uid);
-
+                if (user?.id) {
+                    const response = await getMyTest(user.id);
                     if (response.success) {
-                        setMyTests(response.data);
+                        // Fetch creator names for all tests
+                        const tests = response.data;
+                        const creatorIds = Array.from(new Set(tests.map((t: any) => t.created_by)));
+                        const namesMap = await fetchUserNames(creatorIds);
+                        setUserNames(namesMap);
+                        setMyTests(tests);
                     } else {
                         toast(response.message);
                         setMyTests([]);
                     }
                 } else {
-                    alert("user uid is not fetched");
+                    alert("user id is not fetched");
                 }
             } catch (err) {
                 console.error("Error loading tests:", err);
@@ -49,7 +70,6 @@ export default function TeacherDashboard() {
                 setIsTestDataLoading(false);
             }
         }
-
         loadMyTest();
     }, []);
 
@@ -58,15 +78,18 @@ export default function TeacherDashboard() {
             try {
                 setIsTestDataLoading(true);
                 const result = await getAllTests();
+                // Fetch creator names for all tests
+                const creatorIds = Array.from(new Set(result.map((t: any) => t.created_by)));
+                const namesMap = await fetchUserNames(creatorIds);
+                setUserNames(namesMap);
                 setAllTests(result);
-                setHasLoadedAllTests(true); // ✅ prevent future re-calls
+                setHasLoadedAllTests(true);
             } catch (err) {
                 console.error("Error loading all tests:", err);
             } finally {
                 setIsTestDataLoading(false);
             }
         };
-
         if (tab === "all" && !hasLoadedAllTests) {
             loadTests();
         }
@@ -74,7 +97,7 @@ export default function TeacherDashboard() {
 
     if (isTestDataloading) return <div>Loading...</div>;
 
-    if (loading || profile?.role !== "teacher") {
+    if (loading || user?.role !== "teacher") {
         return null;
     }
 
@@ -105,7 +128,7 @@ export default function TeacherDashboard() {
                     ) : (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {myTests.map((test) => (
-                                <TestCard key={test.id} test={test} />
+                                <TestCard key={test.id} test={test} createdByName={userNames[test.created_by] || test.created_by} />
                             ))}
                         </div>
                     )}
@@ -122,7 +145,7 @@ export default function TeacherDashboard() {
                     ) : (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {allTests.map((test) => (
-                                <TestCard key={test.id} test={test} />
+                                <TestCard key={test.id} test={test} createdByName={userNames[test.created_by] || test.created_by} />
                             ))}
                         </div>
                     )}

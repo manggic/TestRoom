@@ -1,13 +1,19 @@
 // src/contexts/authUtils.ts
-import { auth } from '@/firebase/config';
-import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
-import type { User } from 'firebase/auth';
-export const subscribeToAuthChanges = (
-  callback: (user: User | null) => void
-) => {
-  return onAuthStateChanged(auth, callback);
+import { supabaseClient } from '@/supabase/config';
+import type { Session, User } from '@supabase/supabase-js';
+// TODO: Replace Firebase auth logic with Supabase auth logic below.
+
+export const subscribeToAuthChanges = (callback: (user: User | null) => void) => {
+  // Listen to auth state changes
+  const { data } = supabaseClient.auth.onAuthStateChange((event, session) => {
+    callback(session?.user ?? null);
+  });
+  // Return unsubscribe function
+  return () => {
+    data.subscription.unsubscribe();
+  };
 };
 
-export const performSignOut = () => {
-  return firebaseSignOut(auth);
+export const performSignOut = async () => {
+  await supabaseClient.auth.signOut();
 };

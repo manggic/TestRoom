@@ -29,7 +29,7 @@ function Navbar() {
                 {currentUser ? (
                     <>
                         <span className="text-sm text-muted-foreground">
-                            Hi, {currentUser?.profile?.name}
+                            Hi, {currentUser.user?.name}
                         </span>
                         <Button variant="outline" onClick={handleLogout}>
                             Logout

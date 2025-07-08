@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router";
 import { toast } from "sonner";
 import { logInUser } from "@/services/auth";
 import { useAuth } from "@/context/useAuth";
@@ -13,11 +13,12 @@ import { useAuth } from "@/context/useAuth";
 export default function LoginForm() {
     const { currentUser } = useAuth();
     const [form, setForm] = useState({
-        email: "",
-        password: "",
+        email: "manito@gmail.com",
+        password: "manito@123",
     });
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({
@@ -27,11 +28,14 @@ export default function LoginForm() {
     };
 
     useEffect(() => {
-    if (currentUser && currentUser.profile?.email) {
-      // ✅ Safe to navigate now
-      navigate("/", { replace: true });
-    }
-  }, [currentUser, navigate]);
+        if (
+            currentUser &&
+            currentUser.user?.email &&
+            location.pathname !== "/"
+        ) {
+            navigate("/", { replace: true });
+        }
+    }, [currentUser, navigate, location.pathname]);
 
     // useEffect(() => {
     //     if (currentUser) {

@@ -9,14 +9,16 @@ import { useNavigate } from "react-router";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import { signupUser } from "@/services/auth";
+import { useAuth } from "@/context/useAuth";
 
 export default function SignUpForm() {
     const navigate = useNavigate();
+    const { setCurrentUser } = useAuth();
 
     const [form, setForm] = useState({
-        name: "",
-        email: "",
-        password: "",
+        name: "manito",
+        email: "manito@gmail.com",
+        password: "manito@123",
     });
 
     const [errors, setErrors] = useState({
@@ -69,15 +71,15 @@ export default function SignUpForm() {
         if (!validateForm()) return;
 
         const res = await signupUser(form.email, form.password, {
-            role: "student",
-            testPaperAttempted: 0,
             name: form.name,
+            role: "teacher",
         });
 
         if (res.success) {
+            setCurrentUser({ user: res.data });
             navigate("/");
         } else {
-            toast(res?.message || "something went wrong");
+            toast('message' in res ? res.message : "Something went wrong");
         }
     };
 

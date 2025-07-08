@@ -1,4 +1,4 @@
-import type { User } from "firebase/auth";
+// import type { User } from '@supabase/supabase-js';
 
 export type UserProfile = {
     name: string;
@@ -10,12 +10,12 @@ export type UserProfile = {
 };
 
 export type AuthContextUser = {
-    firebaseUser: User;
-    profile: UserProfile | null;
+    user: any; // Supabase user object
 };
 
 export type AuthContextType = {
     currentUser: AuthContextUser | null;
+    setCurrentUser: (user: AuthContextUser | null) => void;
     loading: boolean;
     signOut: () => Promise<void>;
 };

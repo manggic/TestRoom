@@ -8,29 +8,20 @@ import {
     Trash,
     ChevronLeft,
     ChevronRight,
+    User,
+    Timer,
+    FileText,
+    Calendar,
 } from "lucide-react";
-import {
-    doc,
-    getDoc,
-    updateDoc,
-    collection,
-    getDocs,
-    deleteDoc,
-    setDoc,
-    serverTimestamp,
-} from "firebase/firestore";
-
-
-import { db } from "@/firebase/config";
 import { toast } from "sonner";
 import { useAuth } from "@/context/useAuth";
-import { normalizeCreatedAt } from "@/lib/utils";
+import { supabaseClient } from '@/supabase/config';
+import { updateTest } from '@/lib/apiCalls/tests';
 const optionKeys = ["a", "b", "c", "d"];
 
 export default function EditTestPage() {
     const { currentUser } = useAuth();
-
-    const { firebaseUser, profile } = currentUser || {};
+    const { user } = currentUser || {};
     const { state } = useLocation();
     const { testId } = useParams();
     const navigate = useNavigate();
@@ -39,6 +30,7 @@ export default function EditTestPage() {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(0);
     const [errors, setErrors] = useState<{ [index: number]: boolean }>({});
+    const [creatorName, setCreatorName] = useState<string>("");
 
     const questionsPerPage = 10;
 
@@ -48,33 +40,36 @@ export default function EditTestPage() {
                 let testData = state?.test;
 
                 if (!testData && testId) {
-                    const docRef = doc(db, "tests", testId);
-                    const snap = await getDoc(docRef);
-                    if (snap.exists()) {
-                        testData = { id: snap.id, ...snap.data() };
-                    } else {
+                    // Fetch test from Supabase
+                    const { data, error } = await supabaseClient
+                        .from('tests')
+                        .select('*')
+                        .eq('id', testId)
+                        .single();
+                    if (error || !data) {
                         toast.error("Test not found!");
                         return;
                     }
+                    testData = data;
                 }
 
-                const questionsSnap = await getDocs(
-                    collection(db, "tests", testData.id, "questions")
-                );
+                // Fetch questions for this test from Supabase
+                const { data: questionsData, error: questionsError } = await supabaseClient
+                    .from('questions')
+                    .select('*')
+                    .eq('test_id', testData.id);
+                if (questionsError) {
+                    toast.error("Failed to load questions");
+                    return;
+                }
 
-                const formattedQuestions = questionsSnap.docs.map((doc) => {
-                    const q = doc.data();
-                    const optionsArray = optionKeys.map(
-                        (key) => q.options?.[key] || ""
-                    );
-
-                    return {
-                        question: q.questionText || "",
-                        options: optionsArray,
-                        correct: optionKeys.indexOf(q.correctAnswer || "a"),
-                        marks: typeof q.marks === "number" ? q.marks : 1,
-                    };
-                });
+                const formattedQuestions = (questionsData || []).map((q: any) => ({
+                    id: q.id,
+                    questionText: q.question_text || "",
+                    options: q.options || { a: "", b: "", c: "", d: "" },
+                    correctAnswer: q.correct_answer || "a",
+                    marks: typeof q.marks === "number" ? q.marks : 1,
+                }));
 
                 setTest({
                     id: testData.id,
@@ -84,6 +79,20 @@ export default function EditTestPage() {
                     questions: formattedQuestions,
                 });
 
+                // Fetch creator name
+                if (testData.created_by) {
+                    if (user?.id === testData.created_by) {
+                        setCreatorName("You");
+                    } else {
+                        const { data: userData, error: userError } = await supabaseClient
+                            .from('users')
+                            .select('name')
+                            .eq('id', testData.created_by)
+                            .single();
+                        setCreatorName(userData?.name || testData.created_by);
+                    }
+                }
+
                 setLoading(false);
             } catch (err) {
                 console.error("Error loading test:", err);
@@ -91,13 +100,33 @@ export default function EditTestPage() {
             }
         };
 
-        if (state.test) {
-            setTest(state.test);
+        if (state?.test) {
+            // Remap questions to camelCase for the form
+            const formattedQuestions = (state.test.questions || []).map((q: any) => ({
+                id: q.id,
+                questionText: q.question_text || q.questionText || "",
+                options: q.options || { a: "", b: "", c: "", d: "" },
+                correctAnswer: q.correct_answer || q.correctAnswer || "a",
+                marks: typeof q.marks === "number" ? q.marks : 1,
+            }));
+
+            setTest({
+                id: state.test.id,
+                testName: state.test.test_name || state.test.testName || "",
+                description: state.test.description || state.test.test_description || "",
+                durationMinutes: state.test.duration_minutes || state.test.durationMinutes || 30,
+                questions: formattedQuestions,
+            });
             setLoading(false);
+            if (user?.id === (state.test.created_by || state.test.createdBy?.id)) {
+                setCreatorName("You");
+            } else {
+                setCreatorName(state.test.createdBy?.name || state.test.created_by || "");
+            }
         } else {
             loadTest();
         }
-    }, [testId, state?.test]);
+    }, [testId, state?.test, user]);
 
     if (loading) return <div className="p-6 text-center">Loading test...</div>;
     if (!test)
@@ -137,8 +166,6 @@ export default function EditTestPage() {
         optIndex: string,
         value: string
     ) => {
-        // console.log({qIndex}, {optIndex}, {value});
-        // return
         const updatedQuestions = [...test.questions];
         updatedQuestions[qIndex].options[optIndex] = value;
         setTest({ ...test, questions: updatedQuestions });
@@ -159,8 +186,8 @@ export default function EditTestPage() {
     const handleAddQuestion = () => {
         const newQuestion = {
             questionText: "New Question?",
-            options: { a: null, b: null, c: null, d: null },
-            correctAnswer: null,
+            options: { a: "", b: "", c: "", d: "" },
+            correctAnswer: "a",
             marks: 1,
         };
         setTest({ ...test, questions: [...test.questions, newQuestion] });
@@ -168,8 +195,6 @@ export default function EditTestPage() {
     };
 
     const handleSave = async () => {
-        let existingQuestionsData: any[] = []; // ✅ declare outside try to allow rollback
-
         try {
             const invalidQuestions = Object.entries(errors)
                 .filter(([_, hasError]) => hasError)
@@ -177,94 +202,46 @@ export default function EditTestPage() {
 
             if (invalidQuestions.length > 0) {
                 toast.error(
-                    `Please fix correct answer in question(s): ${invalidQuestions.join(
-                        ", "
-                    )}`
+                    `Please fix correct answer in question(s): ${invalidQuestions.join(", ")}`
                 );
                 return;
             }
 
-            console.log("TEST DATA BEFORE EDIT ", test);
+            // Validation: Ensure all questions have non-empty questionText
+            const emptyTextIndexes = test.questions
+                .map((q: any, idx: number) => (!q.questionText || q.questionText.trim() === "") ? idx + 1 : null)
+                .filter((v: number | null) => v !== null);
+            if (emptyTextIndexes.length > 0) {
+                toast.error(`Please enter question text for question(s): ${emptyTextIndexes.join(", ")}`);
+                return;
+            }
 
-            const testRef = doc(db, "tests", test.id);
-            const questionsRef = collection(testRef, "questions");
-
-            // ✅ 1. Fetch & store all existing questions (for rollback if needed)
-            const existingSnap = await getDocs(questionsRef);
-            existingQuestionsData = existingSnap.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
+            const questions = test.questions.map((q: any) => ({
+                question_text: q.questionText,
+                options: q.options,
+                correct_answer: q.correctAnswer,
+                marks: q.marks,
             }));
 
-            // ✅ 2. Delete all current questions
-            await Promise.all(
-                existingSnap.docs.map((doc) => deleteDoc(doc.ref))
-            );
-
-            // ✅ 3. Update test metadata
-            const updatedTotalMarks = test.questions.reduce(
-                (acc: number, q: any) => acc + Number(q.marks || 0),
-                0
-            );
-
-            await updateDoc(testRef, {
-                testName: test.testName,
+            const updatedTestData = {
+                test_name: test.testName,
+                duration_minutes: test.durationMinutes,
                 description: test.description,
-                durationMinutes: test.durationMinutes,
-                totalMarks: updatedTotalMarks,
-                updatedAt: serverTimestamp(),
-                lastUpdatedBy: {
-                    id: firebaseUser?.uid,
-                    name: profile?.name,
-                },
-            });
+                questions,
+                status: 'published' as 'published', // or use test.status if available
+                created_by: user?.id,
+            };
 
-            // ✅ 4. Add updated questions
-            for (const question of test.questions) {
-                const qId = question.id || crypto.randomUUID();
-                const qRef = doc(questionsRef, qId);
+            const response = await updateTest(test.id, updatedTestData);
 
-                await setDoc(qRef, {
-                    questionText: question.questionText,
-                    options: question.options,
-                    correctAnswer: question.correctAnswer,
-                    marks: question.marks,
-                    createdAt: normalizeCreatedAt(question.createdAt),
-                    updatedAt: serverTimestamp(),
-                });
+            if (response.success) {
+                toast.success("Test updated successfully");
+            } else {
+                toast("Update Test Failed");
             }
-
-            toast.success("Test updated successfully");
         } catch (err) {
             console.error("❌ Error during test update:", err);
-            toast.error("Something went wrong! Attempting rollback...");
-
-            try {
-                // ✅ Attempt rollback
-                const testRef = doc(db, "tests", test.id);
-                const questionsRef = collection(testRef, "questions");
-
-                // Clear failed state
-                const currentSnap = await getDocs(questionsRef);
-                await Promise.all(
-                    currentSnap.docs.map((doc) => deleteDoc(doc.ref))
-                );
-
-                // Restore previous questions
-                for (const q of existingQuestionsData) {
-                    const qRef = doc(questionsRef, q.id);
-                    await setDoc(qRef, q);
-                }
-
-                toast.success(
-                    "Rollback successful! Previous questions restored."
-                );
-            } catch (rollbackErr) {
-                console.error("❌ Rollback failed:", rollbackErr);
-                toast.error(
-                    "Rollback failed! Please check test data manually."
-                );
-            }
+            toast.error("Something went wrong while updating the test!");
         }
     };
 
@@ -289,6 +266,7 @@ export default function EditTestPage() {
                 </div>
 
                 <Card className="p-6 space-y-6 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700">
+                    {/* Editable Form Fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
@@ -297,10 +275,11 @@ export default function EditTestPage() {
                             <input
                                 type="text"
                                 className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                                value={test.testName}
+                                value={test.test_name || test.testName || ""}
                                 onChange={(e) =>
                                     setTest({
                                         ...test,
+                                        test_name: e.target.value,
                                         testName: e.target.value,
                                     })
                                 }
@@ -313,17 +292,17 @@ export default function EditTestPage() {
                             <input
                                 type="number"
                                 className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                                value={test.durationMinutes}
+                                value={test.duration_minutes || test.durationMinutes || ""}
                                 onChange={(e) =>
                                     setTest({
                                         ...test,
+                                        duration_minutes: +e.target.value,
                                         durationMinutes: +e.target.value,
                                     })
                                 }
                             />
                         </div>
                     </div>
-
                     <div className="space-y-2">
                         <label className="text-sm font-medium">
                             Test Description
@@ -331,18 +310,19 @@ export default function EditTestPage() {
                         <textarea
                             rows={2}
                             className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                            value={test.description}
+                            value={test.description || test.test_description || ""}
                             onChange={(e) =>
                                 setTest({
                                     ...test,
                                     description: e.target.value,
+                                    test_description: e.target.value,
                                 })
                             }
                         />
                     </div>
 
                     <ul className="space-y-6 mt-4">
-                        {paginatedQuestions.map((q, qIndex) => (
+                        {paginatedQuestions.map((q: any, qIndex: number) => (
                             <li
                                 key={qIndex + start}
                                 className="p-4 rounded-md border bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 space-y-3"
