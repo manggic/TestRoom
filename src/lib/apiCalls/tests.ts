@@ -194,3 +194,377 @@ export async function getMyTest(teacherId: string) {
         return errorHandler(error);
     }
 }
+
+// Student dashboard functions
+export async function getUnattemptedTests(studentId: string) {
+    try {
+        // Get all published tests
+        const { data: tests, error: testsError } = await supabaseClient
+            .from('tests')
+            .select(`
+                *,
+                users!created_by(name)
+            `)
+            .eq('status', 'published');
+        if (testsError) throw testsError;
+
+        // Get tests that the student has attempted
+        const { data: attempts, error: attemptsError } = await supabaseClient
+            .from('test_attempts')
+            .select('test_id')
+            .eq('student_id', studentId);
+        if (attemptsError) throw attemptsError;
+
+        const attemptedTestIds = new Set(attempts?.map(a => a.test_id) || []);
+        
+        // Filter out tests that student has already attempted
+        const unattemptedTests = tests?.filter(test => !attemptedTestIds.has(test.id)) || [];
+
+        return {
+            success: true,
+            data: unattemptedTests,
+        };
+    } catch (error) {
+        return errorHandler(error);
+    }
+}
+
+export async function getAttemptedTests(studentId: string) {
+    try {
+        // Get all completed tests that the student has attempted
+        const { data: attempts, error: attemptsError } = await supabaseClient
+            .from('test_attempts')
+            .select(`
+                id,
+                score_achieved,
+                total_questions,
+                time_taken_minutes,
+                created_at,
+                status,
+                tests!test_id(
+                    id,
+                    test_name,
+                    description,
+                    duration_minutes,
+                    total_marks,
+                    created_by,
+                    users!created_by(name)
+                )
+            `)
+            .eq('student_id', studentId)
+            .eq('status', 'completed') // Only show completed attempts
+            .order('created_at', { ascending: false });
+        if (attemptsError) throw attemptsError;
+
+        // Remove duplicates by test_id (keep the latest attempt for each test)
+        const uniqueAttempts = attempts?.reduce((acc: any[], attempt: any) => {
+            const existingIdx = acc.findIndex(a => a.tests.id === attempt.tests.id);
+            if (existingIdx === -1) {
+                acc.push(attempt);
+            } else if (new Date(attempt.created_at) > new Date(acc[existingIdx].created_at)) {
+                // Replace with newer attempt
+                acc[existingIdx] = attempt;
+            }
+            return acc;
+        }, []) || [];
+
+        return {
+            success: true,
+            data: uniqueAttempts,
+        };
+    } catch (error) {
+        return errorHandler(error);
+    }
+}
+
+export async function getTestWithQuestions(testId: string) {
+    try {
+        // Get test details
+        const { data: test, error: testError } = await supabaseClient
+            .from('tests')
+            .select(`
+                *,
+                users!created_by(name)
+            `)
+            .eq('id', testId)
+            .single();
+        if (testError) throw testError;
+
+        // Get questions for this test
+        const { data: questions, error: questionsError } = await supabaseClient
+            .from('questions')
+            .select('*')
+            .eq('test_id', testId);
+        if (questionsError) throw questionsError;
+
+        return {
+            success: true,
+            data: {
+                ...test,
+                questions: questions || [],
+            },
+        };
+    } catch (error) {
+        return errorHandler(error);
+    }
+}
+
+export async function submitTestAttempt(testId: string, studentId: string, answers: { [key: string]: string }, timeTaken: number) {
+    try {
+        // Get test and questions to calculate score
+        const testResult = await getTestWithQuestions(testId);
+        if (!testResult.success) throw new Error('Failed to get test details');
+
+        const test = testResult.data;
+        let totalScore = 0;
+        let correctAnswers = 0;
+
+        // Calculate score
+        test.questions.forEach((question: any, index: number) => {
+            const studentAnswer = answers[`q${index}`];
+            if (studentAnswer === question.correct_answer) {
+                totalScore += question.marks;
+                correctAnswers++;
+            }
+        });
+
+        const now = new Date().toISOString();
+
+        // Insert test attempt with new schema
+        const { data: attempt, error: attemptError } = await supabaseClient
+            .from('test_attempts')
+            .insert({
+                test_id: testId,
+                student_id: studentId,
+                start_time: now,
+                end_time: now,
+                status: 'completed',
+                score_achieved: totalScore,
+                answers: answers,
+                created_at: now,
+                updated_at: now,
+            })
+            .select()
+            .single();
+        if (attemptError) throw attemptError;
+
+        // Update test attempts count
+        const { error: updateError } = await supabaseClient
+            .from('tests')
+            .update({
+                attempts: test.attempts + 1,
+                highest_score: Math.max(test.highest_score, totalScore),
+            })
+            .eq('id', testId);
+        if (updateError) throw updateError;
+
+        return {
+            success: true,
+            message: 'Test submitted successfully!',
+            data: {
+                attempt,
+                score: totalScore,
+                totalMarks: test.total_marks,
+                correctAnswers,
+                totalQuestions: test.questions.length,
+            },
+        };
+    } catch (error) {
+        return errorHandler(error);
+    }
+}
+
+// New function to start a test attempt
+export async function startTestAttempt(testId: string, studentId: string) {
+    try {
+        const now = new Date().toISOString();
+
+        // Check if student already has an in-progress attempt for this test
+        const { data: existingAttempt, error: checkError } = await supabaseClient
+            .from('test_attempts')
+            .select('*')
+            .eq('test_id', testId)
+            .eq('student_id', studentId)
+            .eq('status', 'in_progress')
+            .single();
+
+        if (existingAttempt) {
+            // Return existing attempt
+            return {
+                success: true,
+                data: existingAttempt,
+            };
+        }
+
+        // Create new test attempt
+        const { data: attempt, error: attemptError } = await supabaseClient
+            .from('test_attempts')
+            .insert({
+                test_id: testId,
+                student_id: studentId,
+                start_time: now,
+                status: 'in_progress',
+                answers: {},
+                created_at: now,
+                updated_at: now,
+            })
+            .select()
+            .single();
+        if (attemptError) throw attemptError;
+
+        return {
+            success: true,
+            data: attempt,
+        };
+    } catch (error) {
+        return errorHandler(error);
+    }
+}
+
+// Function to update test attempt with answers (for auto-save during test)
+export async function updateTestAttempt(attemptId: string, answers: { [key: string]: string }) {
+    try {
+        const now = new Date().toISOString();
+
+        const { data: attempt, error: attemptError } = await supabaseClient
+            .from('test_attempts')
+            .update({
+                answers: answers,
+                updated_at: now,
+            })
+            .eq('id', attemptId)
+            .select()
+            .single();
+        if (attemptError) throw attemptError;
+
+        return {
+            success: true,
+            data: attempt,
+        };
+    } catch (error) {
+        return errorHandler(error);
+    }
+}
+
+// Function to complete a test attempt
+export async function completeTestAttempt(attemptId: string, answers: { [key: string]: string }, timeTaken: number) {
+    try {
+        // Get the attempt to get test details
+        const { data: attempt, error: attemptError } = await supabaseClient
+            .from('test_attempts')
+            .select(`
+                *,
+                tests!test_id(
+                    *,
+                    questions(*)
+                )
+            `)
+            .eq('id', attemptId)
+            .single();
+        if (attemptError) throw attemptError;
+
+        // Calculate score
+        let totalScore = 0;
+        let correctAnswers = 0;
+
+        attempt.tests.questions.forEach((question: any, index: number) => {
+            const studentAnswer = answers[`q${index}`];
+            if (studentAnswer === question.correct_answer) {
+                totalScore += question.marks;
+                correctAnswers++;
+            }
+        });
+
+        const now = new Date().toISOString();
+
+        // Update test attempt with completion data
+        const { data: updatedAttempt, error: updateError } = await supabaseClient
+            .from('test_attempts')
+            .update({
+                end_time: now,
+                status: 'completed',
+                score_achieved: totalScore,
+                answers: answers,
+                updated_at: now,
+            })
+            .eq('id', attemptId)
+            .select()
+            .single();
+        if (updateError) throw updateError;
+
+        // Update test attempts count and highest score
+        const { error: testUpdateError } = await supabaseClient
+            .from('tests')
+            .update({
+                attempts: attempt.tests.attempts + 1,
+                highest_score: Math.max(attempt.tests.highest_score, totalScore),
+            })
+            .eq('id', attempt.tests.id);
+        if (testUpdateError) throw testUpdateError;
+
+        return {
+            success: true,
+            message: 'Test completed successfully!',
+            data: {
+                attempt: updatedAttempt,
+                score: totalScore,
+                totalMarks: attempt.tests.total_marks,
+                correctAnswers,
+                totalQuestions: attempt.tests.questions.length,
+            },
+        };
+    } catch (error) {
+        return errorHandler(error);
+    }
+}
+
+// Function to handle timed out attempts
+export async function timeoutTestAttempt(attemptId: string) {
+    try {
+        const now = new Date().toISOString();
+
+        const { data: attempt, error: attemptError } = await supabaseClient
+            .from('test_attempts')
+            .update({
+                end_time: now,
+                status: 'timed_out',
+                updated_at: now,
+            })
+            .eq('id', attemptId)
+            .select()
+            .single();
+        if (attemptError) throw attemptError;
+
+        return {
+            success: true,
+            data: attempt,
+        };
+    } catch (error) {
+        return errorHandler(error);
+    }
+}
+
+export async function getTestAttempt(attemptId: string) {
+    try {
+        const { data: attempt, error: attemptError } = await supabaseClient
+            .from('test_attempts')
+            .select(`
+                *,
+                tests!test_id(
+                    *,
+                    users!created_by(name),
+                    questions(*)
+                )
+            `)
+            .eq('id', attemptId)
+            .single();
+        if (attemptError) throw attemptError;
+
+        return {
+            success: true,
+            data: attempt,
+        };
+    } catch (error) {
+        return errorHandler(error);
+    }
+}

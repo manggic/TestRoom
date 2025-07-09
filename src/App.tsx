@@ -10,6 +10,10 @@ import TestPaper from "./components/TestPaper";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import TestPreviewPage from "./components/teacher/TestPreviewPage";
 import EditTestPage from "./components/teacher/EditTestPage";
+import TeacherDashboard from "./components/teacher/TeacherDashboard";
+import StudentDashboard from "./components/student/StudentDashboard";
+import TakeTest from "./components/student/TakeTest";
+import TestResult from "./components/student/TestResult";
 import { useAuth } from "./context/useAuth";
 
 function App() {
@@ -27,17 +31,27 @@ function App() {
                 <Route element={<ProtectedRoute />}>
                     <Route element={<AuthLayout />}>
                         <Route index element={<Home />} />
+                        
+                        {/* Teacher Routes */}
+                        <Route path="teacher">
+                            <Route path="dashboard" element={<TeacherDashboard />} />
+                            <Route path="create-test" element={<CreateTest />} />
+                            <Route path="test/preview/:testId" element={<TestPreviewPage />} />
+                            <Route path="test/edit/:testId" element={<EditTestPage />} />
+                        </Route>
+
+                        {/* Student Routes */}
+                        <Route path="student">
+                            <Route path="dashboard" element={<StudentDashboard />} />
+                            <Route path="test/:testId" element={<TakeTest />} />
+                            <Route path="result/:attemptId" element={<TestResult />} />
+                        </Route>
+
+                        {/* Legacy Routes - Redirect to appropriate dashboard */}
                         <Route path="create-test" element={<CreateTest />} />
                         <Route path="test" element={<TestPaper />} />
-
-                        <Route
-                            path="/testpaper/preview/:testId"
-                            element={<TestPreviewPage />}
-                        />
-                        <Route
-                            path="/testpaper/edit/:testId"
-                            element={<EditTestPage />}
-                        />
+                        <Route path="/testpaper/preview/:testId" element={<TestPreviewPage />} />
+                        <Route path="/testpaper/edit/:testId" element={<EditTestPage />} />
                     </Route>
                 </Route>
 
