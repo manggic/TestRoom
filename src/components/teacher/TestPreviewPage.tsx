@@ -56,13 +56,13 @@ export default function TestPreviewPage() {
         };
         if (!state?.test && testId) {
             fetchTestAndQuestions();
-        } else if (state?.test) {
+        } else if (state?.test) {            
             setTest(state.test);
             setQuestions(state.test.questions || []);
             if (currentUser?.user?.id === (state.test.created_by || state.test.createdBy?.id)) {
                 setCreatorName("You");
             } else {
-                setCreatorName(state.test.createdBy?.name || state.test.created_by || "");
+                setCreatorName(state.test.createdByName || state.test.created_by || "");
             }
             setLoading(false);
         }

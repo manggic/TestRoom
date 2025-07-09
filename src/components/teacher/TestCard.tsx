@@ -66,7 +66,7 @@ export function TestCard({ test, createdByName }: { test: any, createdByName: st
                     variant="outline"
                     onClick={() =>
                         navigate(`testpaper/preview/${test.id}`, {
-                            state: { test },
+                            state: { test : {...test, createdByName}  },
                         })
                     }
                 >
