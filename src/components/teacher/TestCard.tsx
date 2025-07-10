@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Timer, User, FileText, BarChart2 } from "lucide-react";
 import { useNavigate } from "react-router";
-export function TestCard({ test, createdByName }: { test: any, createdByName: string }) {
+export function TestCard({ test, createdByName, lastUpdatedByName }: { test: any, createdByName: string, lastUpdatedByName?: string }) {
     const navigate = useNavigate();
     const {
         duration_minutes,
@@ -44,6 +44,17 @@ export function TestCard({ test, createdByName }: { test: any, createdByName: st
                         Created By: {createdByName}
                     </span>
                 </div>
+                {lastUpdatedByName && lastUpdatedByName !== createdByName && (
+                  <div className="flex items-center gap-2">
+                    <User size={20} />
+                    <span
+                        className="truncate whitespace-nowrap overflow-hidden max-w-[180px]"
+                        title={lastUpdatedByName}
+                    >
+                        Last Updated By: {lastUpdatedByName}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                     <Calendar size={20} /> Status: {status}
                 </div>

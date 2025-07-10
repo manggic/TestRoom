@@ -229,7 +229,7 @@ export default function EditTestPage() {
                 description: test.description,
                 questions,
                 status: 'published' as 'published', // or use test.status if available
-                created_by: user?.id,
+                last_updated_by: user?.id,
             };
 
             const response = await updateTest(test.id, updatedTestData);

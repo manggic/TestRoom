@@ -51,10 +51,12 @@ export default function TeacherDashboard() {
                 if (user?.id) {
                     const response = await getMyTest(user.id);
                     if (response.success) {
-                        // Fetch creator names for all tests
+                        // Fetch creator and last_updated_by names for all tests
                         const tests = response.data;
                         const creatorIds = Array.from(new Set(tests.map((t: any) => t.created_by)));
-                        const namesMap = await fetchUserNames(creatorIds);
+                        const lastUpdaterIds = Array.from(new Set(tests.map((t: any) => t.last_updated_by).filter(Boolean)));
+                        const allUserIds = Array.from(new Set([...creatorIds, ...lastUpdaterIds]));
+                        const namesMap = await fetchUserNames(allUserIds);
                         setUserNames(namesMap);
                         setMyTests(tests);
                     } else {
@@ -128,7 +130,12 @@ export default function TeacherDashboard() {
                     ) : (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {myTests.map((test) => (
-                                <TestCard key={test.id} test={test} createdByName={userNames[test.created_by] || test.created_by} />
+                                <TestCard
+                                    key={test.id}
+                                    test={test}
+                                    createdByName={userNames[test.created_by] || test.created_by}
+                                    lastUpdatedByName={userNames[test.last_updated_by] || test.last_updated_by}
+                                />
                             ))}
                         </div>
                     )}
@@ -145,7 +152,12 @@ export default function TeacherDashboard() {
                     ) : (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {allTests.map((test) => (
-                                <TestCard key={test.id} test={test} createdByName={userNames[test.created_by] || test.created_by} />
+                                <TestCard
+                                    key={test.id}
+                                    test={test}
+                                    createdByName={userNames[test.created_by] || test.created_by}
+                                    lastUpdatedByName={userNames[test.last_updated_by] || test.last_updated_by}
+                                />
                             ))}
                         </div>
                     )}

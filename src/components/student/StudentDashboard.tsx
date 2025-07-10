@@ -24,7 +24,7 @@ interface TestAttempt {
     id: string;
     score_achieved: number;
     total_questions: number;
-    time_taken_minutes: number;
+    time_taken_seconds: number;
     created_at: string;
     status: 'in_progress' | 'completed' | 'timed_out';
     tests: Test;
@@ -235,7 +235,7 @@ export default function StudentDashboard() {
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <Clock className="h-4 w-4" />
-                                                    <span>Time Taken: {attempt.time_taken_minutes || 0} min</span>
+                                                    <span>Time Taken: {(() => { const t = attempt.time_taken_seconds || 0; return `${Math.floor(t/60)}m ${t%60}s`; })()} </span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <Timer className="h-4 w-4" />

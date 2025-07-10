@@ -16,6 +16,7 @@ export default function TestPreviewPage() {
     const [test, setTest] = useState<any>(state?.test || null);
     const [questions, setQuestions] = useState<any[]>(state?.test?.questions || []);
     const [creatorName, setCreatorName] = useState<string>("");
+    const [lastUpdatedByName, setLastUpdatedByName] = useState<string>("");
     const [loading, setLoading] = useState(!state?.test);
 
     useEffect(() => {
@@ -52,6 +53,21 @@ export default function TestPreviewPage() {
                     setCreatorName(userData?.name || testData.created_by);
                 }
             }
+            // Fetch last updated by name
+            if (testData.last_updated_by) {
+                if (currentUser?.user?.id === testData.last_updated_by) {
+                    setLastUpdatedByName("You");
+                } else {
+                    const { data: userData, error: userError } = await supabaseClient
+                        .from('users')
+                        .select('name')
+                        .eq('id', testData.last_updated_by)
+                        .single();
+                    setLastUpdatedByName(userData?.name || testData.last_updated_by);
+                }
+            } else {
+                setLastUpdatedByName("");
+            }
             setLoading(false);
         };
         if (!state?.test && testId) {
@@ -63,6 +79,15 @@ export default function TestPreviewPage() {
                 setCreatorName("You");
             } else {
                 setCreatorName(state.test.createdByName || state.test.created_by || "");
+            }
+            if (state.test.last_updated_by) {
+                if (currentUser?.user?.id === state.test.last_updated_by) {
+                    setLastUpdatedByName("You");
+                } else {
+                    setLastUpdatedByName(state.test.lastUpdatedByName || state.test.last_updated_by || "");
+                }
+            } else {
+                setLastUpdatedByName("");
             }
             setLoading(false);
         }
@@ -104,6 +129,11 @@ export default function TestPreviewPage() {
                         <div className="flex items-center gap-2">
                             <User size={20} /> Created By: {creatorName || "Unknown"}
                         </div>
+                        {lastUpdatedByName && lastUpdatedByName !== creatorName && (
+                          <div className="flex items-center gap-2">
+                            <User size={20} /> Last Updated By: {lastUpdatedByName}
+                          </div>
+                        )}
                         <div className="flex items-center gap-2">
                             <Calendar size={20} /> Status: {test.status || "draft"}
                         </div>

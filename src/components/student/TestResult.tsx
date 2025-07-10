@@ -25,7 +25,7 @@ interface TestAttempt {
     id: string;
     score_achieved: number;
     total_questions: number;
-    time_taken_minutes: number;
+    time_taken_seconds: number;
     answers: { [key: string]: string };
     created_at: string;
     status: 'in_progress' | 'completed' | 'timed_out';
@@ -99,7 +99,9 @@ export default function TestResult() {
         y += 20;
         doc.text(`Correct Answers: ${correctAnswers}/${attempt.total_questions}`, margin, y);
         y += 20;
-        doc.text(`Time Taken: ${attempt.time_taken_minutes} minutes`, margin, y);
+        const mins = Math.floor((attempt.time_taken_seconds || 0) / 60);
+        const secs = (attempt.time_taken_seconds || 0) % 60;
+        doc.text(`Time Taken: ${mins}m ${secs}s`, margin, y);
         y += 30;
 
         attempt.tests.questions.forEach((q, i) => {
@@ -262,7 +264,7 @@ export default function TestResult() {
                                 <Clock className="h-8 w-8 text-blue-500" />
                             </div>
                             <div className="text-3xl font-bold">
-                                {attempt.time_taken_minutes || 0}m
+                                {(() => { const t = attempt.time_taken_seconds || 0; return `${Math.floor(t/60)}m ${t%60}s`; })()}
                             </div>
                             <div className="text-sm text-muted-foreground">
                                 Time Taken

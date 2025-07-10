@@ -80,6 +80,22 @@
 }
 ```
 
+- testAttempts Schema
+
+  - test_id ( string )
+  - student_id ( string )
+  - start_time ( timestamp )
+  - end_time ( timestamp )
+  - status ( string ) -  'in_progress' | 'completed' | 'timed_out'
+  - score_achieved ( number )
+  - time_taken_seconds ( number )
+  - total_questions ( number )
+  - answers 
+  - created_at ( timestamp )
+  - updated_at ( timestamp )
+
+
+
 test these feature
 -  create Test
 -  Edit Test
