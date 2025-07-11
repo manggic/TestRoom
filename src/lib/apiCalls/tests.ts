@@ -90,74 +90,112 @@ export async function createTest(testDataToCreate: TEST_DATA_TO_CREATE) {
 }
 
 export async function updateTest(
-    testId: string,
-    testDataToUpdate: Partial<TEST_DATA_TO_CREATE>
+  testId: string,
+  testDataToUpdate: Partial<TEST_DATA_TO_CREATE>
 ) {
-    try {
-        const {
-            test_name,
-            duration_minutes,
-            created_by,
-            questions,
-            status,
-            description,
-            last_updated_by,
-        } = testDataToUpdate;
-        const total_marks = (questions || []).reduce(
-            (sum, q) => sum + (Number(q.marks) || 0),
-            0
-        );
-        const now = new Date().toISOString();
+  try {
+    const {
+      test_name,
+      duration_minutes,
+      description,
+      status,
+      last_updated_by,
+      questions = [],
+    } = testDataToUpdate;
 
-        // Update test
-        const { error: testError } = await supabaseClient
-            .from("tests")
-            .update({
-                ...(test_name && { test_name }),
-                ...(duration_minutes && { duration_minutes }),
-                ...(description && { description }),
-                // Do NOT update created_by here
-                ...(status && { status }),
-                ...(last_updated_by && { last_updated_by }),
-                total_marks,
-                updated_at: now,
-            })
-            .eq("id", testId);
-        if (testError) throw testError;
+    const now = new Date().toISOString();
 
-        // Delete existing questions for this test
-        if (questions) {
-            const { error: deleteError } = await supabaseClient
-                .from("questions")
-                .delete()
-                .eq("test_id", testId);
-            if (deleteError) throw deleteError;
+    const total_marks = questions.reduce(
+      (sum, q) => sum + (Number(q.marks) || 0),
+      0
+    );
 
-            // Insert updated questions
-            for (const q of questions) {
-                const { error: questionError } = await supabaseClient
-                    .from("questions")
-                    .insert({
-                        test_id: testId,
-                        question_text: q.question_text,
-                        options: q.options,
-                        correct_answer: q.correct_answer,
-                        marks: q.marks,
-                        created_at: now,
-                        updated_at: now,
-                    });
-                if (questionError) throw questionError;
-            }
-        }
+    // Step 1: Update test metadata
+    const { error: testError } = await supabaseClient
+      .from("tests")
+      .update({
+        ...(test_name && { test_name }),
+        ...(duration_minutes && { duration_minutes }),
+        ...(description && { description }),
+        ...(status && { status }),
+        ...(last_updated_by && { last_updated_by }),
+        total_marks,
+        updated_at: now,
+      })
+      .eq("id", testId);
 
-        return {
-            success: true,
-            message: "Test and questions updated successfully!",
-        };
-    } catch (error) {
-        return errorHandler(error);
+    if (testError) throw testError;
+
+    // Step 2: Fetch existing question IDs
+    const { data: existingQuestions, error: fetchError } = await supabaseClient
+      .from("questions")
+      .select("id")
+      .eq("test_id", testId);
+
+    if (fetchError) throw fetchError;
+
+    const existingIds = new Set(existingQuestions.map((q) => q.id));
+    const incomingIds = new Set(questions.map((q) => q.id).filter(Boolean));
+
+    // Step 3: Delete removed questions
+    const idsToDelete = [...existingIds].filter((id) => !incomingIds.has(id));
+    if (idsToDelete.length > 0) {
+      const { error: deleteError } = await supabaseClient
+        .from("questions")
+        .delete()
+        .in("id", idsToDelete);
+
+      if (deleteError) throw deleteError;
     }
+
+    // Step 4: Update or Insert questions
+    for (const q of questions) {
+      if (q.id && existingIds.has(q.id)) {
+        // Update existing question
+        const { error: updateError } = await supabaseClient
+          .from("questions")
+          .update({
+            question_text: q.question_text,
+            options: q.options,
+            correct_answer: q.correct_answer,
+            marks: q.marks,
+            updated_at: now,
+          })
+          .eq("id", q.id);
+
+        if (updateError) throw updateError;
+      } else {
+        // Insert new question
+        const { error: insertError } = await supabaseClient
+          .from("questions")
+          .insert({
+            test_id: testId,
+            question_text: q.question_text,
+            options: q.options,
+            correct_answer: q.correct_answer,
+            marks: q.marks,
+            created_at: now,
+            updated_at: now,
+          });
+
+        if (insertError) throw insertError;
+      }
+    }
+
+    return {
+      success: true,
+      message: "Test and questions updated successfully!",
+    };
+  } catch (error) {
+    console.error("Update test error:", error);
+    return {
+      success: false,
+      message: "An error occurred while updating the test.",
+      error,
+    };
+  }
 }
+
 
 export async function getAllTests() {
     try {

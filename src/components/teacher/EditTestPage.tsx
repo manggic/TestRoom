@@ -8,15 +8,11 @@ import {
     Trash,
     ChevronLeft,
     ChevronRight,
-    User,
-    Timer,
-    FileText,
-    Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/useAuth";
-import { supabaseClient } from '@/supabase/config';
-import { updateTest } from '@/lib/apiCalls/tests';
+import { supabaseClient } from "@/supabase/config";
+import { updateTest } from "@/lib/apiCalls/tests";
 const optionKeys = ["a", "b", "c", "d"];
 
 export default function EditTestPage() {
@@ -30,7 +26,6 @@ export default function EditTestPage() {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(0);
     const [errors, setErrors] = useState<{ [index: number]: boolean }>({});
-    const [creatorName, setCreatorName] = useState<string>("");
 
     const questionsPerPage = 10;
 
@@ -42,9 +37,9 @@ export default function EditTestPage() {
                 if (!testData && testId) {
                     // Fetch test from Supabase
                     const { data, error } = await supabaseClient
-                        .from('tests')
-                        .select('*')
-                        .eq('id', testId)
+                        .from("tests")
+                        .select("*")
+                        .eq("id", testId)
                         .single();
                     if (error || !data) {
                         toast.error("Test not found!");
@@ -54,44 +49,34 @@ export default function EditTestPage() {
                 }
 
                 // Fetch questions for this test from Supabase
-                const { data: questionsData, error: questionsError } = await supabaseClient
-                    .from('questions')
-                    .select('*')
-                    .eq('test_id', testData.id);
+                const { data: questionsData, error: questionsError } =
+                    await supabaseClient
+                        .from("questions")
+                        .select("*")
+                        .eq("test_id", testData.id);
                 if (questionsError) {
                     toast.error("Failed to load questions");
                     return;
                 }
 
-                const formattedQuestions = (questionsData || []).map((q: any) => ({
-                    id: q.id,
-                    questionText: q.question_text || "",
-                    options: q.options || { a: "", b: "", c: "", d: "" },
-                    correctAnswer: q.correct_answer || "a",
-                    marks: typeof q.marks === "number" ? q.marks : 1,
-                }));
+
+                const formattedQuestions = (questionsData || []).map(
+                    (q: any) => ({
+                        id: q.id,
+                        question_text: q.question_text || "",
+                        options: q.options || { a: "", b: "", c: "", d: "" },
+                        correct_answer: q.correct_answer || "a",
+                        marks: typeof q.marks === "number" ? q.marks : 1,
+                    })
+                );
 
                 setTest({
                     id: testData.id,
-                    testName: testData.testName || "",
+                    test_name: testData.test_name || "",
                     description: testData.description || "",
-                    durationMinutes: testData.durationMinutes || 30,
+                    duration_minutes: testData.duration_minutes || 30,
                     questions: formattedQuestions,
                 });
-
-                // Fetch creator name
-                if (testData.created_by) {
-                    if (user?.id === testData.created_by) {
-                        setCreatorName("You");
-                    } else {
-                        const { data: userData, error: userError } = await supabaseClient
-                            .from('users')
-                            .select('name')
-                            .eq('id', testData.created_by)
-                            .single();
-                        setCreatorName(userData?.name || testData.created_by);
-                    }
-                }
 
                 setLoading(false);
             } catch (err) {
@@ -101,32 +86,31 @@ export default function EditTestPage() {
         };
 
         if (state?.test) {
+
             // Remap questions to camelCase for the form
-            const formattedQuestions = (state.test.questions || []).map((q: any) => ({
-                id: q.id,
-                questionText: q.question_text || q.questionText || "",
-                options: q.options || { a: "", b: "", c: "", d: "" },
-                correctAnswer: q.correct_answer || q.correctAnswer || "a",
-                marks: typeof q.marks === "number" ? q.marks : 1,
-            }));
+            const formattedQuestions = (state.test.questions || []).map(
+                (q: any) => ({
+                    id: q.id,
+                    question_text: q.question_text || "",
+                    options: q.options || { a: "", b: "", c: "", d: "" },
+                    correct_answer: q.correct_answer,
+                    marks: typeof q.marks === "number" ? q.marks : 1,
+                })
+            );
 
             setTest({
                 id: state.test.id,
-                testName: state.test.test_name || state.test.testName || "",
-                description: state.test.description || state.test.test_description || "",
-                durationMinutes: state.test.duration_minutes || state.test.durationMinutes || 30,
+                test_name: state.test.test_name || "",
+                description: state.test.description || "",
+                duration_minutes: state.test.duration_minutes || 30,
                 questions: formattedQuestions,
             });
             setLoading(false);
-            if (user?.id === (state.test.created_by || state.test.createdBy?.id)) {
-                setCreatorName("You");
-            } else {
-                setCreatorName(state.test.createdBy?.name || state.test.created_by || "");
-            }
         } else {
             loadTest();
         }
     }, [testId, state?.test, user]);
+
 
     if (loading) return <div className="p-6 text-center">Loading test...</div>;
     if (!test)
@@ -140,6 +124,7 @@ export default function EditTestPage() {
         value: string | number
     ) => {
         const updatedQuestions = [...test.questions];
+
         const newValue =
             typeof value === "string" ? value.toLowerCase().trim() : value;
 
@@ -202,40 +187,52 @@ export default function EditTestPage() {
 
             if (invalidQuestions.length > 0) {
                 toast.error(
-                    `Please fix correct answer in question(s): ${invalidQuestions.join(", ")}`
+                    `Please fix correct answer in question(s): ${invalidQuestions.join(
+                        ", "
+                    )}`
                 );
                 return;
             }
 
             // Validation: Ensure all questions have non-empty questionText
             const emptyTextIndexes = test.questions
-                .map((q: any, idx: number) => (!q.questionText || q.questionText.trim() === "") ? idx + 1 : null)
+                .map((q: any, idx: number) =>
+                    !q.question_text || q.question_text.trim() === ""
+                        ? idx + 1
+                        : null
+                )
                 .filter((v: number | null) => v !== null);
             if (emptyTextIndexes.length > 0) {
-                toast.error(`Please enter question text for question(s): ${emptyTextIndexes.join(", ")}`);
+                toast.error(
+                    `Please enter question text for question(s): ${emptyTextIndexes.join(
+                        ", "
+                    )}`
+                );
                 return;
             }
 
             const questions = test.questions.map((q: any) => ({
-                question_text: q.questionText,
+                question_text: q.question_text,
                 options: q.options,
-                correct_answer: q.correctAnswer,
+                correct_answer: q.correct_answer,
                 marks: q.marks,
             }));
 
             const updatedTestData = {
-                test_name: test.testName,
-                duration_minutes: test.durationMinutes,
+                test_name: test.test_name,
+                duration_minutes: test.duration_minutes,
                 description: test.description,
                 questions,
-                status: 'published' as 'published', // or use test.status if available
+                status: "published" as "published", // or use test.status if available
                 last_updated_by: user?.id,
             };
+
 
             const response = await updateTest(test.id, updatedTestData);
 
             if (response.success) {
                 toast.success("Test updated successfully");
+                navigate(`/testpaper/preview/${test.id}`);
             } else {
                 toast("Update Test Failed");
             }
@@ -275,12 +272,11 @@ export default function EditTestPage() {
                             <input
                                 type="text"
                                 className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                                value={test.test_name || test.testName || ""}
+                                value={test.test_name || ""}
                                 onChange={(e) =>
                                     setTest({
                                         ...test,
                                         test_name: e.target.value,
-                                        testName: e.target.value,
                                     })
                                 }
                             />
@@ -292,12 +288,11 @@ export default function EditTestPage() {
                             <input
                                 type="number"
                                 className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                                value={test.duration_minutes || test.durationMinutes || ""}
+                                value={test.duration_minutes || ""}
                                 onChange={(e) =>
                                     setTest({
                                         ...test,
                                         duration_minutes: +e.target.value,
-                                        durationMinutes: +e.target.value,
                                     })
                                 }
                             />
@@ -310,12 +305,11 @@ export default function EditTestPage() {
                         <textarea
                             rows={2}
                             className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                            value={test.description || test.test_description || ""}
+                            value={test.description || ""}
                             onChange={(e) =>
                                 setTest({
                                     ...test,
                                     description: e.target.value,
-                                    test_description: e.target.value,
                                 })
                             }
                         />
@@ -347,11 +341,11 @@ export default function EditTestPage() {
                                 <input
                                     type="text"
                                     className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                                    value={q.questionText}
+                                    value={q.question_text}
                                     onChange={(e) =>
                                         handleInputChange(
                                             qIndex + start,
-                                            "questionText",
+                                            "question_text",
                                             e.target.value
                                         )
                                     }
@@ -398,11 +392,11 @@ export default function EditTestPage() {
                                                     ? "border-red-500 dark:border-red-400"
                                                     : "border-gray-300 dark:border-zinc-600"
                                             }`}
-                                            value={q.correctAnswer}
+                                            value={q.correct_answer}
                                             onChange={(e) =>
                                                 handleInputChange(
                                                     qIndex + start,
-                                                    "correctAnswer",
+                                                    "correct_answer",
                                                     e.target.value
                                                 )
                                             }

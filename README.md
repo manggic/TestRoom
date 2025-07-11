@@ -24,14 +24,14 @@
     -   questions ( array )
     -   description ( string )
     -   durationMinutes ( number )
-    -   createdBy ( object ) - ( name , id )
+    -   createdBy string (uuid)
     -   status ( string ) - ( draft / published )
     -   highestScore ( number )
     -   attempts ( number )
     -   totalMarks ( number )
     -   createdAt
     -   updatedAt
-    -   lastUpdatedBy ( object ) - ( name , id )
+    -   lastUpdatedBy string (uuid)
 
 ```json
 {
@@ -39,20 +39,14 @@
     "description": "This test covers structure and function of cell organelles.",
     "questions": ["q1", "q2", "q3"],
     "durationMinutes": 30,
-    "createdBy": {
-        "id": "uid_neha123",
-        "name": "Neha Sharma"
-    },
+    "createdBy": "uid_neha123",  
     "status": "published",
     "highestScore": 19,
     "attempts": 42,
     "totalMarks": 20,
     "createdAt": "2025-06-21T15:00:00.000Z",
     "updatedAt": "2025-06-26T12:30:00.000Z",
-    "lastUpdatedBy": {
-        "id": "uid_sahu123",
-        "name": "sahu Sharma"
-    },
+    "lastUpdatedBy":"uid_sahu123",
 }
 ```
 
@@ -86,7 +80,7 @@
   - student_id ( string )
   - start_time ( timestamp )
   - end_time ( timestamp )
-  - status ( string ) -  'in_progress' | 'completed' | 'timed_out'
+  - status ( string ) -  'completed' 
   - score_achieved ( number )
   - time_taken_seconds ( number )
   - total_questions ( number )

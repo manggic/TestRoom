@@ -65,7 +65,7 @@ export function TestCard({ test, createdByName, lastUpdatedByName }: { test: any
                 <Button
                     size="sm"
                     onClick={() =>
-                        navigate(`testpaper/edit/${test.id}`, {
+                        navigate(`testpaper/edit/${test.id}?zzzfff=${crypto.randomUUID()}`, {
                             state: { test },
                         })
                     }
@@ -76,7 +76,7 @@ export function TestCard({ test, createdByName, lastUpdatedByName }: { test: any
                     size="sm"
                     variant="outline"
                     onClick={() =>
-                        navigate(`testpaper/preview/${test.id}`, {
+                        navigate(`testpaper/preview/${test.id}?zzzfff=${crypto.randomUUID()}`, {
                             state: { test : {...test, createdByName}  },
                         })
                     }

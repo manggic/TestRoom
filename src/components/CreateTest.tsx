@@ -8,10 +8,11 @@ import { toast } from "sonner";
 import { createTest } from "@/lib/apiCalls/tests";
 import { useAuth } from "@/context/useAuth";
 import { errorHandler } from "@/lib/utils";
+import { useNavigate } from "react-router";
 
 export default function CreateTest() {
     const { currentUser } = useAuth();
-
+    const navigate = useNavigate();
 
     const [testName, setTestName] = useState("");
     const [durationMinutes, setDurationMinutes] = useState<number | undefined>(
@@ -52,8 +53,9 @@ export default function CreateTest() {
 
             if (response.success) {
                 toast.success(`✅ Test saved as ${status}`);
+                navigate(`/`);
             } else {
-                toast('Create Test Failed');
+                toast("Create Test Failed");
             }
         } catch (error) {
             toast(errorHandler(error).message);
@@ -153,7 +155,6 @@ export default function CreateTest() {
                         <QuestionPreview
                             questions={[...jsonData, ...formData]}
                             onDelete={(indexToDelete) => {
-                                const total = [...jsonData, ...formData];
                                 const fromJson =
                                     indexToDelete < jsonData.length;
                                 if (fromJson) {
