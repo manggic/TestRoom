@@ -3,7 +3,15 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Timer, User, FileText, BarChart2 } from "lucide-react";
 import { useNavigate } from "react-router";
-export function TestCard({ test, createdByName, lastUpdatedByName }: { test: any, createdByName: string, lastUpdatedByName?: string }) {
+export function TestCard({
+    test,
+    createdByName,
+    lastUpdatedByName,
+}: {
+    test: any;
+    createdByName: string;
+    lastUpdatedByName?: string;
+}) {
     const navigate = useNavigate();
     const {
         duration_minutes,
@@ -45,15 +53,15 @@ export function TestCard({ test, createdByName, lastUpdatedByName }: { test: any
                     </span>
                 </div>
                 {lastUpdatedByName && lastUpdatedByName !== createdByName && (
-                  <div className="flex items-center gap-2">
-                    <User size={20} />
-                    <span
-                        className="truncate whitespace-nowrap overflow-hidden max-w-[180px]"
-                        title={lastUpdatedByName}
-                    >
-                        Last Updated By: {lastUpdatedByName}
-                    </span>
-                  </div>
+                    <div className="flex items-center gap-2">
+                        <User size={20} />
+                        <span
+                            className="truncate whitespace-nowrap overflow-hidden max-w-[180px]"
+                            title={lastUpdatedByName}
+                        >
+                            Last Updated By: {lastUpdatedByName}
+                        </span>
+                    </div>
                 )}
                 <div className="flex items-center gap-2">
                     <Calendar size={20} /> Status: {status}
@@ -61,28 +69,59 @@ export function TestCard({ test, createdByName, lastUpdatedByName }: { test: any
             </div>
 
             {/* Buttons */}
-            <div className="flex gap-3 mt-6">
-                <Button
-                    size="sm"
-                    onClick={() =>
-                        navigate(`testpaper/edit/${test.id}?zzzfff=${crypto.randomUUID()}`, {
-                            state: { test },
-                        })
-                    }
-                >
-                    Edit
-                </Button>
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                        navigate(`testpaper/preview/${test.id}?zzzfff=${crypto.randomUUID()}`, {
-                            state: { test : {...test, createdByName}  },
-                        })
-                    }
-                >
-                    Preview
-                </Button>
+            <div className="flex justify-between mt-6">
+                <div className="flex gap-3">
+                    <Button
+                        size="sm"
+                        onClick={() =>
+                            navigate(
+                                `testpaper/edit/${
+                                    test.id
+                                }?zzzfff=${crypto.randomUUID()}`,
+                                {
+                                    state: { test },
+                                }
+                            )
+                        }
+                    >
+                        Edit
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                            navigate(
+                                `testpaper/preview/${
+                                    test.id
+                                }?zzzfff=${crypto.randomUUID()}`,
+                                {
+                                    state: { test: { ...test, createdByName } },
+                                }
+                            )
+                        }
+                    >
+                        Preview
+                    </Button>
+                </div>
+
+                {attempts > 0 && (
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                            navigate(
+                                `testpaper/attempts/${
+                                    test.id
+                                }?zzzfff=${crypto.randomUUID()}`,
+                                {
+                                    state: { test: { ...test, createdByName } },
+                                }
+                            )
+                        }
+                    >
+                        Check Attempts
+                    </Button>
+                )}
             </div>
         </Card>
     );

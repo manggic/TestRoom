@@ -390,70 +390,7 @@ export async function getTestWithQuestions(testId: string) {
     }
 }
 
-// export async function submitTestAttempt(testId: string, studentId: string, answers: { [key: string]: string }, timeTaken: number) {
-//     try {
-//         // Get test and questions to calculate score
-//         const testResult = await getTestWithQuestions(testId);
-//         if (!testResult.success) throw new Error('Failed to get test details');
 
-//         const test = testResult.data;
-//         let totalScore = 0;
-//         let correctAnswers = 0;
-
-//         // Calculate score
-//         test.questions.forEach((question: any, index: number) => {
-//             const studentAnswer = answers[`q${index}`];
-//             if (studentAnswer === question.correct_answer) {
-//                 totalScore += question.marks;
-//                 correctAnswers++;
-//             }
-//         });
-
-//         const now = new Date().toISOString();
-
-//         // Insert test attempt with new schema
-//         const { data: attempt, error: attemptError } = await supabaseClient
-//             .from('test_attempts')
-//             .insert({
-//                 test_id: testId,
-//                 student_id: studentId,
-//                 start_time: now,
-//                 end_time: now,
-//                 status: 'completed',
-//                 score_achieved: totalScore,
-//                 answers: answers,
-//                 created_at: now,
-//                 updated_at: now,
-//             })
-//             .select()
-//             .single();
-//         if (attemptError) throw attemptError;
-
-//         // Update test attempts count
-//         const { error: updateError } = await supabaseClient
-//             .from('tests')
-//             .update({
-//                 attempts: test.attempts + 1,
-//                 highest_score: Math.max(test.highest_score, totalScore),
-//             })
-//             .eq('id', testId);
-//         if (updateError) throw updateError;
-
-//         return {
-//             success: true,
-//             message: 'Test submitted successfully!',
-//             data: {
-//                 attempt,
-//                 score: totalScore,
-//                 totalMarks: test.total_marks,
-//                 correctAnswers,
-//                 totalQuestions: test.questions.length,
-//             },
-//         };
-//     } catch (error) {
-//         return errorHandler(error);
-//     }
-// }
 
 export async function getTestAttempt(attemptId: string) {
     try {
@@ -502,6 +439,8 @@ export async function getTestAttemptByTestAndStudent(
         return { data: null, error };
     }
 }
+
+
 
 export async function submitTestAttempt(testAttemptDataObj) {
     try {
@@ -562,5 +501,37 @@ export async function submitTestAttempt(testAttemptDataObj) {
         };
     } catch (error) {
         return errorHandler(error);
+    }
+}
+
+
+export async function getTestById(testId: string) {
+  try {
+    const { data, error } = await supabaseClient
+      .from("tests")
+      // Select both test_name and total_marks
+      .select("test_name, total_marks")
+      .eq("id", testId)
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+}
+
+export async function getTestAttemptsByTestId(testId: string) {
+    try {
+        const { data, error } = await supabaseClient
+            .from("test_attempts")
+            .select("*, users(name)") // join with users table
+            .eq("test_id", testId)
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        return { data, error: null };
+    } catch (error) {
+        return { data: null, error };
     }
 }

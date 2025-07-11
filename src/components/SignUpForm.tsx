@@ -72,7 +72,7 @@ export default function SignUpForm() {
 
         const res = await signupUser(form.email, form.password, {
             name: form.name,
-            role: "teacher",
+            role: "student",
         });
 
         if (res.success) {

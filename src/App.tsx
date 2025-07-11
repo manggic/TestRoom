@@ -15,6 +15,7 @@ import StudentDashboard from "./components/student/StudentDashboard";
 import TakeTest from "./components/student/TakeTest";
 import TestResult from "./components/student/TestResult";
 import { useAuth } from "./context/useAuth";
+import AttemptListing from "./components/teacher/AttemptListing";
 
 function App() {
     const { loading } = useAuth();
@@ -52,6 +53,7 @@ function App() {
                         <Route path="test" element={<TestPaper />} />
                         <Route path="/testpaper/preview/:testId" element={<TestPreviewPage />} />
                         <Route path="/testpaper/edit/:testId" element={<EditTestPage />} />
+                        <Route path="/testpaper/attempts/:testId" element={<AttemptListing />} />
                     </Route>
                 </Route>
 

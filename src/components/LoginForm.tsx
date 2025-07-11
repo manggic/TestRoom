@@ -50,7 +50,7 @@ export default function LoginForm() {
 
         if (res.success) {
             toast("Login successful");
-            // navigate("/", { replace: true });
+            navigate("/", { replace: true });
         } else {
             toast("Login failed" + " Invalid credentials");
         }
