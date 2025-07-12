@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TestCard } from "@/components/teacher/TestCard";
 import { Plus } from "lucide-react";
-import { getAllTests, getMyTest } from "@/lib/apiCalls/tests";
+
 import { toast } from "sonner";
-import { supabaseClient } from "@/supabase/config";
 
 import type { Test } from "@/types/test";
+import { getTests, getTestsByTeacherId } from "@/services/testService";
 
 export default function TeacherDashboard() {
     const [allTests, setAllTests] = useState([]);
@@ -21,23 +21,6 @@ export default function TeacherDashboard() {
     const navigate = useNavigate();
     const [tab, setTab] = useState("my");
     const [hasLoadedAllTests, setHasLoadedAllTests] = useState(false);
-    const [userNames, setUserNames] = useState<Record<string, string>>({});
-
-    // Helper to fetch user names for a list of user IDs
-    async function fetchUserNames(userIds: string[]): Promise<Record<string, string>> {
-        if (userIds.length === 0) return {};
-        const { data, error } = await supabaseClient
-            .from('users')
-            .select('id, name')
-            .in('id', userIds);
-        if (error) return {};
-        const map: Record<string, string> = {};
-        for (const u of data || []) {
-            map[u.id] = u.name;
-        }
-        return map;
-    }
-
 
     useEffect(() => {
         if (!loading && user && user.role !== "teacher") {
@@ -49,15 +32,12 @@ export default function TeacherDashboard() {
         async function loadMyTest() {
             try {
                 if (user?.id) {
-                    const response = await getMyTest(user.id);
+                    const response = await getTestsByTeacherId(user.id);
                     if (response.success) {
-                        // Fetch creator and last_updated_by names for all tests
+                        console.log("laod my test", { response });
+
                         const tests = response.data;
-                        const creatorIds = Array.from(new Set(tests.map((t: any) => t.created_by)));
-                        const lastUpdaterIds = Array.from(new Set(tests.map((t: any) => t.last_updated_by).filter(Boolean)));
-                        const allUserIds = Array.from(new Set([...creatorIds, ...lastUpdaterIds]));
-                        const namesMap = await fetchUserNames(allUserIds);
-                        setUserNames(namesMap);
+
                         setMyTests(tests);
                     } else {
                         toast(response.message);
@@ -79,12 +59,9 @@ export default function TeacherDashboard() {
         const loadTests = async () => {
             try {
                 setIsTestDataLoading(true);
-                const result = await getAllTests();
-                // Fetch creator names for all tests
-                const creatorIds = Array.from(new Set(result.map((t: any) => t.created_by)));
-                const namesMap = await fetchUserNames(creatorIds);
-                setUserNames(namesMap);
-                setAllTests(result);
+                const result = await getTests();
+
+                setAllTests(result?.data);
                 setHasLoadedAllTests(true);
             } catch (err) {
                 console.error("Error loading all tests:", err);
@@ -108,7 +85,7 @@ export default function TeacherDashboard() {
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-2xl font-bold">Teacher Dashboard</h1>
                 <Button
-                    onClick={() => navigate("/create-test")}
+                    onClick={() => navigate("/teacher/create-test")}
                     className="gap-2"
                 >
                     <Plus size={18} /> Create Test
@@ -133,8 +110,8 @@ export default function TeacherDashboard() {
                                 <TestCard
                                     key={test.id}
                                     test={test}
-                                    createdByName={userNames[test.created_by] || test.created_by}
-                                    lastUpdatedByName={userNames[test.last_updated_by] || test.last_updated_by}
+                                    createdByName={test.createdByName}
+                                    lastUpdatedByName={test.updatedByName}
                                 />
                             ))}
                         </div>
@@ -155,8 +132,8 @@ export default function TeacherDashboard() {
                                 <TestCard
                                     key={test.id}
                                     test={test}
-                                    createdByName={userNames[test.created_by] || test.created_by}
-                                    lastUpdatedByName={userNames[test.last_updated_by] || test.last_updated_by}
+                                    createdByName={test.createdByName}
+                                    lastUpdatedByName={test.updatedByName}
                                 />
                             ))}
                         </div>

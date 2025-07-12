@@ -5,8 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Clock, FileText, User, Calendar, Trophy, Eye, BarChart2, Timer } from "lucide-react";
-import { getUnattemptedTests, getAttemptedTests } from "@/lib/apiCalls/tests";
+
+
 import { useNavigate } from "react-router";
+import { getTestAttemptsByStudentId, getUnattemptedTestsOfStudentId } from "@/services/testAttemptService";
 
 interface Test {
     id: string;
@@ -37,8 +39,7 @@ export default function StudentDashboard() {
     const [attemptedTests, setAttemptedTests] = useState<TestAttempt[]>([]);
     const [loading, setLoading] = useState(true);
 
-     console.log({currentUser});
-     
+   
 
     useEffect(() => {
         if (currentUser?.user?.id) {
@@ -52,13 +53,13 @@ export default function StudentDashboard() {
             const studentId = currentUser?.user?.id;
 
             // Load unattempted tests
-            const unattemptedResult = await getUnattemptedTests(studentId);
+            const unattemptedResult = await getUnattemptedTestsOfStudentId(studentId);
             if (unattemptedResult.success) {
                 setUnattemptedTests(unattemptedResult.data as Test[]);
             }
 
             // Load attempted tests
-            const attemptedResult = await getAttemptedTests(studentId);
+            const attemptedResult = await getTestAttemptsByStudentId(studentId);
             if (attemptedResult.success) {
                 console.log('Attempted tests data:', attemptedResult.data);
                 setAttemptedTests(attemptedResult.data as TestAttempt[]);
@@ -106,6 +107,7 @@ export default function StudentDashboard() {
             </div>
         );
     }
+
 
     return (
         <div className="container mx-auto p-6">

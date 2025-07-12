@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate, useLocation } from "react-router";
 import { toast } from "sonner";
-import { logInUser } from "@/services/auth";
+import { logInUser } from "@/services/authService";
 import { useAuth } from "@/context/useAuth";
 
 export default function LoginForm() {

@@ -1,8 +1,8 @@
 -   Users Schema
     -   name ( string )
     -   email ( string )
-    -   createdAt
-    -   updatedAt
+    -   created_at ( timestamp )
+    -   updated_at ( timestamp )
     -   role ( string ) - ( admin / student / teacher )
     -   attemptedTests ( number )
     -   isActive ( boolean )
@@ -20,93 +20,113 @@
 ```
 
 -   Tests Schema
-    -   testName ( string )
+
+    -   test_name ( string )
     -   questions ( array )
     -   description ( string )
-    -   durationMinutes ( number )
-    -   createdBy string (uuid)
+    -   duration_minutes ( number )
+    -   created_by string (uuid)
     -   status ( string ) - ( draft / published )
-    -   highestScore ( number )
+    -   highest_score ( number )
     -   attempts ( number )
-    -   totalMarks ( number )
-    -   createdAt
-    -   updatedAt
-    -   lastUpdatedBy string (uuid)
-
-```json
-{
-    "testName": "Class 10 Science - Cells",
-    "description": "This test covers structure and function of cell organelles.",
-    "questions": ["q1", "q2", "q3"],
-    "durationMinutes": 30,
-    "createdBy": "uid_neha123",  
-    "status": "published",
-    "highestScore": 19,
-    "attempts": 42,
-    "totalMarks": 20,
-    "createdAt": "2025-06-21T15:00:00.000Z",
-    "updatedAt": "2025-06-26T12:30:00.000Z",
-    "lastUpdatedBy":"uid_sahu123",
-}
-```
+    -   total_marks ( number )
+    -   created_at ( timestamp )
+    -   updated_at ( timestamp )
+    -   last_updated_by string (uuid)
 
 -   Questions Schema
-    -   questionText ( string )
+
+    -   question_text ( string )
     -   options ( object ) - { a : "nucleus" }
-    -   correctAnswer ( string )
+    -   correct_answer ( string )
     -   marks ( number )
-    -   createdAt
-    -   updatedAt
+    -   created_at ( timestamp )
+    -   updated_at ( timestamp )
 
-```json
-{
-    "questionText": "Which organelle is known as the powerhouse of the cell?",
-    "options": {
-        "a": "Nucleus",
-        "b": "Mitochondria",
-        "c": "Ribosome",
-        "d": "Chloroplast"
-    },
-    "correctAnswer": "b",
-    "marks": 2,
-    "createdAt": "2025-06-21T15:10:00.000Z",
-    "updatedAt": "2025-06-21T15:10:00.000Z"
-}
-```
+-   testAttempts Schema
 
-- testAttempts Schema
-
-  - test_id ( string )
-  - student_id ( string )
-  - start_time ( timestamp )
-  - end_time ( timestamp )
-  - status ( string ) -  'completed' 
-  - score_achieved ( number )
-  - time_taken_seconds ( number )
-  - total_questions ( number )
-  - answers 
-  - created_at ( timestamp )
-  - updated_at ( timestamp )
-
-
+    -   test_id ( string )
+    -   student_id ( string )
+    -   start_time ( timestamp )
+    -   end_time ( timestamp )
+    -   status ( string ) - 'completed'
+    -   score_achieved ( number )
+    -   time_taken_seconds ( number )
+    -   total_questions ( number )
+    -   answers
+    -   created_at ( timestamp )
+    -   updated_at ( timestamp )
 
 test these feature
--  create Test
--  Edit Test
 
+-   create Test
+-   Edit Test
 
+Issue
 
+-   follow proper folder structure with name conventions
+-   data in db is not added in sort format
+-   fix ts error
 
+feature
 
-Issue  
-- follow proper folder structure with name conventions
-- data in db is not added in sort format
-- fix ts error
+-   toast position fix
+-   while editing we can add question using json format
 
-feature 
-- toast position fix
-- while editing we can add question using json format
+-   All api lists
 
+// create a test
 
+-   createTest ( done)
 
+// update test
 
+-   updateTest ( done )
+
+// get all tests from db
+
+-   getTests ( done )
+
+// get a specific test based on id
+
+-   getTestById ( done )
+
+// get all tests created by teacher id
+
+-   getTestsByTeacherId ( done )
+
+// get all users
+
+-   getUsers ( done )
+
+// get a specific user
+
+-   getUserById ( done )
+
+// get all test attempts
+
+-   getTestAttempts ( done )
+
+//
+
+-   getTestAttemptById ( done )
+
+//
+
+-   getTestAttemptsByStudentId ( done )
+
+//
+
+-   getTestAttemptsByTestId ( done )
+
+//
+
+-   submitTestAttempt ( done )
+
+//
+
+-   getTestAttemptsByTestIdAndStudentId ( done )
+
+//
+
+-   getUnattemptedTestsOfStudentId

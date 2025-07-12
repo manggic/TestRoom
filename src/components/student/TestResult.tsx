@@ -3,10 +3,9 @@ import { useParams, useNavigate } from "react-router";
 import { useAuth } from "@/context/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Download, ArrowLeft, Trophy, Clock, CheckCircle, XCircle } from "lucide-react";
-import { getTestAttempt } from "@/lib/apiCalls/tests";
 import jsPDF from "jspdf";
+import { getTestAttemptById } from "@/services/testAttemptService";
 
 interface Question {
     id: string;
@@ -61,7 +60,7 @@ export default function TestResult() {
             setLoading(true);
             setError(null);
             
-            const result = await getTestAttempt(attemptId!);
+            const result = await getTestAttemptById(attemptId!);
             if (result.success) {
                 setAttempt(result.data);
             } else {

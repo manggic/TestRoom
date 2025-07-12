@@ -75,7 +75,7 @@ export function TestCard({
                         size="sm"
                         onClick={() =>
                             navigate(
-                                `testpaper/edit/${
+                                `/teacher/test/edit/${
                                     test.id
                                 }?zzzfff=${crypto.randomUUID()}`,
                                 {
@@ -91,7 +91,7 @@ export function TestCard({
                         variant="outline"
                         onClick={() =>
                             navigate(
-                                `testpaper/preview/${
+                                `/teacher/test/preview/${
                                     test.id
                                 }?zzzfff=${crypto.randomUUID()}`,
                                 {
@@ -110,7 +110,7 @@ export function TestCard({
                         variant="outline"
                         onClick={() =>
                             navigate(
-                                `testpaper/attempts/${
+                                `/teacher/test/attempts/${
                                     test.id
                                 }?zzzfff=${crypto.randomUUID()}`,
                                 {

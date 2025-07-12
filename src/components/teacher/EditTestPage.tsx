@@ -12,8 +12,9 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/context/useAuth";
 import { supabaseClient } from "@/supabase/config";
-import { updateTest } from "@/lib/apiCalls/tests";
+import { updateTest } from "@/services/testService";
 const optionKeys = ["a", "b", "c", "d"];
+
 
 export default function EditTestPage() {
     const { currentUser } = useAuth();

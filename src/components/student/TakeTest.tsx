@@ -10,8 +10,11 @@ import {
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Download, TimerReset, X, AlertCircle } from "lucide-react";
-import { getTestWithQuestions, submitTestAttempt } from "@/lib/apiCalls/tests";
+// import { getTestWithQuestions, submitTestAttempt } from "@/lib/apiCalls/tests";
+
 import jsPDF from "jspdf";
+import { submitTestAttempt } from "@/services/testAttemptService";
+import { getTestById } from "@/services/testService";
 
 interface Question {
     id: string;
@@ -95,7 +98,7 @@ export default function TakeTest() {
     const loadTest = async () => {
         try {
             setLoading(true);
-            const data = await getTestWithQuestions(testId);
+            const data = await getTestById(testId);
 
             if (data.success) {
                 setTestData(data.data);

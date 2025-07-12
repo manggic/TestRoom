@@ -5,10 +5,10 @@ import { Controls } from "./test-builder/Controls";
 import { JsonInput } from "./test-builder/JsonInput";
 import { BackButton } from "./BackButton";
 import { toast } from "sonner";
-import { createTest } from "@/lib/apiCalls/tests";
 import { useAuth } from "@/context/useAuth";
 import { errorHandler } from "@/lib/utils";
 import { useNavigate } from "react-router";
+import { createTest } from "@/services/testService";
 
 export default function CreateTest() {
     const { currentUser } = useAuth();
@@ -18,7 +18,7 @@ export default function CreateTest() {
     const [durationMinutes, setDurationMinutes] = useState<number | undefined>(
         undefined
     );
-    // const [description, setDescription] = useState("");
+    const [description, setDescription] = useState("");
 
     const [jsonData, setJsonData] = useState([]);
     const [formData, setFormData] = useState([]);
@@ -47,8 +47,10 @@ export default function CreateTest() {
                 test_name: testName,
                 duration_minutes: durationMinutes,
                 questions,
-                created_by: currentUser.user.id,
+                last_updated_by: currentUser.user.id,
+                created_by:currentUser.user.id,
                 status: status.toLowerCase(),
+                description
             });
 
             if (response.success) {

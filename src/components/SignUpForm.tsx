@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import { Link } from "react-router";
 import { toast } from "sonner";
-import { signupUser } from "@/services/auth";
+import { signupUser } from "@/services/authService";
 import { useAuth } from "@/context/useAuth";
 
 export default function SignUpForm() {

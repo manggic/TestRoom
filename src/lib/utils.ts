@@ -28,4 +28,19 @@ export function errorHandler<T>(error: unknown): ErrorHandler<T> {
     };
 }
 
+export function handleResponse(data, error) {
+    if (error) {
+        return {
+            success: false,
+            message: error,
+            data: [],
+        };
+    } else {
+        return {
+            success: true,
+            data,
+        };
+    }
+}
+
 // TODO: Replace all Firestore logic with Supabase equivalents if needed.
