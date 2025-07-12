@@ -17,7 +17,8 @@ import { Loader2, Trash2, User2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TestCard } from "../teacher/TestCard";
 import { getTests } from "@/services/testService";
-import { getUsers } from "@/services/userService";
+import { getUsersForAdmin } from "@/services/userService";
+
 
 interface User {
     id: string;
@@ -54,8 +55,8 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState("students");
 
     const fetchUsers = async () => {
-        const response = await getUsers();
-
+        const response = await getUsersForAdmin();
+ 
         if (response.success) {
             setStudents(
                 response.data.filter((u: User) => u.role === "student")
@@ -128,11 +129,11 @@ export default function AdminDashboard() {
 
                 <div className="flex flex-wrap gap-1">
                     {(user.role === "student"
-                        ? user.attempted_test_names
-                        : user.created_test_names
+                        ? user?.attempted_tests
+                        : user?.created_tests
                     )?.map((testName, i) => (
                         <Badge key={i} variant="outline" className="text-xs">
-                            {testName}
+                            {testName?.test_name} 
                         </Badge>
                     )) || (
                         <span className="text-muted-foreground text-xs">
@@ -245,8 +246,8 @@ export default function AdminDashboard() {
                                 <TestCard
                                     key={test.id}
                                     test={test}
-                                    createdByName={test.created_by_name}
-                                    lastUpdatedByName={test.updated_by_name}
+                                    createdByName={test.createdByName}
+                                    lastUpdatedByName={test.updatedByName}
                                 />
                             ))
                         ) : (

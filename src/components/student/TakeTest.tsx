@@ -440,7 +440,7 @@ export default function TakeTest() {
                         Error Loading Test
                     </h3>
                     <p className="text-muted-foreground mb-4">{error}</p>
-                    <Button onClick={() => navigate("/dashboard")}>
+                    <Button onClick={() => navigate("/")}>
                         Back to Dashboard
                     </Button>
                 </div>
