@@ -90,7 +90,18 @@ export async function getTestAttemptsByTestId(testId: string) {
     try {
         const { data, error } = await supabaseClient
             .from("test_attempts")
-            .select("*, users(name)") // join with users table
+            .select(
+                `
+                *,
+                tests!test_id(
+                    *,
+                    users!created_by(name),
+                    questions(*)
+                ),
+                users(name)
+            `
+            )
+            // .select("*, users(name)") // join with users table
             .eq("test_id", testId)
             .order("created_at", { ascending: false });
 

@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { TestCard } from "../teacher/TestCard";
 import { getTests } from "@/services/testService";
 import { getUsersForAdmin } from "@/services/userService";
-
+import { useNavigate } from "react-router";
 
 interface User {
     id: string;
@@ -53,10 +53,11 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [activeTab, setActiveTab] = useState("students");
+    const navigate = useNavigate();
 
     const fetchUsers = async () => {
         const response = await getUsersForAdmin();
- 
+
         if (response.success) {
             setStudents(
                 response.data.filter((u: User) => u.role === "student")
@@ -132,9 +133,25 @@ export default function AdminDashboard() {
                         ? user?.attempted_tests
                         : user?.created_tests
                     )?.map((testName, i) => (
-                        <Badge key={i} variant="outline" className="text-xs">
-                            {testName?.test_name} 
-                        </Badge>
+                        <button
+                            onClick={() =>
+                                user.role === "student"
+                                    ? navigate(
+                                          `/student/result/${testName?.test_attempt_id}`
+                                      )
+                                    : navigate(
+                                          `/teacher/test/preview/${testName?.test_id}`
+                                      )
+                            }
+                        >
+                            <Badge
+                                key={i}
+                                variant="outline"
+                                className="text-xs"
+                            >
+                                {testName?.test_name}
+                            </Badge>
+                        </button>
                     )) || (
                         <span className="text-muted-foreground text-xs">
                             None
