@@ -2,8 +2,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import type { QuestionForComp } from "@/types/test";
 
-export function FormInput({ setFormData }) {
+type FormInputProps = {
+    setFormData: React.Dispatch<React.SetStateAction<QuestionForComp[]>>;
+};
+
+export function FormInput({ setFormData }: FormInputProps) {
     const [questionAdded, setQuestionAdded] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -12,12 +17,12 @@ export function FormInput({ setFormData }) {
         const getValue = (id: string) =>
             (document.getElementById(id) as HTMLInputElement).value;
 
-        const questionText = getValue("question");
+        const question_text = getValue("question");
         const optionA = getValue("option1");
         const optionB = getValue("option2");
         const optionC = getValue("option3");
         const optionD = getValue("option4");
-        const correctAnswer = getValue("correct");
+        const correct = getValue("correct");
         const marks = +getValue("marks");
 
         const options = {
@@ -27,12 +32,17 @@ export function FormInput({ setFormData }) {
             d: optionD,
         };
 
-        const question = { questionText, options, correctAnswer, marks };
+        // Ensure correct_answer is one of 'a' | 'b' | 'c' | 'd'
+        if (!["a", "b", "c", "d"].includes(correct)) {
+            alert("Correct answer must be one of a, b, c, or d.");
+            return;
+        }
 
-        // questions.push();
+        const correct_answer = correct as keyof typeof options;
+
+        const question = { question_text, options, correct_answer, marks };
 
         setFormData((prev) => [...prev, question]);
-        // localStorage.setItem("mcq_form", JSON.stringify(questions));
 
         setQuestionAdded(true);
         setTimeout(() => setQuestionAdded(false), 2000);
@@ -89,7 +99,7 @@ export function FormInput({ setFormData }) {
 
             <Button
                 type="submit"
-                className="bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-200 dark:text-black dark:hover:bg-white gap-2"
+                className="bg-zinc-900 cursor-pointer hover:bg-zinc-800 text-white dark:bg-zinc-200 dark:text-black dark:hover:bg-white gap-2"
             >
                 <Plus size={16} />
                 Add Question

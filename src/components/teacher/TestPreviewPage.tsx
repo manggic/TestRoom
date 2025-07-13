@@ -3,126 +3,43 @@ import { useNavigate, useLocation, useParams } from "react-router";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { supabaseClient } from "@/supabase/config";
 import { useAuth } from "@/context/useAuth";
+import type { Test, Question, OptionKey } from "@/types/test";
 
 import { ArrowLeft, FileText, Timer, User, Calendar } from "lucide-react";
+import { getTestById } from "@/services/testService";
+import { errorHandler } from "@/lib/utils";
 
 export default function TestPreviewPage() {
     const navigate = useNavigate();
     const { state } = useLocation();
     const { testId } = useParams();
     const { currentUser } = useAuth();
-    const [test, setTest] = useState<any>(state?.test || null);
-    const [questions, setQuestions] = useState<any[]>(
-        state?.test?.questions || []
-    );
-    const [creatorName, setCreatorName] = useState<string>("");
-    const [lastUpdatedByName, setLastUpdatedByName] = useState<string>("");
+    const [test, setTest] = useState<Test>(state?.test || null);
+
     const [loading, setLoading] = useState(!state?.test);
 
+    console.log({ state });
 
     useEffect(() => {
-        const fetchTestAndQuestions = async () => {
-            setLoading(true);
-            // Fetch test from Supabase
-            const { data: testData, error: testError } = await supabaseClient
-                .from("tests")
-                .select("*")
-                .eq("id", testId)
-                .single();
-            if (testError || !testData) {
-                setTest(null);
-                setLoading(false);
-                return;
-            }
-            setTest(testData);
-            // Fetch questions for this test
-            const { data: questionsData, error: questionsError } =
-                await supabaseClient
-                    .from("questions")
-                    .select("*")
-                    .eq("test_id", testId);
-            setQuestions(questionsData || []);
+        async function testData() {
+            if (!testId) return; // ✅ TypeScript now knows testId is string below
+            try {
+                const response = await getTestById(testId);
 
-            const userIdsToFetch = [
-                testData.created_by,
-                testData.last_updated_by,
-            ].filter((id) => id && id !== currentUser?.user?.id);
 
-            let usersMap = {};
-
-            if (userIdsToFetch.length > 0) {
-                const { data: usersData, error: usersError } =
-                    await supabaseClient
-                        .from("users")
-                        .select("id, name")
-                        .in("id", userIdsToFetch);
-
-                usersMap = Object.fromEntries(
-                    (usersData || []).map((u) => [u.id, u.name])
-                );
-            }
-
-            setCreatorName(
-                testData.created_by === currentUser?.user?.id
-                    ? "You"
-                    : usersMap[testData.created_by] || testData.created_by
-            );
-
-            setLastUpdatedByName(
-                testData.last_updated_by === currentUser?.user?.id
-                    ? "You"
-                    : usersMap[testData.last_updated_by] ||
-                          testData.last_updated_by
-            );
-            setLoading(false);
-        };
-        if (!state?.test && testId) {
-            fetchTestAndQuestions();
-        } else if (state?.test) {
-            setTest(state.test);
-            setQuestions(state.test.questions || []);
-
-            // Set creator name
-            if (
-                currentUser?.user?.id ===
-                (state.test.created_by || state.test.createdBy?.id)
-            ) {
-                setCreatorName("You");
-            } else {
-                setCreatorName(
-                    state.test.createdByName || state.test.created_by || ""
-                );
-            }
-
-            // Handle last updated by
-            const lastUpdatedById = state.test.last_updated_by;
-
-            if (lastUpdatedById) {
-                if (currentUser?.user?.id === lastUpdatedById) {
-                    setLastUpdatedByName("You");
-                } else if (state.test.lastUpdatedByName) {
-                    setLastUpdatedByName(state.test.lastUpdatedByName);
-                } else {
-                    // 🟡 Fetch name from users table
-                    const fetchLastUpdatedUser = async () => {
-                        const { data: userData, error } = await supabaseClient
-                            .from("users")
-                            .select("name")
-                            .eq("id", lastUpdatedById)
-                            .single();
-
-                        setLastUpdatedByName(userData?.name || lastUpdatedById);
-                    };
-
-                    fetchLastUpdatedUser();
+                if (response.success) {
+                    setTest(response.data);
                 }
-            } else {
-                setLastUpdatedByName("");
+            } catch (error) {
+                errorHandler(error);
+            } finally {
+                setLoading(false);
             }
+        }
 
-            setLoading(false);
+        if (!state?.test && testId) {
+            testData();
         }
     }, [state, testId, currentUser]);
 
@@ -149,27 +66,27 @@ export default function TestPreviewPage() {
                 {/* Card Wrapper */}
                 <Card className="p-6 space-y-6 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700">
                     <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                        {test.test_name}
+                        {test?.test_name}
                     </h1>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700 dark:text-gray-300">
                         <div className="flex items-center gap-2">
                             <Timer size={20} /> Duration:{" "}
-                            {test.duration_minutes} mins
+                            {test?.duration_minutes} mins
                         </div>
                         <div className="flex items-center gap-2">
                             <FileText size={20} /> Total Marks:{" "}
-                            {test.total_marks}
+                            {test?.total_marks}
                         </div>
                         <div className="flex items-center gap-2">
                             <User size={20} /> Created By:{" "}
-                            {creatorName || "Unknown"}
+                            {test?.createdByName || "Unknown"}
                         </div>
-                        {lastUpdatedByName &&
-                            lastUpdatedByName !== creatorName && (
+                        {test.updatedByName &&
+                            test.updatedByName !== test?.createdByName && (
                                 <div className="flex items-center gap-2">
                                     <User size={20} /> Last Updated By:{" "}
-                                    {lastUpdatedByName}
+                                    {test.updatedByName}
                                 </div>
                             )}
                         <div className="flex items-center gap-2">
@@ -180,7 +97,7 @@ export default function TestPreviewPage() {
 
                     {/* Questions */}
                     <ul className="space-y-6 mt-4">
-                        {questions?.map((q: any, idx: number) => (
+                        {test?.questions?.map((q: Question, idx: number) => (
                             <li
                                 key={idx}
                                 className="p-4 rounded-md border bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 space-y-4"
@@ -194,29 +111,31 @@ export default function TestPreviewPage() {
                                     </p>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {["a", "b", "c", "d"].map((key) => {
-                                            const isCorrect =
-                                                q.correct_answer === key;
-                                            return (
-                                                <div
-                                                    key={key}
-                                                    className={`px-4 py-2 rounded-md border ${
-                                                        isCorrect
-                                                            ? "border-green-500 bg-green-50 dark:bg-green-900"
-                                                            : "border-gray-300 dark:border-zinc-600"
-                                                    } text-sm break-words text-gray-800 dark:text-gray-100`}
-                                                >
-                                                    <strong className="mr-1">
-                                                        {key.toUpperCase()}.
-                                                    </strong>{" "}
-                                                    {q.options?.[key] || (
-                                                        <span className="text-red-400 italic">
-                                                            Missing option
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
+                                        {(["a", "b", "c", "d"] as const).map(
+                                            (key: OptionKey) => {
+                                                const isCorrect =
+                                                    q.correct_answer === key;
+                                                return (
+                                                    <div
+                                                        key={key}
+                                                        className={`px-4 py-2 rounded-md border ${
+                                                            isCorrect
+                                                                ? "border-green-500 bg-green-50 dark:bg-green-900"
+                                                                : "border-gray-300 dark:border-zinc-600"
+                                                        } text-sm break-words text-gray-800 dark:text-gray-100`}
+                                                    >
+                                                        <strong className="mr-1">
+                                                            {key.toUpperCase()}.
+                                                        </strong>{" "}
+                                                        {q.options?.[key] || (
+                                                            <span className="text-red-400 italic">
+                                                                Missing option
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            }
+                                        )}
                                     </div>
                                 </div>
 

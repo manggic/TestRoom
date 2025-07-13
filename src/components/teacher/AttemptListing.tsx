@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Card } from "@/components/ui/card";
-import { Loader2, AlertCircle, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import {
+    Loader2,
+    AlertCircle,
+    ChevronLeft,
+    ChevronRight,
+    Eye,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-// import { getTestAttemptsByTestId, getTestById } from "@/lib/apiCalls/tests";
 
-import { cn } from "@/lib/utils";
-import { getTestById } from "@/services/testService";
-import { getTestAttemptsByTestId } from "@/services/testAttemptService";
+import { cn, errorHandler } from "@/lib/utils";
+import { getAttemptsListing } from "@/services/testAttemptService";
 
-
+import type { TestAttemptWithJoins } from "@/types/testAttempts";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -36,14 +40,12 @@ const getScoreColor = (score: number, total: number) => {
 
 export default function AttemptListing() {
     const { testId } = useParams<{ testId: string }>();
-    const [testName, setTestName] = useState("");
-    const [totalMarks, setTotalMarks] = useState(0);
-    const [attempts, setAttempts] = useState<any[]>([]);
+    const [attempts, setAttempts] = useState<TestAttemptWithJoins[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
 
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     const totalPages = Math.ceil(attempts.length / ITEMS_PER_PAGE);
     const paginatedAttempts = attempts.slice(
@@ -52,23 +54,27 @@ export default function AttemptListing() {
     );
 
     useEffect(() => {
-        if (!testId) return;
+        async function callTestAttempts() {
+            if (!testId) return;
 
-        setLoading(true);
-        setError(null);
+            setLoading(true);
+            setError(null);
 
-        Promise.all([getTestAttemptsByTestId(testId), getTestById(testId)])
-            .then(([attemptRes, testRes]) => {
-                if (attemptRes.error || testRes.error) {
-                    throw new Error("Failed to fetch attempts or test data.");
-                }               
+            try {
+                const response = await getAttemptsListing(testId);
 
-                setAttempts(attemptRes.data || []);
-                setTestName(testRes.data?.test_name || "Untitled Test");
-                setTotalMarks(testRes.data?.total_marks || 0);
-            })
-            .catch((err: any) => setError(err.message))
-            .finally(() => setLoading(false));
+
+                if (response.success) {
+                    setAttempts(response.data);
+                }
+            } catch (error) {
+                errorHandler(error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        callTestAttempts();
     }, [testId]);
 
     return (
@@ -76,7 +82,9 @@ export default function AttemptListing() {
             <div className="mb-6 text-center">
                 <h1 className="text-xl md:text-2xl font-semibold flex items-center justify-center gap-2">
                     🧾 Attempts for{" "}
-                    <span className="text-primary">{testName}</span>
+                    <span className="text-primary">
+                        {attempts?.[0]?.tests?.test_name}
+                    </span>
                 </h1>
             </div>
 
@@ -114,25 +122,22 @@ export default function AttemptListing() {
 
                     {/* Rows */}
                     {paginatedAttempts.map((attempt) => {
-                        const attemptedQuestions = attempt.answers
-                            ? Object.keys(attempt.answers).length
-                            : 0;
-                        const percentage = totalMarks
+                        const total_marks = attempt?.tests?.total_marks;
+                        const percentage = total_marks
                             ? Math.round(
-                                  (attempt.score_achieved / totalMarks) * 100
+                                  (attempt.score_achieved / total_marks) * 100
                               )
                             : 0;
-                        const badgeVariant =
+                        const badgeVariant:
+                            | "default"
+                            | "destructive"
+                            | "secondary" =
                             percentage >= 80
-                                ? "success"
+                                ? "default" // 👍 green-like neutral
                                 : percentage >= 60
-                                ? "warning"
-                                : "destructive";
+                                ? "secondary" // ⚠️ neutral gray
+                                : "destructive"; // ❌ red
 
-
-                                const correctAnswers = attempt.tests.questions.filter((q, i) => 
-        attempt.answers[`q${i}`] === q.correct_answer
-    ).length;
                         return (
                             <Card
                                 key={attempt.id}
@@ -148,12 +153,12 @@ export default function AttemptListing() {
                                             className={cn(
                                                 getScoreColor(
                                                     attempt.score_achieved,
-                                                    totalMarks
+                                                    total_marks
                                                 )
                                             )}
                                         >
                                             {attempt.score_achieved}/
-                                            {totalMarks}
+                                            {total_marks}
                                         </span>
                                         <Badge
                                             variant={badgeVariant}
@@ -163,7 +168,7 @@ export default function AttemptListing() {
                                         </Badge>
                                     </div>
                                     <div className="font-medium">
-                                        {correctAnswers}/
+                                        {attempt.correct_answer_count}/
                                         {attempt.total_questions}
                                     </div>
                                     <div className="font-medium">
@@ -174,10 +179,16 @@ export default function AttemptListing() {
                                     <div className="font-medium text-right">
                                         {formatDateTime(attempt.created_at)}
                                     </div>
-                                    <button onClick={()=> navigate(`/student/result/${attempt.id}`)}  className="flex justify-center">
-                                      <Eye />
+                                    <button
+                                        onClick={() =>
+                                            navigate(
+                                                `/student/result/${attempt.id}`
+                                            )
+                                        }
+                                        className="flex justify-center"
+                                    >
+                                        <Eye />
                                     </button>
-                                    
                                 </div>
                             </Card>
                         );

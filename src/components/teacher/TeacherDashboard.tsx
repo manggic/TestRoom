@@ -13,7 +13,7 @@ import type { Test } from "@/types/test";
 import { getTests, getTestsByTeacherId } from "@/services/testService";
 
 export default function TeacherDashboard() {
-    const [allTests, setAllTests] = useState([]);
+    const [allTests, setAllTests] = useState<Array<Test>>([]);
     const [myTests, setMyTests] = useState<Array<Test>>([]);
     const [isTestDataloading, setIsTestDataLoading] = useState(true);
     const { currentUser, loading } = useAuth();
@@ -32,15 +32,13 @@ export default function TeacherDashboard() {
         async function loadMyTest() {
             try {
                 if (user?.id) {
-                    const response = await getTestsByTeacherId(user.id);
-                    if (response.success) {
-                        console.log("laod my test", { response });
-
-                        const tests = response.data;
+                    const response = await getTestsByTeacherId(user?.id);
+                    if (response?.success) {
+                        const tests = response?.data as Array<Test>;
 
                         setMyTests(tests);
                     } else {
-                        toast(response.message);
+                        toast(response?.message);
                         setMyTests([]);
                     }
                 } else {
@@ -61,7 +59,7 @@ export default function TeacherDashboard() {
                 setIsTestDataLoading(true);
                 const result = await getTests();
 
-                setAllTests(result?.data);
+                setAllTests(result?.data as Array<Test>);
                 setHasLoadedAllTests(true);
             } catch (err) {
                 console.error("Error loading all tests:", err);
@@ -86,7 +84,7 @@ export default function TeacherDashboard() {
                 <h1 className="text-2xl font-bold">Teacher Dashboard</h1>
                 <Button
                     onClick={() => navigate("/teacher/create-test")}
-                    className="gap-2"
+                    className="gap-2 cursor-pointer"
                 >
                     <Plus size={18} /> Create Test
                 </Button>
@@ -94,24 +92,28 @@ export default function TeacherDashboard() {
 
             <Tabs value={tab} onValueChange={setTab}>
                 <TabsList className="mb-4">
-                    <TabsTrigger value="my">My Tests</TabsTrigger>
-                    <TabsTrigger value="all">All Tests</TabsTrigger>
+                    <TabsTrigger value="my" className="cursor-pointer">
+                        My Tests
+                    </TabsTrigger>
+                    <TabsTrigger value="all" className="cursor-pointer">
+                        All Tests
+                    </TabsTrigger>
                 </TabsList>
 
                 {/* === MY TESTS TAB === */}
                 <TabsContent value="my">
-                    {myTests.length === 0 ? (
+                    {myTests?.length === 0 ? (
                         <div className="text-center text-sm text-muted-foreground">
                             You have not created any tests yet.
                         </div>
                     ) : (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {myTests.map((test) => (
+                            {myTests?.map((test) => (
                                 <TestCard
-                                    key={test.id}
+                                    key={test?.id}
                                     test={test}
-                                    createdByName={test.createdByName}
-                                    lastUpdatedByName={test.updatedByName}
+                                    // createdByName={test?.createdByName}
+                                    // lastUpdatedByName={test?.updatedByName}
                                 />
                             ))}
                         </div>
@@ -122,7 +124,7 @@ export default function TeacherDashboard() {
                 <TabsContent value="all">
                     {isTestDataloading && !hasLoadedAllTests ? (
                         <p>Loading All Tests...</p>
-                    ) : allTests.length === 0 ? (
+                    ) : allTests?.length === 0 ? (
                         <div className="text-center text-sm text-muted-foreground">
                             No tests available at the moment.
                         </div>
@@ -130,10 +132,10 @@ export default function TeacherDashboard() {
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {allTests.map((test) => (
                                 <TestCard
-                                    key={test.id}
+                                    key={test?.id}
                                     test={test}
-                                    createdByName={test.createdByName}
-                                    lastUpdatedByName={test.updatedByName}
+                                    // createdByName={test?.createdByName}
+                                    // lastUpdatedByName={test?.updatedByName}
                                 />
                             ))}
                         </div>

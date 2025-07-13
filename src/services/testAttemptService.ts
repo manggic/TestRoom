@@ -34,6 +34,7 @@ export async function submitTestAttempt(testAttemptDataObj) {
                 updated_at,
                 total_questions,
                 time_taken_seconds,
+                correct_answer_count: correctAnswers,
             })
             .select()
             .single();
@@ -95,7 +96,7 @@ export async function getTestAttemptsByTestId(testId: string) {
                 *,
                 tests!test_id(
                     *,
-                    users!created_by(name),
+                    users!fk_tests_created_by(name),
                     questions(*)
                 ),
                 users(name)
@@ -238,6 +239,33 @@ export async function getUnattemptedTestsOfStudentId(studentId: string) {
             success: true,
             data: unattemptedTests,
         };
+    } catch (error) {
+        return errorHandler(error);
+    }
+}
+
+// sample
+export async function getAttemptsListing(testId: string) {
+    try {
+        const { data, error } = await supabaseClient
+            .from("test_attempts")
+            .select(
+                `
+                *,
+                users!test_attempts_student_id_fkey(name, email),
+                tests!test_attempts_test_id_fkey(test_name, total_marks)
+            `
+            )
+            .eq("test_id", testId)
+            .order("created_at", { ascending: false });
+
+        console.log("all test attempted based on testId", data);
+        return handleResponse(data, error);
+
+        // call all testAttempt based in testId
+
+        // loop through prepare data such as
+        // student name ,
     } catch (error) {
         return errorHandler(error);
     }

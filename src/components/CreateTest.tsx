@@ -10,6 +10,8 @@ import { errorHandler } from "@/lib/utils";
 import { useNavigate } from "react-router";
 import { createTest } from "@/services/testService";
 
+import type { QuestionForComp } from "@/types/test";
+
 export default function CreateTest() {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
@@ -20,27 +22,36 @@ export default function CreateTest() {
     );
     const [description, setDescription] = useState("");
 
-    const [jsonData, setJsonData] = useState([]);
-    const [formData, setFormData] = useState([]);
+    const [jsonData, setJsonData] = useState<Array<QuestionForComp>>([]);
+    const [formData, setFormData] = useState<Array<QuestionForComp>>([]);
 
     const [useJSON, setUseJSON] = useState(true);
 
-    const handleSave = async (status: "draft" | "published") => {
+    const handleSave = async (status: "draft" | "published"): Promise<void> => {
         try {
-            if (!testName) return toast.error("Please enter test name");
-            if (!durationMinutes) return toast.error("Please enter duration");
-            if (jsonData.length === 0 && formData.length === 0)
-                return toast.error("Please add questions");
+            if (!testName) {
+                toast.error("Please enter test name");
+                return;
+            }
+            if (!durationMinutes) {
+                toast.error("Please enter duration");
+                return;
+            }
+            if (jsonData.length === 0 && formData.length === 0) {
+                toast.error("Please add questions");
+                return;
+            }
 
             const questions = [...jsonData, ...formData].map((q) => ({
-                question_text: q.questionText,
+                question_text: q.question_text,
                 options: q.options,
-                correct_answer: q.correctAnswer,
+                correct_answer: q.correct_answer,
                 marks: q.marks,
             }));
 
             if (!currentUser?.user?.id) {
-                return toast.error("User is not logged in");
+                toast.error("User is not logged in");
+                return;
             }
 
             const response = await createTest({
@@ -48,9 +59,9 @@ export default function CreateTest() {
                 duration_minutes: durationMinutes,
                 questions,
                 last_updated_by: currentUser.user.id,
-                created_by:currentUser.user.id,
+                created_by: currentUser.user.id,
                 status: status.toLowerCase(),
-                description
+                description,
             });
 
             if (response.success) {
@@ -92,7 +103,7 @@ export default function CreateTest() {
                             <input
                                 type="text"
                                 id="test-name-input"
-                                className="w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 bg-white dark:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 bg-white dark:bg-zinc-700 focus:outline-none focus:ring-2 "
                                 placeholder="e.g. Science Test"
                                 value={testName}
                                 required
@@ -110,7 +121,7 @@ export default function CreateTest() {
                             <input
                                 type="number"
                                 id="duration"
-                                className="w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 bg-white dark:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 bg-white dark:bg-zinc-700 focus:outline-none focus:ring-2 "
                                 placeholder="e.g. 10"
                                 required
                                 value={durationMinutes}
@@ -119,6 +130,25 @@ export default function CreateTest() {
                                 }
                             />
                         </div>
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="description"
+                            className="block text-sm font-medium mb-1"
+                        >
+                            Test Description
+                        </label>
+                        <textarea
+                            id="description"
+                            name="message"
+                            rows={3} // Specifies the visible number of lines
+                            cols={50} // Specifies the visible width in characters
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Enter test description here..."
+                            className="w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 bg-white dark:bg-zinc-700 focus:outline-none focus:ring-2 "
+                        />
                     </div>
 
                     {/* Toggle Switch */}
@@ -156,7 +186,7 @@ export default function CreateTest() {
                     <div className="pt-2">
                         <QuestionPreview
                             questions={[...jsonData, ...formData]}
-                            onDelete={(indexToDelete) => {
+                            onDelete={(indexToDelete: number) => {
                                 const fromJson =
                                     indexToDelete < jsonData.length;
                                 if (fromJson) {

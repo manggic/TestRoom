@@ -11,10 +11,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/useAuth";
-import { supabaseClient } from "@/supabase/config";
-import { updateTest } from "@/services/testService";
-const optionKeys = ["a", "b", "c", "d"];
+import { getTestById, updateTest } from "@/services/testService";
+import type { Test, Question } from "@/types/test";
 
+const optionKeys = ["a", "b", "c", "d"];
 
 export default function EditTestPage() {
     const { currentUser } = useAuth();
@@ -23,95 +23,38 @@ export default function EditTestPage() {
     const { testId } = useParams();
     const navigate = useNavigate();
 
-    const [test, setTest] = useState<any>(null);
+    const [test, setTest] = useState<Test>(state.test || null);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(0);
     const [errors, setErrors] = useState<{ [index: number]: boolean }>({});
 
     const questionsPerPage = 10;
 
+
     useEffect(() => {
         const loadTest = async () => {
             try {
-                let testData = state?.test;
-
-                if (!testData && testId) {
-                    // Fetch test from Supabase
-                    const { data, error } = await supabaseClient
-                        .from("tests")
-                        .select("*")
-                        .eq("id", testId)
-                        .single();
-                    if (error || !data) {
-                        toast.error("Test not found!");
-                        return;
-                    }
-                    testData = data;
+                if (!testId) return;
+                const response = await getTestById(testId);
+                if (response.success) {
+                    setTest(response.data);
                 }
-
-                // Fetch questions for this test from Supabase
-                const { data: questionsData, error: questionsError } =
-                    await supabaseClient
-                        .from("questions")
-                        .select("*")
-                        .eq("test_id", testData.id);
-                if (questionsError) {
-                    toast.error("Failed to load questions");
-                    return;
-                }
-
-
-                const formattedQuestions = (questionsData || []).map(
-                    (q: any) => ({
-                        id: q.id,
-                        question_text: q.question_text || "",
-                        options: q.options || { a: "", b: "", c: "", d: "" },
-                        correct_answer: q.correct_answer || "a",
-                        marks: typeof q.marks === "number" ? q.marks : 1,
-                    })
-                );
-
-                setTest({
-                    id: testData.id,
-                    test_name: testData.test_name || "",
-                    description: testData.description || "",
-                    duration_minutes: testData.duration_minutes || 30,
-                    questions: formattedQuestions,
-                });
-
-                setLoading(false);
             } catch (err) {
                 console.error("Error loading test:", err);
                 toast.error("Failed to load test");
+            } finally {
+                setLoading(false);
             }
         };
 
         if (state?.test) {
+            setTest(state?.test);
 
-            // Remap questions to camelCase for the form
-            const formattedQuestions = (state.test.questions || []).map(
-                (q: any) => ({
-                    id: q.id,
-                    question_text: q.question_text || "",
-                    options: q.options || { a: "", b: "", c: "", d: "" },
-                    correct_answer: q.correct_answer,
-                    marks: typeof q.marks === "number" ? q.marks : 1,
-                })
-            );
-
-            setTest({
-                id: state.test.id,
-                test_name: state.test.test_name || "",
-                description: state.test.description || "",
-                duration_minutes: state.test.duration_minutes || 30,
-                questions: formattedQuestions,
-            });
             setLoading(false);
         } else {
             loadTest();
         }
     }, [testId, state?.test, user]);
-
 
     if (loading) return <div className="p-6 text-center">Loading test...</div>;
     if (!test)
@@ -171,9 +114,9 @@ export default function EditTestPage() {
 
     const handleAddQuestion = () => {
         const newQuestion = {
-            questionText: "New Question?",
+            question_text: "New Question?",
             options: { a: "", b: "", c: "", d: "" },
-            correctAnswer: "a",
+            correct_answer: "a",
             marks: 1,
         };
         setTest({ ...test, questions: [...test.questions, newQuestion] });
@@ -197,7 +140,7 @@ export default function EditTestPage() {
 
             // Validation: Ensure all questions have non-empty questionText
             const emptyTextIndexes = test.questions
-                .map((q: any, idx: number) =>
+                .map((q: Question, idx: number) =>
                     !q.question_text || q.question_text.trim() === ""
                         ? idx + 1
                         : null
@@ -212,19 +155,19 @@ export default function EditTestPage() {
                 return;
             }
 
-            const questions = test.questions.map((q: any) => ({
-                question_text: q.question_text,
-                options: q.options,
-                correct_answer: q.correct_answer,
-                marks: q.marks,
-            }));
+            // const questions = test.questions.map((q: any) => ({
+            //     question_text: q.question_text,
+            //     options: q.options,
+            //     correct_answer: q.correct_answer,
+            //     marks: q.marks,
+            // }));
 
             const updatedTestData = {
                 test_name: test.test_name,
                 duration_minutes: test.duration_minutes,
                 description: test.description,
-                questions,
-                status: "published" as "published", // or use test.status if available
+                questions: test.questions,
+                status: "published", // or use test.status if available
                 last_updated_by: user?.id,
             };
 
@@ -233,7 +176,7 @@ export default function EditTestPage() {
 
             if (response.success) {
                 toast.success("Test updated successfully");
-                navigate(`/testpaper/preview/${test.id}`);
+                navigate(`/teacher/testpaper/preview/${test.id}`);
             } else {
                 toast("Update Test Failed");
             }
@@ -317,119 +260,131 @@ export default function EditTestPage() {
                     </div>
 
                     <ul className="space-y-6 mt-4">
-                        {paginatedQuestions.map((q: any, qIndex: number) => (
-                            <li
-                                key={qIndex + start}
-                                className="p-4 rounded-md border bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 space-y-3"
-                            >
-                                <div className="flex justify-between items-center">
-                                    <label className="text-sm font-medium">
-                                        Question {qIndex + 1 + start}
-                                    </label>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() =>
-                                            handleDeleteQuestion(qIndex + start)
-                                        }
-                                    >
-                                        <Trash
-                                            size={16}
-                                            className="text-red-500"
-                                        />
-                                    </Button>
-                                </div>
-                                <input
-                                    type="text"
-                                    className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                                    value={q.question_text}
-                                    onChange={(e) =>
-                                        handleInputChange(
-                                            qIndex + start,
-                                            "question_text",
-                                            e.target.value
-                                        )
-                                    }
-                                />
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {["a", "b", "c", "d"].map((key) => {
-                                        return (
-                                            <div
-                                                key={key}
-                                                className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 p-3 rounded-md border border-gray-200 dark:border-zinc-700"
-                                            >
-                                                <div className="font-bold w-6 text-center text-sm text-gray-700 dark:text-gray-300">
-                                                    {key.toUpperCase()}.
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    className="flex-1 text-sm rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary"
-                                                    value={q?.options?.[key]}
-                                                    onChange={(e) =>
-                                                        handleOptionChange(
-                                                            qIndex + start,
-                                                            key,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder={`Enter option ${key.toUpperCase()}`}
-                                                />
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                <div className="flex gap-4">
-                                    <div className="w-full">
+                        {paginatedQuestions.map(
+                            (q: Question, qIndex: number) => (
+                                <li
+                                    key={qIndex + start}
+                                    className="p-4 rounded-md border bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 space-y-3"
+                                >
+                                    <div className="flex justify-between items-center">
                                         <label className="text-sm font-medium">
-                                            Correct Answer (Enter one of: a, b,
-                                            c, or d)
+                                            Question {qIndex + 1 + start}
                                         </label>
-                                        <input
-                                            type="string"
-                                            className={`w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border ${
-                                                errors[qIndex + start]
-                                                    ? "border-red-500 dark:border-red-400"
-                                                    : "border-gray-300 dark:border-zinc-600"
-                                            }`}
-                                            value={q.correct_answer}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    qIndex + start,
-                                                    "correct_answer",
-                                                    e.target.value
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() =>
+                                                handleDeleteQuestion(
+                                                    qIndex + start
                                                 )
                                             }
-                                        />
-                                        {errors[qIndex + start] && (
-                                            <p className="text-sm text-red-500 mt-1">
-                                                Please enter one of: a, b, c, or
-                                                d.
-                                            </p>
+                                        >
+                                            <Trash
+                                                size={16}
+                                                className="text-red-500"
+                                            />
+                                        </Button>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
+                                        value={q.question_text}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                qIndex + start,
+                                                "question_text",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {(["a", "b", "c", "d"] as const).map(
+                                            (key) => {
+                                                return (
+                                                    <div
+                                                        key={key}
+                                                        className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 p-3 rounded-md border border-gray-200 dark:border-zinc-700"
+                                                    >
+                                                        <div className="font-bold w-6 text-center text-sm text-gray-700 dark:text-gray-300">
+                                                            {key.toUpperCase()}.
+                                                        </div>
+                                                        <input
+                                                            type="text"
+                                                            className="flex-1 text-sm rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary"
+                                                            value={
+                                                                q?.options?.[
+                                                                    key
+                                                                ]
+                                                            }
+                                                            onChange={(e) =>
+                                                                handleOptionChange(
+                                                                    qIndex +
+                                                                        start,
+                                                                    key,
+                                                                    e.target
+                                                                        .value
+                                                                )
+                                                            }
+                                                            placeholder={`Enter option ${key.toUpperCase()}`}
+                                                        />
+                                                    </div>
+                                                );
+                                            }
                                         )}
                                     </div>
 
-                                    <div className="w-full">
-                                        <label className="text-sm font-medium">
-                                            Marks
-                                        </label>
-                                        <input
-                                            type="number"
-                                            className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                                            value={q.marks}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    qIndex + start,
-                                                    "marks",
-                                                    +e.target.value
-                                                )
-                                            }
-                                        />
+                                    <div className="flex gap-4">
+                                        <div className="w-full">
+                                            <label className="text-sm font-medium">
+                                                Correct Answer (Enter one of: a,
+                                                b, c, or d)
+                                            </label>
+                                            <input
+                                                type="string"
+                                                className={`w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border ${
+                                                    errors[qIndex + start]
+                                                        ? "border-red-500 dark:border-red-400"
+                                                        : "border-gray-300 dark:border-zinc-600"
+                                                }`}
+                                                value={q.correct_answer}
+                                                onChange={(e) =>
+                                                    handleInputChange(
+                                                        qIndex + start,
+                                                        "correct_answer",
+                                                        e.target.value
+                                                    )
+                                                }
+                                            />
+                                            {errors[qIndex + start] && (
+                                                <p className="text-sm text-red-500 mt-1">
+                                                    Please enter one of: a, b,
+                                                    c, or d.
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="w-full">
+                                            <label className="text-sm font-medium">
+                                                Marks
+                                            </label>
+                                            <input
+                                                type="number"
+                                                className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
+                                                value={q.marks}
+                                                onChange={(e) =>
+                                                    handleInputChange(
+                                                        qIndex + start,
+                                                        "marks",
+                                                        +e.target.value
+                                                    )
+                                                }
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                            </li>
-                        ))}
+                                </li>
+                            )
+                        )}
                     </ul>
 
                     <div className="flex justify-between items-center pt-6">

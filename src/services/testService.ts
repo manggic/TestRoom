@@ -218,7 +218,7 @@ export async function getTests() {
             })
         );
 
-        return { success: true, data: allTests };
+        return { success: true, data: allTests , message:"success" };
     } catch (error) {
         return errorHandler(error);
     }
@@ -284,7 +284,7 @@ export async function getTestsByTeacherId(userId: string) {
         if (testsError) throw testsError;
 
         if (!tests || tests.length === 0) {
-            return { success: true, data: [] }; // no tests found
+            return { success: true, data: [], message:"data is empty" }; // no tests found
         }
 
         // Step 2: Extract all unique user IDs (created_by and last_updated_by)
@@ -328,7 +328,7 @@ export async function getTestsByTeacherId(userId: string) {
             })
         );
 
-        return { success: true, data: allTests };
+        return { success: true, data: allTests , message:"success" };
     } catch (error) {
         return errorHandler(error);
     }

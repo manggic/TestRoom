@@ -3,15 +3,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Timer, User, FileText, BarChart2 } from "lucide-react";
 import { useNavigate } from "react-router";
-export function TestCard({
-    test,
-    createdByName,
-    lastUpdatedByName,
-}: {
-    test: any;
-    createdByName: string;
-    lastUpdatedByName?: string;
-}) {
+import type { Test } from "@/types/test";
+
+export function TestCard({ test }: { test: Test }) {
     const navigate = useNavigate();
     const {
         duration_minutes,
@@ -20,6 +14,8 @@ export function TestCard({
         highest_score,
         status,
         test_name,
+        createdByName,
+        updatedByName,
     } = test || {};
 
     return (
@@ -52,14 +48,14 @@ export function TestCard({
                         Created By: {createdByName}
                     </span>
                 </div>
-                {lastUpdatedByName && lastUpdatedByName !== createdByName && (
+                {updatedByName && updatedByName !== createdByName && (
                     <div className="flex items-center gap-2">
                         <User size={20} />
                         <span
                             className="truncate whitespace-nowrap overflow-hidden max-w-[180px]"
-                            title={lastUpdatedByName}
+                            title={updatedByName}
                         >
-                            Last Updated By: {lastUpdatedByName}
+                            Last Updated By: {updatedByName}
                         </span>
                     </div>
                 )}
@@ -73,6 +69,7 @@ export function TestCard({
                 <div className="flex gap-3">
                     <Button
                         size="sm"
+                        className="cursor-pointer"
                         onClick={() =>
                             navigate(
                                 `/teacher/test/edit/${
@@ -89,13 +86,14 @@ export function TestCard({
                     <Button
                         size="sm"
                         variant="outline"
+                        className="cursor-pointer"
                         onClick={() =>
                             navigate(
                                 `/teacher/test/preview/${
                                     test.id
                                 }?zzzfff=${crypto.randomUUID()}`,
                                 {
-                                    state: { test: { ...test, createdByName } },
+                                    state: { test },
                                 }
                             )
                         }
@@ -107,6 +105,7 @@ export function TestCard({
                 {attempts > 0 && (
                     <Button
                         size="sm"
+                        className="cursor-pointer"
                         variant="outline"
                         onClick={() =>
                             navigate(
@@ -114,7 +113,7 @@ export function TestCard({
                                     test.id
                                 }?zzzfff=${crypto.randomUUID()}`,
                                 {
-                                    state: { test: { ...test, createdByName } },
+                                    state: { test },
                                 }
                             )
                         }

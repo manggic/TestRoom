@@ -13,6 +13,10 @@ import {
     AlertDialogCancel,
     AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+
+import type { Test } from "@/types/test";
+
+import type { TeacherUser, StudentUser } from "@/types/adminDashboard";
 import { Loader2, Trash2, User2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TestCard } from "../teacher/TestCard";
@@ -20,36 +24,11 @@ import { getTests } from "@/services/testService";
 import { getUsersForAdmin } from "@/services/userService";
 import { useNavigate } from "react-router";
 
-interface User {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    created_at: string;
-    attemptedTests: number;
-    isActive: boolean;
-    attempted_test_names?: string[];
-    created_test_names?: string[];
-}
-
-interface TestData {
-    id: string;
-    test_name: string;
-    duration_minutes: number;
-    total_marks: number;
-    attempts: number;
-    highest_score: number;
-    status: string;
-    created_by: string;
-    updated_by?: string;
-    created_by_name?: string;
-    updated_by_name?: string;
-}
-
+export type User = StudentUser | TeacherUser;
 export default function AdminDashboard() {
-    const [students, setStudents] = useState<User[]>([]);
-    const [teachers, setTeachers] = useState<User[]>([]);
-    const [tests, setTests] = useState<TestData[]>([]);
+    const [students, setStudents] = useState<StudentUser[]>([]);
+    const [teachers, setTeachers] = useState<TeacherUser[]>([]);
+    const [tests, setTests] = useState<Test[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [activeTab, setActiveTab] = useState("students");
@@ -57,6 +36,7 @@ export default function AdminDashboard() {
 
     const fetchUsers = async () => {
         const response = await getUsersForAdmin();
+
 
         if (response.success) {
             setStudents(
@@ -70,6 +50,7 @@ export default function AdminDashboard() {
 
     const fetchTests = async () => {
         const response = await getTests();
+
         if (response.success) {
             setTests(response.data);
         }
@@ -87,6 +68,7 @@ export default function AdminDashboard() {
     }, [activeTab]);
 
     const handleDelete = async () => {
+        return;
         if (!selectedUser) return;
         const { error } = await supabaseClient
             .from("users")
@@ -129,30 +111,49 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="flex flex-wrap gap-1">
-                    {(user.role === "student"
-                        ? user?.attempted_tests
-                        : user?.created_tests
-                    )?.map((testName, i) => (
-                        <button
-                            onClick={() =>
-                                user.role === "student"
-                                    ? navigate(
-                                          `/student/result/${testName?.test_attempt_id}`
-                                      )
-                                    : navigate(
-                                          `/teacher/test/preview/${testName?.test_id}`
-                                      )
-                            }
-                        >
-                            <Badge
+                    {user.role === "student" ? (
+                        user.attempted_tests.length > 0 ? (
+                            user.attempted_tests.map((test, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() =>
+                                        navigate(
+                                            `/student/result/${test.test_attempt_id}`
+                                        )
+                                    }
+                                >
+                                    <Badge
+                                        variant="outline"
+                                        className="text-xs cursor-pointer"
+                                    >
+                                        {test.test_name}
+                                    </Badge>
+                                </button>
+                            ))
+                        ) : (
+                            <span className="text-muted-foreground text-xs">
+                                None
+                            </span>
+                        )
+                    ) : user.created_tests.length > 0 ? (
+                        user.created_tests.map((test, i) => (
+                            <button
                                 key={i}
-                                variant="outline"
-                                className="text-xs"
+                                onClick={() =>
+                                    navigate(
+                                        `/teacher/test/preview/${test.test_id}`
+                                    )
+                                }
                             >
-                                {testName?.test_name}
-                            </Badge>
-                        </button>
-                    )) || (
+                                <Badge
+                                    variant="outline"
+                                    className="text-xs cursor-pointer"
+                                >
+                                    {test.test_name}
+                                </Badge>
+                            </button>
+                        ))
+                    ) : (
                         <span className="text-muted-foreground text-xs">
                             None
                         </span>
@@ -209,14 +210,21 @@ export default function AdminDashboard() {
                     onValueChange={setActiveTab}
                 >
                     <TabsList className="mb-4 flex justify-center flex-wrap gap-2">
-                        <TabsTrigger value="students">
+                        <TabsTrigger
+                            value="students"
+                            className="cursor-pointer"
+                        >
                             Students ({students.length})
                         </TabsTrigger>
-                        <TabsTrigger value="teachers">
+                        <TabsTrigger
+                            value="teachers"
+                            className="cursor-pointer"
+                        >
                             Teachers ({teachers.length})
                         </TabsTrigger>
-                        <TabsTrigger value="tests">
-                            Tests ({tests.length})
+                        <TabsTrigger value="tests" className="cursor-pointer">
+                            Tests{" "}
+                            {tests.length === 0 ? "" : `(${tests.length})`}
                         </TabsTrigger>
                     </TabsList>
 
@@ -263,8 +271,8 @@ export default function AdminDashboard() {
                                 <TestCard
                                     key={test.id}
                                     test={test}
-                                    createdByName={test.createdByName}
-                                    lastUpdatedByName={test.updatedByName}
+                                    // createdByName={test.createdByName}
+                                    // lastUpdatedByName={test.updatedByName}
                                 />
                             ))
                         ) : (

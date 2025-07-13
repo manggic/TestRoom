@@ -9,25 +9,16 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Download, TimerReset, X, AlertCircle } from "lucide-react";
+import { Download, TimerReset, AlertCircle } from "lucide-react";
 // import { getTestWithQuestions, submitTestAttempt } from "@/lib/apiCalls/tests";
+
+import type { Question } from "@/types/test";
 
 import jsPDF from "jspdf";
 import { submitTestAttempt } from "@/services/testAttemptService";
 import { getTestById } from "@/services/testService";
 
-interface Question {
-    id: string;
-    question_text: string;
-    options: {
-        a: string;
-        b: string;
-        c: string;
-        d: string;
-    };
-    correct_answer: string;
-    marks: number;
-}
+
 
 interface TestData {
     id: string;
@@ -57,7 +48,7 @@ export default function TakeTest() {
     const [submitting, setSubmitting] = useState(false);
     // Prevent duplicate loadTest calls
     const [testLoaded, setTestLoaded] = useState(false);
-    const [startTime, setStartTime] = useState(null);
+    const [startTime, setStartTime] = useState("");
 
     // Mutex to prevent parallel loadTest/startTestAttempt
 
@@ -97,6 +88,7 @@ export default function TakeTest() {
 
     const loadTest = async () => {
         try {
+            if (!testId) return;
             setLoading(true);
             const data = await getTestById(testId);
 
@@ -110,55 +102,14 @@ export default function TakeTest() {
             }
             console.log({ data });
         } catch (error) {
-            setError(error.message);
+            if (error instanceof Error) {
+                setError(error.message); // ✅ safe now
+            } else {
+                setError("An unknown error occurred.");
+            }
         } finally {
             setLoading(false);
         }
-
-        // try {
-        //     setLoading(true);
-        //     setError(null);
-        //     let attemptResult;
-        //     try {
-        //         // Start or get existing test attempt
-        //         attemptResult = await startTestAttempt(testId!, currentUser!.user.id);
-        //     } catch (err: any) {
-        //         // If unique constraint error, fetch existing attempt
-        //         if (err?.code === '23505' || (err?.message && err.message.includes('duplicate'))) {
-        //             const { data: existing, error: fetchError } = await getTestAttemptByTestAndStudent(testId!, currentUser!.user.id);
-        //             if (existing) {
-        //                 attemptResult = { success: true, data: existing };
-        //             } else {
-        //                 setError('Could not fetch existing attempt.');
-        //                 return;
-        //             }
-        //         } else {
-        //             setError('Failed to start test attempt.');
-        //             return;
-        //         }
-        //     }
-        //     if (attemptResult.success) {
-        //         setAttemptId(attemptResult.data.id);
-        //         // Load existing answers if any
-        //         if (attemptResult.data.answers) {
-        //             setAnswers(attemptResult.data.answers);
-        //         }
-        //     }
-        //     const result = await getTestWithQuestions(testId!);
-        //     if (result.success) {
-        //         setTestData(result.data);
-        //         setTimeLeft(result.data.duration_minutes * 60); // Convert to seconds
-        //         setTimerStarted(true);
-        //     } else {
-        //         setError("Failed to load test. Please try again.");
-        //     }
-        // } catch (error) {
-        //     setError("An error occurred while loading the test.");
-        //     console.error("Error loading test:", error);
-        // } finally {
-        //     setLoading(false);
-        //     loadTestLock.current = false;
-        // }
     };
 
     useEffect(() => {
@@ -188,18 +139,20 @@ export default function TakeTest() {
             let totalScore = 0;
             let correctAnswers = 0;
 
-            testData.questions.forEach((question: any, index: number) => {
-                const studentAnswer = answers[`q${index}`];
-                if (studentAnswer === question.correct_answer) {
-                    totalScore += question.marks;
-                    correctAnswers++;
+            testData?.questions?.forEach(
+                (question: Question, index: number) => {
+                    const studentAnswer = answers[`q${index}`];
+                    if (studentAnswer === question.correct_answer) {
+                        totalScore += question.marks;
+                        correctAnswers++;
+                    }
                 }
-            });
+            );
             const now = new Date().toISOString();
 
-            let finalObj = {
-                test_id: testData.id,
-                student_id: currentUser.user.id,
+            const finalObj = {
+                test_id: testData?.id,
+                student_id: currentUser?.user.id,
                 time_taken_seconds: timeTakenSeconds,
                 total_questions: testData?.questions.length,
                 answers,
@@ -212,8 +165,6 @@ export default function TakeTest() {
                 correctAnswers,
                 score_achieved: totalScore,
             };
-
-            console.log({ finalObj });
 
             const result = await submitTestAttempt(finalObj);
             if (result.success) {
@@ -328,19 +279,19 @@ export default function TakeTest() {
             const selected = answers[`q${i}`];
             const correct = q.correct_answer;
             const marks = selected === correct ? q.marks : 0;
-            let yourAns =
+            const yourAns =
                 selected && q.options[selected as keyof typeof q.options]
                     ? `${selected.toUpperCase()}. ${
                           q.options[selected as keyof typeof q.options]
                       }`
                     : "Not Answered";
-            let correctAns =
+            const correctAns =
                 correct && q.options[correct as keyof typeof q.options]
                     ? `${correct.toUpperCase()}. ${
                           q.options[correct as keyof typeof q.options]
                       }`
                     : "";
-            let markStr = marks > 0 ? `+${marks}` : "0";
+            const markStr = marks > 0 ? `+${marks}` : "0";
 
             // Wrap question text
             const questionLines = doc.splitTextToSize(
@@ -348,7 +299,6 @@ export default function TakeTest() {
                 colYour - colQuestion - 10
             );
             const maxLines = Math.max(1, questionLines.length);
-            const rowY = y;
             // Highlight row if correct/incorrect
             if (selected === correct) {
                 doc.setFillColor(220, 255, 220); // light green
