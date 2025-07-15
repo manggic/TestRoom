@@ -1,6 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { Timestamp, serverTimestamp } from "firebase/firestore";
 
 type ErrorHandler<T = unknown> = {
     success: boolean;
@@ -29,11 +28,19 @@ export function errorHandler<T>(error: unknown): ErrorHandler<T> {
     };
 }
 
-export function normalizeCreatedAt(createdAt: any) {
-    if (createdAt?.seconds != null && createdAt?.nanoseconds != null) {
-        return Timestamp.fromMillis(
-            new Timestamp(createdAt.seconds, createdAt.nanoseconds).toMillis()
-        );
+export function handleResponse(data, error) {
+    if (error) {
+        return {
+            success: false,
+            message: error,
+            data: [],
+        };
+    } else {
+        return {
+            success: true,
+            data,
+        };
     }
-    return serverTimestamp();
 }
+
+// TODO: Replace all Firestore logic with Supabase equivalents if needed.

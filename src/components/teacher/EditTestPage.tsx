@@ -9,95 +9,52 @@ import {
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
-import {
-    doc,
-    getDoc,
-    updateDoc,
-    collection,
-    getDocs,
-    deleteDoc,
-    setDoc,
-    serverTimestamp,
-} from "firebase/firestore";
-
-
-import { db } from "@/firebase/config";
 import { toast } from "sonner";
 import { useAuth } from "@/context/useAuth";
-import { normalizeCreatedAt } from "@/lib/utils";
+import { getTestById, updateTest } from "@/services/testService";
+import type { Test, Question } from "@/types/test";
+
 const optionKeys = ["a", "b", "c", "d"];
 
 export default function EditTestPage() {
     const { currentUser } = useAuth();
-
-    const { firebaseUser, profile } = currentUser || {};
+    const { user } = currentUser || {};
     const { state } = useLocation();
     const { testId } = useParams();
     const navigate = useNavigate();
 
-    const [test, setTest] = useState<any>(null);
+    const [test, setTest] = useState<Test>(state.test || null);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(0);
     const [errors, setErrors] = useState<{ [index: number]: boolean }>({});
 
     const questionsPerPage = 10;
 
+
     useEffect(() => {
         const loadTest = async () => {
             try {
-                let testData = state?.test;
-
-                if (!testData && testId) {
-                    const docRef = doc(db, "tests", testId);
-                    const snap = await getDoc(docRef);
-                    if (snap.exists()) {
-                        testData = { id: snap.id, ...snap.data() };
-                    } else {
-                        toast.error("Test not found!");
-                        return;
-                    }
+                if (!testId) return;
+                const response = await getTestById(testId);
+                if (response.success) {
+                    setTest(response.data);
                 }
-
-                const questionsSnap = await getDocs(
-                    collection(db, "tests", testData.id, "questions")
-                );
-
-                const formattedQuestions = questionsSnap.docs.map((doc) => {
-                    const q = doc.data();
-                    const optionsArray = optionKeys.map(
-                        (key) => q.options?.[key] || ""
-                    );
-
-                    return {
-                        question: q.questionText || "",
-                        options: optionsArray,
-                        correct: optionKeys.indexOf(q.correctAnswer || "a"),
-                        marks: typeof q.marks === "number" ? q.marks : 1,
-                    };
-                });
-
-                setTest({
-                    id: testData.id,
-                    testName: testData.testName || "",
-                    description: testData.description || "",
-                    durationMinutes: testData.durationMinutes || 30,
-                    questions: formattedQuestions,
-                });
-
-                setLoading(false);
             } catch (err) {
                 console.error("Error loading test:", err);
                 toast.error("Failed to load test");
+            } finally {
+                setLoading(false);
             }
         };
 
-        if (state.test) {
-            setTest(state.test);
+        if (state?.test) {
+            setTest(state?.test);
+
             setLoading(false);
         } else {
             loadTest();
         }
-    }, [testId, state?.test]);
+    }, [testId, state?.test, user]);
 
     if (loading) return <div className="p-6 text-center">Loading test...</div>;
     if (!test)
@@ -111,6 +68,7 @@ export default function EditTestPage() {
         value: string | number
     ) => {
         const updatedQuestions = [...test.questions];
+
         const newValue =
             typeof value === "string" ? value.toLowerCase().trim() : value;
 
@@ -137,8 +95,6 @@ export default function EditTestPage() {
         optIndex: string,
         value: string
     ) => {
-        // console.log({qIndex}, {optIndex}, {value});
-        // return
         const updatedQuestions = [...test.questions];
         updatedQuestions[qIndex].options[optIndex] = value;
         setTest({ ...test, questions: updatedQuestions });
@@ -158,9 +114,9 @@ export default function EditTestPage() {
 
     const handleAddQuestion = () => {
         const newQuestion = {
-            questionText: "New Question?",
-            options: { a: null, b: null, c: null, d: null },
-            correctAnswer: null,
+            question_text: "New Question?",
+            options: { a: "", b: "", c: "", d: "" },
+            correct_answer: "a",
             marks: 1,
         };
         setTest({ ...test, questions: [...test.questions, newQuestion] });
@@ -168,8 +124,6 @@ export default function EditTestPage() {
     };
 
     const handleSave = async () => {
-        let existingQuestionsData: any[] = []; // ✅ declare outside try to allow rollback
-
         try {
             const invalidQuestions = Object.entries(errors)
                 .filter(([_, hasError]) => hasError)
@@ -184,87 +138,51 @@ export default function EditTestPage() {
                 return;
             }
 
-            console.log("TEST DATA BEFORE EDIT ", test);
-
-            const testRef = doc(db, "tests", test.id);
-            const questionsRef = collection(testRef, "questions");
-
-            // ✅ 1. Fetch & store all existing questions (for rollback if needed)
-            const existingSnap = await getDocs(questionsRef);
-            existingQuestionsData = existingSnap.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-
-            // ✅ 2. Delete all current questions
-            await Promise.all(
-                existingSnap.docs.map((doc) => deleteDoc(doc.ref))
-            );
-
-            // ✅ 3. Update test metadata
-            const updatedTotalMarks = test.questions.reduce(
-                (acc: number, q: any) => acc + Number(q.marks || 0),
-                0
-            );
-
-            await updateDoc(testRef, {
-                testName: test.testName,
-                description: test.description,
-                durationMinutes: test.durationMinutes,
-                totalMarks: updatedTotalMarks,
-                updatedAt: serverTimestamp(),
-                lastUpdatedBy: {
-                    id: firebaseUser?.uid,
-                    name: profile?.name,
-                },
-            });
-
-            // ✅ 4. Add updated questions
-            for (const question of test.questions) {
-                const qId = question.id || crypto.randomUUID();
-                const qRef = doc(questionsRef, qId);
-
-                await setDoc(qRef, {
-                    questionText: question.questionText,
-                    options: question.options,
-                    correctAnswer: question.correctAnswer,
-                    marks: question.marks,
-                    createdAt: normalizeCreatedAt(question.createdAt),
-                    updatedAt: serverTimestamp(),
-                });
+            // Validation: Ensure all questions have non-empty questionText
+            const emptyTextIndexes = test.questions
+                .map((q: Question, idx: number) =>
+                    !q.question_text || q.question_text.trim() === ""
+                        ? idx + 1
+                        : null
+                )
+                .filter((v: number | null) => v !== null);
+            if (emptyTextIndexes.length > 0) {
+                toast.error(
+                    `Please enter question text for question(s): ${emptyTextIndexes.join(
+                        ", "
+                    )}`
+                );
+                return;
             }
 
-            toast.success("Test updated successfully");
+            // const questions = test.questions.map((q: any) => ({
+            //     question_text: q.question_text,
+            //     options: q.options,
+            //     correct_answer: q.correct_answer,
+            //     marks: q.marks,
+            // }));
+
+            const updatedTestData = {
+                test_name: test.test_name,
+                duration_minutes: test.duration_minutes,
+                description: test.description,
+                questions: test.questions,
+                status: "published", // or use test.status if available
+                last_updated_by: user?.id,
+            };
+
+
+            const response = await updateTest(test.id, updatedTestData);
+
+            if (response.success) {
+                toast.success("Test updated successfully");
+                navigate(`/teacher/test/preview/${test.id}`);
+            } else {
+                toast("Update Test Failed");
+            }
         } catch (err) {
             console.error("❌ Error during test update:", err);
-            toast.error("Something went wrong! Attempting rollback...");
-
-            try {
-                // ✅ Attempt rollback
-                const testRef = doc(db, "tests", test.id);
-                const questionsRef = collection(testRef, "questions");
-
-                // Clear failed state
-                const currentSnap = await getDocs(questionsRef);
-                await Promise.all(
-                    currentSnap.docs.map((doc) => deleteDoc(doc.ref))
-                );
-
-                // Restore previous questions
-                for (const q of existingQuestionsData) {
-                    const qRef = doc(questionsRef, q.id);
-                    await setDoc(qRef, q);
-                }
-
-                toast.success(
-                    "Rollback successful! Previous questions restored."
-                );
-            } catch (rollbackErr) {
-                console.error("❌ Rollback failed:", rollbackErr);
-                toast.error(
-                    "Rollback failed! Please check test data manually."
-                );
-            }
+            toast.error("Something went wrong while updating the test!");
         }
     };
 
@@ -289,6 +207,7 @@ export default function EditTestPage() {
                 </div>
 
                 <Card className="p-6 space-y-6 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700">
+                    {/* Editable Form Fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
@@ -297,11 +216,11 @@ export default function EditTestPage() {
                             <input
                                 type="text"
                                 className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                                value={test.testName}
+                                value={test.test_name || ""}
                                 onChange={(e) =>
                                     setTest({
                                         ...test,
-                                        testName: e.target.value,
+                                        test_name: e.target.value,
                                     })
                                 }
                             />
@@ -313,17 +232,16 @@ export default function EditTestPage() {
                             <input
                                 type="number"
                                 className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                                value={test.durationMinutes}
+                                value={test.duration_minutes || ""}
                                 onChange={(e) =>
                                     setTest({
                                         ...test,
-                                        durationMinutes: +e.target.value,
+                                        duration_minutes: +e.target.value,
                                     })
                                 }
                             />
                         </div>
                     </div>
-
                     <div className="space-y-2">
                         <label className="text-sm font-medium">
                             Test Description
@@ -331,7 +249,7 @@ export default function EditTestPage() {
                         <textarea
                             rows={2}
                             className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                            value={test.description}
+                            value={test.description || ""}
                             onChange={(e) =>
                                 setTest({
                                     ...test,
@@ -342,119 +260,131 @@ export default function EditTestPage() {
                     </div>
 
                     <ul className="space-y-6 mt-4">
-                        {paginatedQuestions.map((q, qIndex) => (
-                            <li
-                                key={qIndex + start}
-                                className="p-4 rounded-md border bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 space-y-3"
-                            >
-                                <div className="flex justify-between items-center">
-                                    <label className="text-sm font-medium">
-                                        Question {qIndex + 1 + start}
-                                    </label>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() =>
-                                            handleDeleteQuestion(qIndex + start)
-                                        }
-                                    >
-                                        <Trash
-                                            size={16}
-                                            className="text-red-500"
-                                        />
-                                    </Button>
-                                </div>
-                                <input
-                                    type="text"
-                                    className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                                    value={q.questionText}
-                                    onChange={(e) =>
-                                        handleInputChange(
-                                            qIndex + start,
-                                            "questionText",
-                                            e.target.value
-                                        )
-                                    }
-                                />
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {["a", "b", "c", "d"].map((key) => {
-                                        return (
-                                            <div
-                                                key={key}
-                                                className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 p-3 rounded-md border border-gray-200 dark:border-zinc-700"
-                                            >
-                                                <div className="font-bold w-6 text-center text-sm text-gray-700 dark:text-gray-300">
-                                                    {key.toUpperCase()}.
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    className="flex-1 text-sm rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary"
-                                                    value={q?.options?.[key]}
-                                                    onChange={(e) =>
-                                                        handleOptionChange(
-                                                            qIndex + start,
-                                                            key,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder={`Enter option ${key.toUpperCase()}`}
-                                                />
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                <div className="flex gap-4">
-                                    <div className="w-full">
+                        {paginatedQuestions.map(
+                            (q: Question, qIndex: number) => (
+                                <li
+                                    key={qIndex + start}
+                                    className="p-4 rounded-md border bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700 space-y-3"
+                                >
+                                    <div className="flex justify-between items-center">
                                         <label className="text-sm font-medium">
-                                            Correct Answer (Enter one of: a, b,
-                                            c, or d)
+                                            Question {qIndex + 1 + start}
                                         </label>
-                                        <input
-                                            type="string"
-                                            className={`w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border ${
-                                                errors[qIndex + start]
-                                                    ? "border-red-500 dark:border-red-400"
-                                                    : "border-gray-300 dark:border-zinc-600"
-                                            }`}
-                                            value={q.correctAnswer}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    qIndex + start,
-                                                    "correctAnswer",
-                                                    e.target.value
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() =>
+                                                handleDeleteQuestion(
+                                                    qIndex + start
                                                 )
                                             }
-                                        />
-                                        {errors[qIndex + start] && (
-                                            <p className="text-sm text-red-500 mt-1">
-                                                Please enter one of: a, b, c, or
-                                                d.
-                                            </p>
+                                        >
+                                            <Trash
+                                                size={16}
+                                                className="text-red-500"
+                                            />
+                                        </Button>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
+                                        value={q.question_text}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                qIndex + start,
+                                                "question_text",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {(["a", "b", "c", "d"] as const).map(
+                                            (key) => {
+                                                return (
+                                                    <div
+                                                        key={key}
+                                                        className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 p-3 rounded-md border border-gray-200 dark:border-zinc-700"
+                                                    >
+                                                        <div className="font-bold w-6 text-center text-sm text-gray-700 dark:text-gray-300">
+                                                            {key.toUpperCase()}.
+                                                        </div>
+                                                        <input
+                                                            type="text"
+                                                            className="flex-1 text-sm rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary"
+                                                            value={
+                                                                q?.options?.[
+                                                                    key
+                                                                ]
+                                                            }
+                                                            onChange={(e) =>
+                                                                handleOptionChange(
+                                                                    qIndex +
+                                                                        start,
+                                                                    key,
+                                                                    e.target
+                                                                        .value
+                                                                )
+                                                            }
+                                                            placeholder={`Enter option ${key.toUpperCase()}`}
+                                                        />
+                                                    </div>
+                                                );
+                                            }
                                         )}
                                     </div>
 
-                                    <div className="w-full">
-                                        <label className="text-sm font-medium">
-                                            Marks
-                                        </label>
-                                        <input
-                                            type="number"
-                                            className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
-                                            value={q.marks}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    qIndex + start,
-                                                    "marks",
-                                                    +e.target.value
-                                                )
-                                            }
-                                        />
+                                    <div className="flex gap-4">
+                                        <div className="w-full">
+                                            <label className="text-sm font-medium">
+                                                Correct Answer (Enter one of: a,
+                                                b, c, or d)
+                                            </label>
+                                            <input
+                                                type="string"
+                                                className={`w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border ${
+                                                    errors[qIndex + start]
+                                                        ? "border-red-500 dark:border-red-400"
+                                                        : "border-gray-300 dark:border-zinc-600"
+                                                }`}
+                                                value={q.correct_answer}
+                                                onChange={(e) =>
+                                                    handleInputChange(
+                                                        qIndex + start,
+                                                        "correct_answer",
+                                                        e.target.value
+                                                    )
+                                                }
+                                            />
+                                            {errors[qIndex + start] && (
+                                                <p className="text-sm text-red-500 mt-1">
+                                                    Please enter one of: a, b,
+                                                    c, or d.
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="w-full">
+                                            <label className="text-sm font-medium">
+                                                Marks
+                                            </label>
+                                            <input
+                                                type="number"
+                                                className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
+                                                value={q.marks}
+                                                onChange={(e) =>
+                                                    handleInputChange(
+                                                        qIndex + start,
+                                                        "marks",
+                                                        +e.target.value
+                                                    )
+                                                }
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                            </li>
-                        ))}
+                                </li>
+                            )
+                        )}
                     </ul>
 
                     <div className="flex justify-between items-center pt-6">

@@ -2,22 +2,27 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import type { QuestionForComp } from "@/types/test";
 
-export function JsonInput({ setJsonData }) {
+type JsonInputProps = {
+    setJsonData: React.Dispatch<React.SetStateAction<QuestionForComp[]>>;
+};
+
+export function JsonInput({ setJsonData }: JsonInputProps) {
     const [copyMsgVisible, setCopyMsgVisible] = useState(false);
     const textRef = useRef<HTMLTextAreaElement>(null);
 
     const handleCopySample = () => {
         const sample = `[
   {
-    "questionText": "What does CPU stand for?",
+    "question_text": "What does CPU stand for?",
     "options": {
       "a": "Central Process Unit",
       "b": "Central Processing Unit",
       "c": "Computer Personal Unit",
       "d": "Central Processor Utility"
     },
-    "correctAnswer": "b",
+    "correct_answer": "b",
     "marks": 2
   }
 ]`;
@@ -69,7 +74,7 @@ export function JsonInput({ setJsonData }) {
             <div className="mt-4">
                 <Button
                     onClick={addQuestions}
-                    className="bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-200 dark:text-black dark:hover:bg-white gap-2"
+                    className="bg-zinc-900 cursor-pointer hover:bg-zinc-800 text-white dark:bg-zinc-200 dark:text-black dark:hover:bg-white gap-2"
                 >
                     <Plus size={16} />
                     Add JSON Questions

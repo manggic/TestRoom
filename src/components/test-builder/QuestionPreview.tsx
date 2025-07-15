@@ -1,6 +1,16 @@
 import { Trash } from "lucide-react";
 
-export function QuestionPreview({ questions = [], onDelete }: any) {
+import type { QuestionForComp } from "@/types/test"; // adjust import path if needed
+
+type QuestionPreviewProps = {
+    questions: QuestionForComp[];
+    onDelete?: (index: number) => void;
+};
+
+export function QuestionPreview({
+    questions = [],
+    onDelete,
+}: QuestionPreviewProps) {
     if (!questions?.length) return null;
 
     return (
@@ -16,7 +26,7 @@ export function QuestionPreview({ questions = [], onDelete }: any) {
                         className="relative p-3 rounded-md bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600"
                     >
                         <p className="font-medium">
-                            Q{idx + 1}: {q.questionText}
+                            Q{idx + 1}: {q.question_text}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                             Marks: {q.marks}

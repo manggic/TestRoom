@@ -5,9 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router";
 import { toast } from "sonner";
-import { logInUser } from "@/services/auth";
+import { logInUser } from "@/services/authService";
 import { useAuth } from "@/context/useAuth";
 
 export default function LoginForm() {
@@ -18,6 +18,7 @@ export default function LoginForm() {
     });
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({
@@ -27,11 +28,14 @@ export default function LoginForm() {
     };
 
     useEffect(() => {
-    if (currentUser && currentUser.profile?.email) {
-      // ✅ Safe to navigate now
-      navigate("/", { replace: true });
-    }
-  }, [currentUser, navigate]);
+        if (
+            currentUser &&
+            currentUser.user?.email &&
+            location.pathname !== "/"
+        ) {
+            navigate("/", { replace: true });
+        }
+    }, [currentUser, navigate, location.pathname]);
 
     // useEffect(() => {
     //     if (currentUser) {
@@ -46,7 +50,7 @@ export default function LoginForm() {
 
         if (res.success) {
             toast("Login successful");
-            // navigate("/", { replace: true });
+            navigate("/", { replace: true });
         } else {
             toast("Login failed" + " Invalid credentials");
         }
