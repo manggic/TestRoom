@@ -97,7 +97,6 @@
     -   updated_at ( timestamp )
     -   correct_answer_count ( number )
 
-
 ```json
 {
     "id": "00382d8e-7786-482f-9dd5-b6b2f7e13cf2",
@@ -109,13 +108,11 @@
     "updated_at": "2025-07-11 14:59:36.035+00",
     "score_achieved": 21,
     "total_questions": 10,
-    "answers":{"q0": "a", "q1": "c", "q2": "d", "q3": "d", "q4": "c"},
-    "status":"completed",
+    "answers": { "q0": "a", "q1": "c", "q2": "d", "q3": "d", "q4": "c" },
+    "status": "completed",
     "time_taken_seconds": 45
 }
 ```
-
-
 
 test these feature
 
@@ -124,9 +121,8 @@ test these feature
 
 Issue
 
--   follow proper folder structure with name conventions
--   data in db is not added in sort format
 -   fix ts error
+-   dont allow to edit attempted test
 
 feature
 

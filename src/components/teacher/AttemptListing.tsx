@@ -63,7 +63,6 @@ export default function AttemptListing() {
             try {
                 const response = await getAttemptsListing(testId);
 
-
                 if (response.success) {
                     setAttempts(response.data);
                 }

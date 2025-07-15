@@ -176,7 +176,7 @@ export default function EditTestPage() {
 
             if (response.success) {
                 toast.success("Test updated successfully");
-                navigate(`/teacher/testpaper/preview/${test.id}`);
+                navigate(`/teacher/test/preview/${test.id}`);
             } else {
                 toast("Update Test Failed");
             }

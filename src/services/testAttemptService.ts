@@ -55,17 +55,17 @@ export async function submitTestAttempt(testAttemptDataObj) {
         // 3. Increment user's attemptedTests
         const { data: user, error: fetchUserError } = await supabaseClient
             .from("users")
-            .select("attempted_tests")
+            .select("attempted_tests_count")
             .eq("id", student_id)
             .single();
 
         if (fetchUserError) throw fetchUserError;
 
-        const currentAttempts = user?.attempted_tests || 0;
+        const currentAttempts = user?.attempted_tests_count || 0;
 
         const { error: updateUserError } = await supabaseClient
             .from("users")
-            .update({ attempted_tests: currentAttempts + 1 })
+            .update({ attempted_tests_count: currentAttempts + 1 })
             .eq("id", student_id);
 
         if (updateUserError) throw updateUserError;

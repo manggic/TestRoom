@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Timer, User, FileText, BarChart2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import type { Test } from "@/types/test";
+import { toast } from "sonner";
 
 export function TestCard({ test }: { test: Test }) {
     const navigate = useNavigate();
@@ -70,16 +71,20 @@ export function TestCard({ test }: { test: Test }) {
                     <Button
                         size="sm"
                         className="cursor-pointer"
-                        onClick={() =>
-                            navigate(
-                                `/teacher/test/edit/${
-                                    test.id
-                                }?zzzfff=${crypto.randomUUID()}`,
-                                {
-                                    state: { test },
-                                }
-                            )
-                        }
+                        onClick={() => {
+                            if (attempts === 0) {
+                                navigate(
+                                    `/teacher/test/edit/${
+                                        test.id
+                                    }?zzzfff=${crypto.randomUUID()}`,
+                                    {
+                                        state: { test },
+                                    }
+                                );
+                            } else {
+                                toast("Not allowed to edit attempted test");
+                            }
+                        }}
                     >
                         Edit
                     </Button>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabaseClient } from "@/supabase/config";
+// import { supabaseClient } from "@/supabase/config";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,6 @@ export default function AdminDashboard() {
 
     const fetchUsers = async () => {
         const response = await getUsersForAdmin();
-
 
         if (response.success) {
             setStudents(
