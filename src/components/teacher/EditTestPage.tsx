@@ -30,7 +30,6 @@ export default function EditTestPage() {
 
     const questionsPerPage = 10;
 
-
     useEffect(() => {
         const loadTest = async () => {
             try {
@@ -171,7 +170,6 @@ export default function EditTestPage() {
                 last_updated_by: user?.id,
             };
 
-
             const response = await updateTest(test.id, updatedTestData);
 
             if (response.success) {
@@ -304,14 +302,14 @@ export default function EditTestPage() {
                                                 return (
                                                     <div
                                                         key={key}
-                                                        className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 p-3 rounded-md border border-gray-200 dark:border-zinc-700"
+                                                        className="flex items-center gap-3 sm:gap-4 px-3 py-2 sm:py-3 bg-zinc-100 dark:bg-zinc-800 rounded-md border border-gray-200 dark:border-zinc-700"
                                                     >
-                                                        <div className="font-bold w-6 text-center text-sm text-gray-700 dark:text-gray-300">
+                                                        <div className="font-semibold text-sm w-5 text-gray-700 dark:text-gray-300">
                                                             {key.toUpperCase()}.
                                                         </div>
                                                         <input
                                                             type="text"
-                                                            className="flex-1 text-sm rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary"
+                                                            className="flex-1 text-sm px-3 py-2 rounded-md bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary"
                                                             value={
                                                                 q?.options?.[
                                                                     key
@@ -334,7 +332,7 @@ export default function EditTestPage() {
                                         )}
                                     </div>
 
-                                    <div className="flex gap-4">
+                                    <div className="flex gap-4 sm:flex-row flex-col">
                                         <div className="w-full">
                                             <label className="text-sm font-medium">
                                                 Correct Answer (Enter one of: a,

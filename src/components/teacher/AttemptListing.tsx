@@ -77,11 +77,11 @@ export default function AttemptListing() {
     }, [testId]);
 
     return (
-        <div className="p-4 sm:p-6 max-w-5xl mx-auto">
+        <div className="p-3 sm:p-6 max-w-5xl mx-auto">
             <div className="mb-6 text-center">
-                <h1 className="text-xl md:text-2xl font-semibold flex items-center justify-center gap-2">
+                <h1 className="text-lg sm:text-2xl font-semibold flex items-center justify-center gap-2">
                     🧾 Attempts for{" "}
-                    <span className="text-primary">
+                    <span className="text-primary truncate max-w-[180px] sm:max-w-none">
                         {attempts?.[0]?.tests?.test_name}
                     </span>
                 </h1>
@@ -110,13 +110,13 @@ export default function AttemptListing() {
             {!loading && !error && paginatedAttempts.length > 0 && (
                 <div className="space-y-2">
                     {/* Header row */}
-                    <div className="hidden sm:grid text-md grid-cols-6  font-semibold text-muted-foreground px-2">
+                    <div className="hidden sm:grid text-sm grid-cols-6 font-semibold text-muted-foreground px-2">
                         <div>Student</div>
                         <div>Score</div>
-                        <div>Correct Answer</div>
-                        <div>Time Taken</div>
-                        <div className="">Attempted On</div>
-                        <div className="">Actions</div>
+                        <div>Correct</div>
+                        <div>Time</div>
+                        <div>Attempted On</div>
+                        <div>Actions</div>
                     </div>
 
                     {/* Rows */}
@@ -142,7 +142,67 @@ export default function AttemptListing() {
                                 key={attempt.id}
                                 className="p-4 rounded-lg shadow-sm"
                             >
-                                <div className="grid grid-cols-1 sm:grid-cols-6 gap-3 sm:gap-4 items-center text-sm">
+                                {/* Mobile view (visible only on mobile) */}
+                                <div className="sm:hidden space-y-2 text-sm">
+                                    <div>
+                                        <strong>Student:</strong>{" "}
+                                        {attempt.users?.name ||
+                                            `ID: ${attempt.student_id}`}
+                                    </div>
+                                    <div>
+                                        <strong>Score:</strong>{" "}
+                                        <span
+                                            className={cn(
+                                                getScoreColor(
+                                                    attempt.score_achieved,
+                                                    total_marks
+                                                )
+                                            )}
+                                        >
+                                            {attempt.score_achieved}/
+                                            {total_marks}
+                                        </span>{" "}
+                                        <Badge
+                                            variant={badgeVariant}
+                                            className="ml-2 text-xs font-semibold"
+                                        >
+                                            {percentage}%
+                                        </Badge>
+                                    </div>
+                                    <div>
+                                        <strong>Correct:</strong>{" "}
+                                        {attempt.correct_answer_count}/
+                                        {attempt.total_questions}
+                                    </div>
+                                    <div>
+                                        <strong>Time Taken:</strong>{" "}
+                                        {formatDuration(
+                                            attempt.time_taken_seconds
+                                        )}
+                                    </div>
+                                    <div>
+                                        <strong>Attempted On:</strong>{" "}
+                                        {formatDateTime(attempt.created_at)}
+                                    </div>
+                                    <div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="mt-2"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/student/result/${attempt.id}`
+                                                )
+                                            }
+                                        >
+                                            <Eye className="w-4 h-4 mr-1" />
+                                            View Result
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Desktop view (hidden on mobile) */}
+                                <div className="hidden sm:grid grid-cols-6 gap-3 sm:gap-4 items-center text-sm">
                                     <div className="font-medium">
                                         {attempt.users?.name ||
                                             `Student ID: ${attempt.student_id}`}
@@ -178,16 +238,19 @@ export default function AttemptListing() {
                                     <div className="font-medium text-right">
                                         {formatDateTime(attempt.created_at)}
                                     </div>
-                                    <button
-                                        onClick={() =>
-                                            navigate(
-                                                `/student/result/${attempt.id}`
-                                            )
-                                        }
-                                        className="flex justify-center"
-                                    >
-                                        <Eye />
-                                    </button>
+                                    <div className="flex justify-center">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/student/result/${attempt.id}`
+                                                )
+                                            }
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
                             </Card>
                         );
@@ -197,7 +260,7 @@ export default function AttemptListing() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-                <div className="flex justify-center items-center mt-6 gap-4">
+                <div className="flex flex-wrap justify-center items-center mt-6 gap-3 text-sm">
                     <Button
                         variant="outline"
                         size="sm"
@@ -206,10 +269,10 @@ export default function AttemptListing() {
                         }
                         disabled={currentPage === 1}
                     >
-                        <ChevronLeft className="h-4 w-4" />
+                        <ChevronLeft className="h-4 w-4 mr-1" />
                         Prev
                     </Button>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-muted-foreground">
                         Page {currentPage} of {totalPages}
                     </span>
                     <Button
@@ -221,7 +284,7 @@ export default function AttemptListing() {
                         disabled={currentPage === totalPages}
                     >
                         Next
-                        <ChevronRight className="h-4 w-4" />
+                        <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                 </div>
             )}

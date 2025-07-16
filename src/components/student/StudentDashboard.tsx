@@ -117,7 +117,7 @@ export default function StudentDashboard() {
     return (
         <div className="container mx-auto p-6">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-lg sm:text-3xl font-bold text-gray-900 dark:text-white">
                     Student Dashboard
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -126,20 +126,22 @@ export default function StudentDashboard() {
             </div>
 
             <Tabs defaultValue="unattempted" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="w-full flex sm:grid sm:grid-cols-2 gap-2 sm:gap-0 overflow-x-auto sm:overflow-visible no-scrollbar p-1 bg-muted rounded-md">
                     <TabsTrigger
                         value="unattempted"
-                        className="flex items-center gap-2"
+                        className="flex-shrink-0 flex items-center gap-2 px-4 py-2 text-sm rounded-md whitespace-nowrap
+               data-[state=active]:bg-primary data-[state=active]:text-white transition"
                     >
                         <FileText className="h-4 w-4" />
-                        Unattempted Tests ({unattemptedTests.length})
+                        Unattempted ({unattemptedTests.length})
                     </TabsTrigger>
                     <TabsTrigger
                         value="attempted"
-                        className="flex items-center gap-2"
+                        className="flex-shrink-0 flex items-center gap-2 px-4 py-2 text-sm rounded-md whitespace-nowrap
+               data-[state=active]:bg-primary data-[state=active]:text-white transition"
                     >
                         <Trophy className="h-4 w-4" />
-                        Attempted Tests ({attemptedTests.length})
+                        Attempted ({attemptedTests.length})
                     </TabsTrigger>
                 </TabsList>
 
