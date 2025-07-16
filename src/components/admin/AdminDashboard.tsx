@@ -94,8 +94,12 @@ export default function AdminDashboard() {
         });
 
     const renderUserRow = (user: User) => (
-        <Card key={user.id} className="p-4 rounded-lg shadow-sm">
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 items-center text-sm">
+        <Card
+            key={user.id}
+            className="p-4 rounded-lg shadow-sm relative text-sm"
+        >
+            {/* 🖥️ Desktop layout */}
+            <div className="hidden sm:grid sm:grid-cols-5 sm:items-center sm:gap-3">
                 <div className="font-medium flex items-center gap-2 truncate">
                     <User2 className="h-4 w-4 text-muted-foreground" />
                     {user.name}
@@ -105,58 +109,30 @@ export default function AdminDashboard() {
                     {user.email}
                 </div>
 
-                <div className="text-sm text-muted-foreground truncate">
+                <div className="text-muted-foreground truncate">
                     {formatDateTime(user.created_at)}
                 </div>
 
                 <div className="flex flex-wrap gap-1">
-                    {user.role === "student" ? (
-                        user.attempted_tests.length > 0 ? (
-                            user.attempted_tests.map((test, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() =>
-                                        navigate(
-                                            `/student/result/${test.test_attempt_id}`
-                                        )
-                                    }
-                                >
-                                    <Badge
-                                        variant="outline"
-                                        className="text-xs cursor-pointer"
-                                    >
-                                        {test.test_name}
-                                    </Badge>
-                                </button>
-                            ))
-                        ) : (
-                            <span className="text-muted-foreground text-xs">
-                                None
-                            </span>
-                        )
-                    ) : user.created_tests.length > 0 ? (
-                        user.created_tests.map((test, i) => (
-                            <button
-                                key={i}
-                                onClick={() =>
-                                    navigate(
-                                        `/teacher/test/preview/${test.test_id}`
-                                    )
-                                }
-                            >
-                                <Badge
-                                    variant="outline"
-                                    className="text-xs cursor-pointer"
-                                >
-                                    {test.test_name}
-                                </Badge>
-                            </button>
-                        ))
-                    ) : (
-                        <span className="text-muted-foreground text-xs">
-                            None
-                        </span>
-                    )}
+                    {(user.role === "student"
+                        ? user.attempted_tests
+                        : user.created_tests
+                    )?.map((test, i) => (
+                        <Badge
+                            key={i}
+                            variant="outline"
+                            className="text-xs cursor-pointer text-white bg-[cadetblue]"
+                            onClick={() =>
+                                navigate(
+                                    user.role === "student"
+                                        ? `/student/result/${test.test_attempt_id}`
+                                        : `/teacher/test/preview/${test.test_id}`
+                                )
+                            }
+                        >
+                            {test.test_name}
+                        </Badge>
+                    ))}
                 </div>
 
                 <div className="flex justify-end">
@@ -187,6 +163,95 @@ export default function AdminDashboard() {
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
+                </div>
+            </div>
+
+            {/* 📱 Mobile layout */}
+            <div className="block sm:hidden space-y-2 relative">
+                {/* Delete Button (Top Right) */}
+                {/* <div className="absolute top-3 right-3">
+                    
+                </div> */}
+
+                <div className="flex items-center justify-between font-medium">
+                    <div className="flex gap-2">
+                        <User2 className="h-4 w-4 text-muted-foreground" />
+                        {user.name}
+                    </div>
+
+                    <div>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setSelectedUser(user)}
+                                >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                        Delete {user.name}?
+                                    </AlertDialogTitle>
+                                </AlertDialogHeader>
+                                <p className="text-sm text-muted-foreground">
+                                    This action is permanent and cannot be
+                                    undone.
+                                </p>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                        Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDelete}>
+                                        Yes, Delete
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                </div>
+
+                <div className="text-muted-foreground">
+                    <span className="font-medium text-foreground">Email: </span>
+                    {user.email}
+                </div>
+
+                <div className="text-muted-foreground">
+                    <span className="font-medium text-foreground">
+                        Joined:{" "}
+                    </span>
+                    {formatDateTime(user.created_at)}
+                </div>
+
+                <div>
+                    <span className="font-medium text-foreground">
+                        {user.role === "student"
+                            ? "Attempted Tests:"
+                            : "Created Tests:"}
+                    </span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                        {(user.role === "student"
+                            ? user.attempted_tests
+                            : user.created_tests
+                        )?.map((test, i) => (
+                            <Badge
+                                key={i}
+                                variant="outline"
+                                className="text-xs cursor-pointer text-white bg-[cadetblue]"
+                                onClick={() =>
+                                    navigate(
+                                        user.role === "student"
+                                            ? `/student/result/${test.test_attempt_id}`
+                                            : `/teacher/test/preview/${test.test_id}`
+                                    )
+                                }
+                            >
+                                {test.test_name}
+                            </Badge>
+                        ))}
+                    </div>
                 </div>
             </div>
         </Card>

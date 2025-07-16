@@ -18,8 +18,6 @@ import jsPDF from "jspdf";
 import { submitTestAttempt } from "@/services/testAttemptService";
 import { getTestById } from "@/services/testService";
 
-
-
 interface TestData {
     id: string;
     test_name: string;
@@ -491,7 +489,7 @@ export default function TakeTest() {
                         })}
 
                         {totalPages > 1 && (
-                            <div className="flex justify-center gap-2 mt-4">
+                            <div className="flex flex-wrap justify-center items-center gap-2 mt-6 px-2 sm:px-0">
                                 <Button
                                     variant="outline"
                                     type="button"
@@ -499,23 +497,31 @@ export default function TakeTest() {
                                     onClick={() =>
                                         setCurrentPage((prev) => prev - 1)
                                     }
+                                    className="min-w-[72px]"
                                 >
                                     ← Prev
                                 </Button>
-                                {[...Array(totalPages)].map((_, i) => (
-                                    <Button
-                                        type="button"
-                                        key={i}
-                                        variant={
-                                            i + 1 === currentPage
-                                                ? "default"
-                                                : "outline"
-                                        }
-                                        onClick={() => setCurrentPage(i + 1)}
-                                    >
-                                        {i + 1}
-                                    </Button>
-                                ))}
+
+                                <div className="flex flex-wrap justify-center gap-2 max-w-full overflow-x-auto no-scrollbar">
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <Button
+                                            type="button"
+                                            key={i}
+                                            variant={
+                                                i + 1 === currentPage
+                                                    ? "default"
+                                                    : "outline"
+                                            }
+                                            onClick={() =>
+                                                setCurrentPage(i + 1)
+                                            }
+                                            className="min-w-[40px] px-3"
+                                        >
+                                            {i + 1}
+                                        </Button>
+                                    ))}
+                                </div>
+
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -523,6 +529,7 @@ export default function TakeTest() {
                                     onClick={() =>
                                         setCurrentPage((prev) => prev + 1)
                                     }
+                                    className="min-w-[72px]"
                                 >
                                     Next →
                                 </Button>
