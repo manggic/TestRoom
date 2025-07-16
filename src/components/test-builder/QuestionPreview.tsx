@@ -15,7 +15,7 @@ export function QuestionPreview({
 
     return (
         <div className="bg-slate-50 dark:bg-zinc-700 rounded-md p-4 border border-gray-300 dark:border-zinc-600">
-            <h3 className="text-lg font-semibold mb-3 text-blue-600 dark:text-blue-400">
+            <h3 className="sm:text-lg font-semibold mb-3 text-blue-600 dark:text-blue-400">
                 📋 Preview of Questions
             </h3>
 
@@ -23,7 +23,7 @@ export function QuestionPreview({
                 {questions.map((q, idx) => (
                     <div
                         key={idx}
-                        className="relative p-3 rounded-md bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600"
+                        className="relative rounded-md bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600 pt-[40px] sm:p-3 p-3"
                     >
                         <p className="font-medium">
                             Q{idx + 1}: {q.question_text}

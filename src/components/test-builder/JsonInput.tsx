@@ -49,7 +49,7 @@ export function JsonInput({ setJsonData }: JsonInputProps) {
     return (
         <div className="mb-6">
             <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Paste JSON Questions</h3>
+                <h3 className="sm:text-lg font-semibold">Paste JSON Questions</h3>
                 <button
                     onClick={handleCopySample}
                     className="text-blue-400 text-sm hover:underline cursor-pointer"

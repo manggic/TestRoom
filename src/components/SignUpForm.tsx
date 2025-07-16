@@ -31,7 +31,7 @@ export default function SignUpForm() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
-        setErrors({ ...errors, [e.target.name]: "" }); // Clear error on change
+        setErrors({ ...errors, [e.target.name]: "" });
     };
 
     const validateForm = () => {
@@ -84,20 +84,20 @@ export default function SignUpForm() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 dark:from-zinc-900 dark:to-zinc-800 px-4">
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 dark:from-zinc-900 dark:to-zinc-800 px-2 sm:px-4">
             <motion.div
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="w-full max-w-md"
+                className="w-full max-w-sm sm:max-w-md"
             >
                 <Card className="rounded-2xl shadow-xl border-none">
-                    <CardContent className="p-8 space-y-6">
+                    <CardContent className="px-5 py-6 sm:px-8 sm:py-8 space-y-6">
                         <div className="text-center">
-                            <h2 className="text-3xl font-bold">
+                            <h2 className="text-2xl sm:text-3xl font-bold">
                                 Create Account
                             </h2>
-                            <p className="text-muted-foreground text-sm mt-1">
+                            <p className="text-muted-foreground text-sm sm:text-base mt-1">
                                 Sign up to access your test dashboard
                             </p>
                         </div>
@@ -105,16 +105,20 @@ export default function SignUpForm() {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {/* Name */}
                             <div className="space-y-1">
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="name" className="text-sm sm:text-base">
+                                    Name
+                                </Label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <User className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                                    </div>
                                     <Input
                                         id="name"
                                         name="name"
                                         placeholder="Your full name"
                                         value={form.name}
                                         onChange={handleChange}
-                                        className="pl-10"
+                                        className="pl-10 py-2.5 text-sm sm:text-base"
                                     />
                                 </div>
                                 {errors.name && (
@@ -126,9 +130,13 @@ export default function SignUpForm() {
 
                             {/* Email */}
                             <div className="space-y-1">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email" className="text-sm sm:text-base">
+                                    Email
+                                </Label>
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                                    </div>
                                     <Input
                                         id="email"
                                         name="email"
@@ -136,7 +144,7 @@ export default function SignUpForm() {
                                         placeholder="you@example.com"
                                         value={form.email}
                                         onChange={handleChange}
-                                        className="pl-10"
+                                        className="pl-10 py-2.5 text-sm sm:text-base"
                                     />
                                 </div>
                                 {errors.email && (
@@ -148,33 +156,29 @@ export default function SignUpForm() {
 
                             {/* Password */}
                             <div className="space-y-1">
-                                <Label htmlFor="password">Password</Label>
+                                <Label htmlFor="password" className="text-sm sm:text-base">
+                                    Password
+                                </Label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                                    </div>
                                     <Input
                                         id="password"
                                         name="password"
-                                        type={
-                                            showPassword ? "text" : "password"
-                                        }
+                                        type={showPassword ? "text" : "password"}
                                         placeholder="••••••••"
                                         value={form.password}
                                         onChange={handleChange}
-                                        className="pl-10 pr-10"
+                                        className="pl-10 pr-10 py-2.5 text-sm sm:text-base"
                                     />
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            setShowPassword((prev) => !prev)
-                                        }
+                                        onClick={() => setShowPassword(prev => !prev)}
                                         className="absolute right-3 top-2.5 text-muted-foreground"
                                         aria-label="Toggle Password"
                                     >
-                                        {showPassword ? (
-                                            <EyeOff size={18} />
-                                        ) : (
-                                            <Eye size={18} />
-                                        )}
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
                                 </div>
                                 {errors.password && (
@@ -187,7 +191,7 @@ export default function SignUpForm() {
                             {/* Submit */}
                             <Button
                                 type="submit"
-                                className="w-full mt-2 cursor-pointer"
+                                className="w-full mt-2 py-2.5 text-sm sm:text-base"
                             >
                                 Sign Up
                             </Button>

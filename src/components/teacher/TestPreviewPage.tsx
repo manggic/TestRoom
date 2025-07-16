@@ -27,7 +27,6 @@ export default function TestPreviewPage() {
             try {
                 const response = await getTestById(testId);
 
-
                 if (response.success) {
                     setTest(response.data);
                 }
@@ -50,7 +49,7 @@ export default function TestPreviewPage() {
         );
 
     return (
-        <div className="min-h-screen max-h-screen overflow-y-auto p-6 bg-slate-100 dark:bg-zinc-900 text-gray-900 dark:text-white">
+        <div className="min-h-screen max-h-screen overflow-y-auto p-3 sm:p-6  bg-slate-100 dark:bg-zinc-900 text-gray-900 dark:text-white">
             <div className="max-w-5xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">

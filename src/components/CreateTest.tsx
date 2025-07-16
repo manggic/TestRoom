@@ -85,8 +85,8 @@ export default function CreateTest() {
 
                 <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-md p-6 space-y-6 border border-gray-200 dark:border-zinc-700">
                     {/* Title */}
-                    <div className="flex justify-between items-center border-b pb-4 border-gray-200 dark:border-zinc-700">
-                        <h2 className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                    <div className="flex justify-center items-center border-b pb-4 border-gray-200 dark:border-zinc-700">
+                        <h2 className="text-md sm:text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
                             📝 Create New MCQ Test
                         </h2>
                     </div>
