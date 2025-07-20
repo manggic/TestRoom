@@ -11,18 +11,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-import { cn, errorHandler } from "@/lib/utils";
+import { cn, errorHandler, formatDate } from "@/lib/utils";
 import { getAttemptsListing } from "@/services/testAttemptService";
 
 import type { TestAttemptWithJoins } from "@/types/testAttempts";
 
 const ITEMS_PER_PAGE = 10;
 
-const formatDateTime = (iso: string) =>
-    new Date(iso).toLocaleString(undefined, {
-        dateStyle: "medium",
-        timeStyle: "short",
-    });
+// const formatDateTime = (iso: string) =>
+//     new Date(iso).toLocaleString(undefined, {
+//         dateStyle: "medium",
+//         timeStyle: "short",
+//     });
 
 const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -182,7 +182,7 @@ export default function AttemptListing() {
                                     </div>
                                     <div>
                                         <strong>Attempted On:</strong>{" "}
-                                        {formatDateTime(attempt.created_at)}
+                                        {formatDate(attempt.created_at)}
                                     </div>
                                     <div>
                                         <Button
@@ -236,7 +236,7 @@ export default function AttemptListing() {
                                         )}
                                     </div>
                                     <div className="font-medium text-right">
-                                        {formatDateTime(attempt.created_at)}
+                                        {formatDate(attempt.created_at)}
                                     </div>
                                     <div className="flex justify-center">
                                         <Button

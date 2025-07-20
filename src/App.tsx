@@ -67,7 +67,9 @@ function App() {
                         {/* ✅ Student-only routes */}
                         <Route
                             element={
-                                <ProtectedRoute allowedRoles={["student",'admin']} />
+                                <ProtectedRoute
+                                    allowedRoles={["student", "admin"]}
+                                />
                             }
                         >
                             <Route path="student">
@@ -75,12 +77,23 @@ function App() {
                                     path="test/:testId"
                                     element={<TakeTest />}
                                 />
-                                <Route
-                                    path="result/:attemptId"
-                                    element={<TestResult />}
-                                />
                             </Route>
                         </Route>
+
+                        <Route
+                            path="student/result/:attemptId"
+                            element={
+                                <ProtectedRoute
+                                    allowedRoles={[
+                                        "student",
+                                        "admin",
+                                        "teacher",
+                                    ]}
+                                >
+                                    <TestResult />
+                                </ProtectedRoute>
+                            }
+                        />
                     </Route>
                 </Route>
 

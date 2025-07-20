@@ -19,6 +19,7 @@ import {
     getTestAttemptsByStudentId,
     getUnattemptedTestsOfStudentId,
 } from "@/services/testAttemptService";
+import { formatDate } from "@/lib/utils";
 
 interface Test {
     id: string;
@@ -89,13 +90,13 @@ export default function StudentDashboard() {
         navigate(`/student/result/${attemptId}`);
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-        });
-    };
+    // const formatDate = (dateString: string) => {
+    //     return new Date(dateString).toLocaleDateString("en-US", {
+    //         year: "numeric",
+    //         month: "short",
+    //         day: "numeric",
+    //     });
+    // };
 
     const getScorePercentage = (score: number, totalMarks: number) => {
         return Math.round((score / totalMarks) * 100);
@@ -168,8 +169,8 @@ export default function StudentDashboard() {
                                     key={test.id}
                                     className="hover:shadow-lg transition-shadow"
                                 >
-                                    <CardHeader className="pb-3">
-                                        <CardTitle className="text-xl text-gray-900 dark:text-white">
+                                    <CardHeader>
+                                        <CardTitle className="text-xl  text-blue-600 dark:text-white">
                                             {test.test_name}
                                         </CardTitle>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -257,7 +258,7 @@ export default function StudentDashboard() {
                                         <CardHeader className="pb-3">
                                             <div className="flex items-start justify-between">
                                                 <div className="flex-1">
-                                                    <CardTitle className="text-xl text-gray-900 dark:text-white">
+                                                    <CardTitle className="text-xl text-gray-900 text-blue-600 dark:text-white">
                                                         {
                                                             attempt.tests
                                                                 .test_name

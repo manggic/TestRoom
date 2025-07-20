@@ -35,7 +35,7 @@ import { TestCard } from "../teacher/TestCard";
 import { getTests } from "@/services/testService";
 import { getUsersForAdmin } from "@/services/userService";
 import { useNavigate } from "react-router";
-import { validateSignUpForm } from "@/lib/utils";
+import { formatDate, validateSignUpForm } from "@/lib/utils";
 import { signupUser } from "@/services/authService";
 import { toast } from "sonner";
 
@@ -150,11 +150,11 @@ export default function AdminDashboard() {
         console.log({ userForm });
     };
 
-    const formatDateTime = (iso: string) =>
-        new Date(iso).toLocaleString(undefined, {
-            dateStyle: "medium",
-            timeStyle: "short",
-        });
+    // const formatDateTime = (iso: string) =>
+    //     new Date(iso).toLocaleString(undefined, {
+    //         dateStyle: "medium",
+    //         timeStyle: "short",
+    //     });
 
     const renderUserRow = (user: User) => (
         <Card
@@ -173,7 +173,8 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="text-muted-foreground truncate">
-                    {formatDateTime(user.created_at)}
+                    {formatDate(user.created_at)}
+                    {/* {formatDateTime(user.created_at)} */}
                 </div>
 
                 <div className="flex flex-wrap gap-1">
@@ -285,7 +286,7 @@ export default function AdminDashboard() {
                     <span className="font-medium text-foreground">
                         Joined:{" "}
                     </span>
-                    {formatDateTime(user.created_at)}
+                    {formatDate(user.created_at)}
                 </div>
 
                 <div>
@@ -327,7 +328,7 @@ export default function AdminDashboard() {
             </h1>
             <div className="flex justify-end sm:justify-end">
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger>
+                    <DialogTrigger asChild>
                         <Button className="gap-2 sm:w-auto mb-4 sm:mb-0">
                             <Plus size={18} /> Create User
                         </Button>

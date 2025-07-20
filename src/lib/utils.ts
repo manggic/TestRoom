@@ -44,14 +44,28 @@ export function handleResponse(data, error) {
     }
 }
 
+// export const formatDate = (dateString: string) => {
+//     return new Date(dateString).toLocaleDateString("en-US", {
+//         year: "numeric",
+//         month: "long",
+//         day: "numeric",
+//         hour: "2-digit",
+//         minute: "2-digit",
+//     });
+// };
+
 export const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleString("en-US", { month: "short" });
+    const year = date.getFullYear().toString().slice(-2);
+    const time = date.toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
+        hour12: true,
     });
+
+    return `${day} ${month} ${year}, ${time}`;
 };
 
 export const validateSignUpForm = (
