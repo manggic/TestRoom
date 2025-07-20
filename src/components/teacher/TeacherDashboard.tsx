@@ -79,19 +79,17 @@ export default function TeacherDashboard() {
     }
 
     return (
-        <div className="min-h-screen p-4 sm:p-6 bg-slate-100 dark:bg-zinc-900 text-gray-900 dark:text-white">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                <h1 className="text-xl sm:text-2xl font-bold">
-                    Teacher Dashboard
-                </h1>
-                <div className="flex justify-end sm:justify-end">
-                    <Button
-                        onClick={() => navigate("/teacher/create-test")}
-                        className="gap-2 sm:w-auto"
-                    >
-                        <Plus size={18} /> Create Test
-                    </Button>
-                </div>
+        <div className="min-h-screen px-4 py-6 bg-slate-100 dark:bg-zinc-900 text-gray-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-bold my-4">
+                Teacher Dashboard
+            </h1>
+            <div className="flex justify-end sm:justify-end">
+                <Button
+                    onClick={() => navigate("/teacher/create-test")}
+                    className="gap-2 sm:w-auto"
+                >
+                    <Plus size={18} /> Create Test
+                </Button>
             </div>
 
             <Tabs value={tab} onValueChange={setTab} className="w-full">

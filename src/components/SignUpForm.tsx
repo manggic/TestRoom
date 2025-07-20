@@ -10,6 +10,7 @@ import { Link } from "react-router";
 import { toast } from "sonner";
 import { signupUser } from "@/services/authService";
 import { useAuth } from "@/context/useAuth";
+import { validateSignUpForm } from "@/lib/utils";
 
 export default function SignUpForm() {
     const navigate = useNavigate();
@@ -34,41 +35,11 @@ export default function SignUpForm() {
         setErrors({ ...errors, [e.target.name]: "" });
     };
 
-    const validateForm = () => {
-        const newErrors = { name: "", email: "", password: "" };
-        let isValid = true;
-
-        if (!form.name.trim()) {
-            newErrors.name = "Name is required";
-            isValid = false;
-        }
-
-        if (!form.email.trim()) {
-            newErrors.email = "Email is required";
-            isValid = false;
-        } else if (
-            !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(form.email)
-        ) {
-            newErrors.email = "Invalid email address";
-            isValid = false;
-        }
-
-        if (!form.password) {
-            newErrors.password = "Password is required";
-            isValid = false;
-        } else if (form.password.length < 6) {
-            newErrors.password = "Password must be at least 6 characters";
-            isValid = false;
-        }
-
-        setErrors(newErrors);
-        return isValid;
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!validateForm()) return;
+        if (!validateSignUpForm(form, setErrors)) return;
 
         const res = await signupUser(form.email, form.password, {
             name: form.name,

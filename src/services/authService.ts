@@ -1,30 +1,40 @@
-import { supabaseClient } from '../supabase/config';
+import { supabaseClient } from "../supabase/config";
+
 // TODO: Replace all Firebase auth logic with Supabase equivalents.
 
-import { errorHandler } from '@/lib/utils';
+import { errorHandler } from "@/lib/utils";
 
 export const signupUser = async (
     email: string,
     password: string,
-    additionalInfo: { name: string; role: 'admin' | 'student' | 'teacher' }
+    additionalInfo: {
+        name: string;
+        role: "admin" | "student" | "teacher";
+        actionBy?: string;
+    }
 ) => {
     try {
         // Sign up with Supabase Auth
-        const { data, error } = await supabaseClient.auth.signUp({
+        const signUpData = await supabaseClient.auth.signUp({
             email,
             password,
             options: {
-                data: { name: additionalInfo.name, role: additionalInfo.role }
-            }
+                data: {
+                    name: additionalInfo.name,
+                    role: additionalInfo.role,
+                },
+            },
         });
+
+        const { data, error } = signUpData || {};
+
         if (error) throw error;
         const user = data.user;
-        if (!user) throw new Error('No user returned from Supabase signUp');
+        if (!user) throw new Error("No user returned from Supabase signUp");
 
         // Insert user into 'users' table
-        const { error: userError } = await supabaseClient
-            .from('users')
-            .insert([{
+        const { error: userError } = await supabaseClient.from("users").insert([
+            {
                 id: user.id,
                 name: additionalInfo.name,
                 email,
@@ -33,19 +43,34 @@ export const signupUser = async (
                 is_active: true,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
-            }]);
+            },
+        ]);
         if (userError) {
-            if (userError.code === '23505') {
-                return { success: false, message: 'User with this email already exists.' };
+            if (userError.code === "23505") {
+                return {
+                    success: false,
+                    message: "User with this email already exists.",
+                };
             }
             // If userError, inform the user but allow Auth signup to succeed
-            return { success: false, message: 'Signup succeeded, but user profile could not be created. Please contact support.' };
+            return {
+                success: false,
+                message:
+                    "Signup succeeded, but user profile could not be created. Please contact support.",
+            };
         }
 
-        return { success: true, data: user };
+        return {
+            success: true,
+            data: user,
+            message: "user created successfully",
+        };
     } catch (error: any) {
-        if (error.code === '23505') {
-            return { success: false, message: 'User with this email already exists.' };
+        if (error.code === "23505") {
+            return {
+                success: false,
+                message: "User with this email already exists.",
+            };
         }
         return errorHandler(error);
     }
@@ -65,28 +90,35 @@ export const logInUser = async (email: string, password: string) => {
         }
         // Fetch full user record from 'users' table
         let { data: userRecord, error: userFetchError } = await supabaseClient
-            .from('users')
-            .select('*')
-            .eq('id', user.id)
+            .from("users")
+            .select("*")
+            .eq("id", user.id)
             .single();
-        if (userFetchError && userFetchError.code === 'PGRST116') {
+        if (userFetchError && userFetchError.code === "PGRST116") {
             // User not found in users table, insert now
-            const { data: insertedUser, error: insertError } = await supabaseClient
-                .from('users')
-                .insert([{
-                    id: user.id,
-                    name: user.user_metadata?.name || '',
-                    email: user.email,
-                    role: user.user_metadata?.role || 'student',
-                    attempted_tests_count: 0,
-                    is_active: true,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                }])
-                .select()
-                .single();
+            const { data: insertedUser, error: insertError } =
+                await supabaseClient
+                    .from("users")
+                    .insert([
+                        {
+                            id: user.id,
+                            name: user.user_metadata?.name || "",
+                            email: user.email,
+                            role: user.user_metadata?.role || "student",
+                            attempted_tests_count: 0,
+                            is_active: true,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                        },
+                    ])
+                    .select()
+                    .single();
             if (insertError) {
-                return { success: false, message: 'Login succeeded, but user profile could not be created. Please contact support.' };
+                return {
+                    success: false,
+                    message:
+                        "Login succeeded, but user profile could not be created. Please contact support.",
+                };
             }
             userRecord = insertedUser;
         } else if (userFetchError) {
@@ -94,8 +126,11 @@ export const logInUser = async (email: string, password: string) => {
         }
         return { success: true, data: userRecord };
     } catch (error: any) {
-        if (error.code === '23505') {
-            return { success: false, message: 'User with this email already exists.' };
+        if (error.code === "23505") {
+            return {
+                success: false,
+                message: "User with this email already exists.",
+            };
         }
         return errorHandler(error);
     }

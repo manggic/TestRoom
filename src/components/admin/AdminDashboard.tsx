@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 // import { supabaseClient } from "@/supabase/config";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
     AlertDialog,
@@ -14,15 +17,34 @@ import {
     AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+
 import type { Test } from "@/types/test";
 
 import type { TeacherUser, StudentUser } from "@/types/adminDashboard";
-import { Loader2, Trash2, User2 } from "lucide-react";
+import { Loader2, Trash2, User2, Plus, EyeOff, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TestCard } from "../teacher/TestCard";
 import { getTests } from "@/services/testService";
 import { getUsersForAdmin } from "@/services/userService";
 import { useNavigate } from "react-router";
+import { validateSignUpForm } from "@/lib/utils";
+import { signupUser } from "@/services/authService";
+import { toast } from "sonner";
+
+type UserForm = {
+    name: string;
+    email: string;
+    password: string;
+    role: "admin" | "teacher" | "student";
+};
 
 export type User = StudentUser | TeacherUser;
 export default function AdminDashboard() {
@@ -32,6 +54,21 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [activeTab, setActiveTab] = useState("students");
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
+    const [userForm, setUserForm] = useState<UserForm>({
+        name: "",
+        email: "",
+        password: "",
+        role: "student",
+    });
+    const [errors, setErrors] = useState({
+        name: "",
+        email: "",
+        password: "",
+    });
+
     const navigate = useNavigate();
 
     const fetchUsers = async () => {
@@ -85,6 +122,32 @@ export default function AdminDashboard() {
         } else {
             console.error("Delete error:", error);
         }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!validateSignUpForm(userForm, setErrors, { role: true })) return;
+
+        const response = await signupUser(userForm.email, userForm.password, {
+            name: userForm.name,
+            role: userForm.role,
+            actionBy: "admin",
+        });
+
+        if (response.success) {
+            toast(`${response.message}`);
+
+            setIsDialogOpen(false);
+            setUserForm({
+                name: "",
+                email: "",
+                password: "",
+                role: "student",
+            });
+        } else {
+            toast(`${response.message}`);
+        }
+        console.log({ userForm });
     };
 
     const formatDateTime = (iso: string) =>
@@ -258,10 +321,180 @@ export default function AdminDashboard() {
     );
 
     return (
-        <div className="max-w-6xl mx-auto px-4 py-10">
-            <h1 className="text-2xl md:text-3xl font-bold mb-8 text-center">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-center my-4">
                 🛠️ Admin Dashboard
             </h1>
+            <div className="flex justify-end sm:justify-end">
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger>
+                        <Button className="gap-2 sm:w-auto mb-4 sm:mb-0">
+                            <Plus size={18} /> Create User
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Create New User</DialogTitle>
+                            <DialogDescription>
+                                Enter the user details below.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleSubmit}>
+                            <div className="grid gap-4 py-4">
+                                <div className=" items-center gap-4">
+                                    <div className="grid grid-cols-4 ">
+                                        <Label
+                                            htmlFor="name"
+                                            className="text-right"
+                                        >
+                                            Name
+                                        </Label>
+                                        <Input
+                                            id="name"
+                                            placeholder="Full Name"
+                                            className="col-span-3"
+                                            value={userForm.name}
+                                            onChange={(e) =>
+                                                setUserForm((prev) => ({
+                                                    ...prev,
+                                                    name: e.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </div>
+
+                                    {errors.name && (
+                                        <p className="text-red-500 text-xs mt-1">
+                                            {errors.name}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Email */}
+                                <div className="items-center gap-4">
+                                    <div className="grid grid-cols-4">
+                                        <Label
+                                            htmlFor="email"
+                                            className="text-right"
+                                        >
+                                            Email
+                                        </Label>
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            placeholder="example@email.com"
+                                            className="col-span-3"
+                                            value={userForm.email}
+                                            onChange={(e) =>
+                                                setUserForm((prev) => ({
+                                                    ...prev,
+                                                    email: e.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </div>
+                                    {errors.email && (
+                                        <p className="text-red-500 text-xs mt-1">
+                                            {errors.email}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Password */}
+                                <div className="items-center gap-4">
+                                    <div className="relative grid grid-cols-4">
+                                        <Label
+                                            htmlFor="password"
+                                            className="text-right"
+                                        >
+                                            Password
+                                        </Label>
+                                        <Input
+                                            id="password"
+                                            type={
+                                                showPassword
+                                                    ? "text"
+                                                    : "password"
+                                            }
+                                            placeholder="••••••••"
+                                            className="col-span-3"
+                                            value={userForm.password}
+                                            onChange={(e) =>
+                                                setUserForm((prev) => ({
+                                                    ...prev,
+                                                    password: e.target.value,
+                                                }))
+                                            }
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setShowPassword((prev) => !prev)
+                                            }
+                                            className="absolute right-3 top-2.5 text-muted-foreground"
+                                            aria-label="Toggle Password"
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff size={18} />
+                                            ) : (
+                                                <Eye size={18} />
+                                            )}
+                                        </button>
+                                    </div>
+                                    {errors.password && (
+                                        <p className="text-red-500 text-xs mt-1">
+                                            {errors.password}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Role */}
+                                <div className="items-center gap-4">
+                                    <div className="grid grid-cols-4">
+                                        <Label
+                                            htmlFor="role"
+                                            className="text-right"
+                                        >
+                                            Role
+                                        </Label>
+                                        <select
+                                            id="role"
+                                            className="col-span-3 bg-background border border-input rounded-md px-3 py-2 text-sm text-foreground"
+                                            value={userForm.role}
+                                            onChange={(e) =>
+                                                setUserForm((prev) => ({
+                                                    ...prev,
+                                                    role: e.target.value as
+                                                        | "admin"
+                                                        | "student"
+                                                        | "teacher",
+                                                }))
+                                            }
+                                        >
+                                            <option value="admin">Admin</option>
+                                            <option value="teacher">
+                                                Teacher
+                                            </option>
+                                            <option value="student">
+                                                Student
+                                            </option>
+                                        </select>
+                                    </div>
+                                    {errors.role && (
+                                        <p className="text-red-500 text-xs mt-1">
+                                            {errors.role}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-2">
+                                <Button type="submit">Submit</Button>
+                            </div>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            </div>
 
             {loading ? (
                 <div className="flex justify-center py-20">
