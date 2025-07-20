@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, ArrowLeft, Trophy, Clock, CheckCircle, XCircle } from "lucide-react";
 import jsPDF from "jspdf";
 import { getTestAttemptById } from "@/services/testAttemptService";
+import { formatDate } from "@/lib/utils";
 
 interface Question {
     id: string;
@@ -154,15 +155,7 @@ export default function TestResult() {
         return "text-red-600";
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    };
+    
 
     if (loading) {
         return (

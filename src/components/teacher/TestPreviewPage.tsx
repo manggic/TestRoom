@@ -6,9 +6,9 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/context/useAuth";
 import type { Test, Question, OptionKey } from "@/types/test";
 
-import { ArrowLeft, FileText, Timer, User, Calendar } from "lucide-react";
+import { ArrowLeft, FileText, Timer, User, Calendar, CalendarFold } from "lucide-react";
 import { getTestById } from "@/services/testService";
-import { errorHandler } from "@/lib/utils";
+import { errorHandler, formatDate } from "@/lib/utils";
 
 export default function TestPreviewPage() {
     const navigate = useNavigate();
@@ -19,7 +19,6 @@ export default function TestPreviewPage() {
 
     const [loading, setLoading] = useState(!state?.test);
 
-    console.log({ state });
 
     useEffect(() => {
         async function testData() {
@@ -80,6 +79,10 @@ export default function TestPreviewPage() {
                         <div className="flex items-center gap-2">
                             <User size={20} /> Created By:{" "}
                             {test?.createdByName || "Unknown"}
+                        </div>
+                         <div className="flex items-center gap-2">
+                            <CalendarFold size={20} /> Created At:{" "}
+                            {formatDate(test?.created_at)  || "Unknown"}
                         </div>
                         {test.updatedByName &&
                             test.updatedByName !== test?.createdByName && (

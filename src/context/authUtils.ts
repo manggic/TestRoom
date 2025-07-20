@@ -12,6 +12,8 @@ export const subscribeToAuthChanges = (
     const {
         data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((event, session) => {
+        console.log(" onAuthStateChange called ", event, session);
+
         const currentUserId = session?.user?.id ?? null;
 
         // Only trigger callback if the user ID actually changed
