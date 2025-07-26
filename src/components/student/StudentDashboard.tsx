@@ -72,7 +72,6 @@ export default function StudentDashboard() {
             // Load attempted tests
             const attemptedResult = await getTestAttemptsByStudentId(studentId);
             if (attemptedResult.success) {
-                console.log("Attempted tests data:", attemptedResult.data);
                 setAttemptedTests(attemptedResult.data as TestAttempt[]);
             }
         } catch (error) {

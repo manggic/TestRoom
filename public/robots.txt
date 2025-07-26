@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /login
+Allow: /register
+Disallow: /teacher/
+Disallow: /student/
+Disallow: /test/
+Disallow: /dashboard
+Disallow: /home
+Sitemap: https://test-room-omega.vercel.app/sitemap.xml

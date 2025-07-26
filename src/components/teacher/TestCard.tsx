@@ -83,26 +83,31 @@ export function TestCard({ test }: { test: Test }) {
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row justify-between gap-3 mt-6">
                 <div className="flex flex-col sm:flex-row gap-2">
-                    <Button
-                        size="sm"
-                        className="cursor-pointer w-full sm:w-auto"
-                        onClick={() => {
-                            if (attempts === 0) {
-                                navigate(
-                                    `/teacher/test/edit/${
-                                        test.id
-                                    }?zzzfff=${crypto.randomUUID()}`,
-                                    {
-                                        state: { test },
-                                    }
-                                );
-                            } else {
-                                toast("Not allowed to edit attempted test");
-                            }
-                        }}
-                    >
-                        Edit
-                    </Button>
+                    {!attempts ? (
+                        <Button
+                            size="sm"
+                            className="cursor-pointer w-full sm:w-auto"
+                            onClick={() => {
+                                if (attempts === 0) {
+                                    navigate(
+                                        `/teacher/test/edit/${
+                                            test.id
+                                        }?zzzfff=${crypto.randomUUID()}`,
+                                        {
+                                            state: { test },
+                                        }
+                                    );
+                                } else {
+                                    toast("Not allowed to edit attempted test");
+                                }
+                            }}
+                        >
+                            Edit
+                        </Button>
+                    ) : (
+                        ""
+                    )}
+
                     <Button
                         size="sm"
                         variant="outline"

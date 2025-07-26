@@ -114,75 +114,12 @@
 }
 ```
 
-test these feature
-
--   create Test
--   Edit Test
 
 Issue
-
--   fix ts error
--   dont allow to edit attempted test
+-  fix ts error
 
 feature
 
--   toast position fix
--   while editing we can add question using json format
+-  toast position fix
+-  while editing we can add question using json format
 
--   All api lists
-
-// create a test
-
--   createTest ( done)
-
-// update test
-
--   updateTest ( done )
-
-// get all tests from db
-
--   getTests ( done )
-
-// get a specific test based on id
-
--   getTestById ( done )
-
-// get all tests created by teacher id
-
--   getTestsByTeacherId ( done )
-
-// get all users
-
--   getUsers ( done )
-
-// get a specific user
-
--   getUserById ( done )
-
-// get all test attempts
-
--   getTestAttempts ( done )
-
-//
-
--   getTestAttemptById ( done )
-
-//
-
--   getTestAttemptsByStudentId ( done )
-
-//
-
--   getTestAttemptsByTestId ( done )
-
-//
-
--   submitTestAttempt ( done )
-
-//
-
--   getTestAttemptsByTestIdAndStudentId ( done )
-
-//
-
--   getUnattemptedTestsOfStudentId

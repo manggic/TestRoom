@@ -2,6 +2,7 @@ import { useAuth } from "@/context/useAuth";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router";
 
+
 function Navbar() {
     const { currentUser, signOut } = useAuth();
     const navigate = useNavigate();
@@ -35,12 +36,12 @@ function Navbar() {
     };
 
     return (
-        <nav className="flex justify-between items-center px-6 py-4 bg-white/60 dark:bg-zinc-900/60 shadow-md backdrop-blur-md">
+        <nav className="flex justify-between items-center px-4 py-4 bg-white/60 dark:bg-zinc-900/60 shadow-md backdrop-blur-md">
             <Link
                 to={getDashboardLink()}
                 className="text-xl font-bold text-gray-900 dark:text-white"
             >
-                TestRoom
+                <img src={'/images/logo.png'} width={'133px'} height={'40px'}></img>
             </Link>
 
             <div className="flex items-center gap-4">

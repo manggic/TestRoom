@@ -423,9 +423,9 @@ export default function TakeTest() {
                     <h2 className="text-xl font-semibold">
                         {testData.test_name}
                     </h2>
-                    <p className="text-sm text-muted-foreground">
+                    {/* <p className="text-sm text-muted-foreground">
                         {testData.description}
-                    </p>
+                    </p> */}
                 </div>
                 <div className="flex gap-3 items-center">
                     <TimerReset size={20} />
@@ -559,7 +559,7 @@ export default function TakeTest() {
             </form>
 
             <Sheet open={showResult} onOpenChange={setShowResult}>
-                <SheetContent className="w-[400px]">
+                <SheetContent className="w-[90%] sm:w-[400px] ">
                     <SheetHeader className="text-center">
                         <SheetTitle className="text-xl font-semibold">
                             Result Summary

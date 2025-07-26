@@ -1,0 +1,82 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Mortarboard cap gradient -->
+    <linearGradient id="capGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f2937;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#374151;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#111827;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Cap brim gradient -->
+    <radialGradient id="brimGradient" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#4b5563;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#374151;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1f2937;stop-opacity:1" />
+    </radialGradient>
+    
+    <!-- Tassel gradient -->
+    <linearGradient id="tasselGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fcd34d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Shadow gradient -->
+    <radialGradient id="shadowGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#000000;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="32" height="32" fill="url(#bgGradient)" rx="8"/>
+  
+  <!-- Mortarboard Icon -->
+  <!-- Base shadow -->
+  <ellipse cx="16" cy="18" rx="12" ry="3" fill="url(#shadowGradient)"/>
+  
+  <!-- Cap brim (board) - main ellipse with perspective -->
+  <ellipse cx="16" cy="15" rx="11" ry="3.5" fill="url(#brimGradient)"/>
+  <ellipse cx="16" cy="14.5" rx="11" ry="3.5" fill="url(#brimGradient)"/>
+  
+  <!-- Cap brim highlight -->
+  <ellipse cx="16" cy="14" rx="11" ry="3.5" fill="#6b7280" opacity="0.3"/>
+  
+  <!-- Mortarboard top (square cap) -->
+  <rect x="8" y="8" width="16" height="4" fill="url(#capGradient)" rx="0.5"/>
+  
+  <!-- Cap top highlight -->
+  <rect x="8" y="8" width="16" height="1.2" fill="#6b7280" opacity="0.8" rx="0.5"/>
+  
+  <!-- Cap side depth -->
+  <rect x="8" y="11.5" width="16" height="1" fill="#111827"/>
+  
+  <!-- Tassel cord -->
+  <line x1="24" y1="10" x2="27" y2="16" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Tassel main body -->
+  <ellipse cx="27" cy="17" rx="2" ry="2.5" fill="url(#tasselGradient)"/>
+  
+  <!-- Tassel strings -->
+  <rect x="26" y="18.5" width="0.4" height="4" fill="#f59e0b" rx="0.2"/>
+  <rect x="26.6" y="18.5" width="0.4" height="3.5" fill="#f59e0b" rx="0.2"/>
+  <rect x="27.2" y="18.5" width="0.4" height="4.2" fill="#f59e0b" rx="0.2"/>
+  <rect x="27.8" y="18.5" width="0.4" height="3.8" fill="#f59e0b" rx="0.2"/>
+  
+  <!-- Additional cap details -->
+  <!-- Button on top -->
+  <circle cx="16" cy="10" r="0.8" fill="#374151"/>
+  <circle cx="16" cy="10" r="0.5" fill="#4b5563"/>
+  
+  <!-- Academic decorative elements -->
+  <circle cx="5" cy="27" r="1.2" fill="#3730a3" opacity="0.7"/>
+  <circle cx="27" cy="5" r="1" fill="#3730a3" opacity="0.7"/>
+  
+  <!-- Success/achievement symbols -->
+  <path d="M 4 24 L 5.5 25.5 L 8 23" stroke="#059669" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
