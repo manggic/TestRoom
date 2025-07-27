@@ -1,24 +1,22 @@
 // src/pages/TestPreviewPage.tsx
-import { useNavigate, useLocation, useParams } from "react-router";
+import {useLocation, useParams } from "react-router";
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/context/useAuth";
 import type { Test, Question, OptionKey } from "@/types/test";
 
-import { ArrowLeft, FileText, Timer, User, Calendar, CalendarFold } from "lucide-react";
+import { FileText, Timer, User, Calendar, CalendarFold } from "lucide-react";
 import { getTestById } from "@/services/testService";
 import { errorHandler, formatDate } from "@/lib/utils";
+import { BackButton } from "../BackButton";
 
 export default function TestPreviewPage() {
-    const navigate = useNavigate();
     const { state } = useLocation();
     const { testId } = useParams();
     const { currentUser } = useAuth();
     const [test, setTest] = useState<Test>(state?.test || null);
 
     const [loading, setLoading] = useState(!state?.test);
-
 
     useEffect(() => {
         async function testData() {
@@ -48,18 +46,9 @@ export default function TestPreviewPage() {
         );
 
     return (
-        <div className="min-h-screen max-h-screen overflow-y-auto p-3 sm:p-6  bg-slate-100 dark:bg-zinc-900 text-gray-900 dark:text-white">
+        <div className="min-h-screen max-h-screen px-4 py-10 overflow-y-auto   bg-slate-100 dark:bg-zinc-900 text-gray-900 dark:text-white">
             <div className="max-w-5xl mx-auto space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <Button
-                        variant="ghost"
-                        className="flex items-center gap-2"
-                        onClick={() => navigate(-1)}
-                    >
-                        <ArrowLeft size={20} /> Back
-                    </Button>
-                </div>
+                <BackButton />
 
                 {/* Card Wrapper */}
                 <Card className="p-6 space-y-6 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700">
@@ -80,9 +69,9 @@ export default function TestPreviewPage() {
                             <User size={20} /> Created By:{" "}
                             {test?.createdByName || "Unknown"}
                         </div>
-                         <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                             <CalendarFold size={20} /> Created At:{" "}
-                            {formatDate(test?.created_at)  || "Unknown"}
+                            {formatDate(test?.created_at) || "Unknown"}
                         </div>
                         {test.updatedByName &&
                             test.updatedByName !== test?.createdByName && (

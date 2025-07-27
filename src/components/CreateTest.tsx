@@ -79,9 +79,7 @@ export default function CreateTest() {
         <div className="min-h-screen px-4 py-10 bg-slate-100 dark:bg-zinc-900 text-gray-900 dark:text-white">
             <div className="max-w-4xl mx-auto space-y-6">
                 {/* Back Button + Header */}
-                <div className="flex items-center justify-between">
-                    <BackButton />
-                </div>
+                <BackButton />
 
                 <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-md p-6 space-y-6 border border-gray-200 dark:border-zinc-700">
                     {/* Title */}

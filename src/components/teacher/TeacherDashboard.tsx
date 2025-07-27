@@ -72,8 +72,6 @@ export default function TeacherDashboard() {
         }
     }, [tab, hasLoadedAllTests]);
 
-    if (isTestDataloading) return <div>Loading...</div>;
-
     if (loading || user?.role !== "teacher") {
         return null;
     }
