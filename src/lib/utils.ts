@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { roles } from "./constants";
+import validator from "validator";
 
 type ErrorHandler<T = unknown> = {
     success: boolean;
@@ -108,6 +109,93 @@ export const validateSignUpForm = (
 
     setErrors(newErrors);
     return isValid;
+};
+
+export const validateOrgRegistration = ({ formData }) => {
+    const {
+        org_name,
+        org_address,
+        pincode,
+        state,
+        city,
+        contact_number,
+        owner_name,
+        email,
+    } = formData;
+
+    // Initialize response object
+    const response = {
+        isValid: true,
+        message: "",
+    };
+
+    // Validate each field
+    if (
+        !org_name ||
+        typeof org_name !== "string" ||
+        org_name.trim().length === 0
+    ) {
+        response.isValid = false;
+        response.message = "Organization name is required";
+        return response;
+    }
+
+    if (
+        !org_address ||
+        typeof org_address !== "string" ||
+        org_address.trim().length === 0
+    ) {
+        response.isValid = false;
+        response.message = "Organization address is required";
+        return response;
+    }
+
+    if (
+        !pincode ||
+        typeof pincode !== "number" ||
+        !validator.isPostalCode(String(pincode), "IN")
+    ) {
+        response.isValid = false;
+        response.message = "Invalid pincode";
+        return response;
+    }
+
+    if (!state || typeof state !== "string" || state.trim().length === 0) {
+        response.isValid = false;
+        response.message = "State is required";
+        return response;
+    }
+
+    if (!city || typeof city !== "string" || city.trim().length === 0) {
+        response.isValid = false;
+        response.message = "City is required";
+        return response;
+    }
+
+    if (!contact_number || !validator.isMobilePhone(contact_number, "en-IN")) {
+        response.isValid = false;
+        response.message = "Invalid phone number";
+        return response;
+    }
+
+    if (
+        !owner_name ||
+        typeof owner_name !== "string" ||
+        owner_name.trim().length === 0
+    ) {
+        response.isValid = false;
+        response.message = "Owner name is required";
+        return response;
+    }
+
+    if (!email || !validator.isEmail(email)) {
+        response.isValid = false;
+        response.message = "Invalid email address";
+        return response;
+    }
+
+    // All validations passed
+    return response;
 };
 
 // TODO: Replace all Firestore logic with Supabase equivalents if needed.

@@ -4,7 +4,6 @@ import SignUpForm from "@/components/SignUpForm";
 import LoginForm from "@/components/LoginForm";
 import AuthLayout from "@/components/layouts/AuthLayout";
 import NotFound from "@/components/NotFound";
-import Home from "@/components/Home";
 import CreateTest from "./components/CreateTest";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import TestPreviewPage from "./components/teacher/TestPreviewPage";
@@ -13,7 +12,12 @@ import TakeTest from "./components/student/TakeTest";
 import TestResult from "./components/student/TestResult";
 import AttemptListing from "./components/teacher/AttemptListing";
 import { useAuth } from "./context/useAuth";
-import Testing from "./components/Testing";
+import LandingPage from "./components/LandingPage";
+import Contact from "./components/Contact";
+import TeacherDashboard from "./components/teacher/TeacherDashboard";
+import StudentDashboard from "./components/student/StudentDashboard";
+import AdminDashboard from "./components/admin/AdminDashboard";
+import RegisterOrg from "./components/RegisterOrg";
 
 function App() {
     const { loading } = useAuth();
@@ -29,12 +33,27 @@ function App() {
                 <Route path="login" element={<LoginForm />} />
                 <Route path="register" element={<SignUpForm />} />
 
-                <Route path="testing" element={<Testing />} />
+                <Route path="/" element={<LandingPage />} />
+                <Route element={<AuthLayout />}>
+                    <Route path="contact-us" element={<Contact />} />
+                </Route>
+
+                <Route path="register-org" element={<RegisterOrg />} />
+
+                {/* <Route path="testing" element={<Testing />} /> */}
                 {/* Protected Routes */}
                 <Route element={<ProtectedRoute />}>
                     <Route element={<AuthLayout />}>
                         {/* 🔁 Dashboard via role in Home */}
-                        <Route index element={<Home />} />
+                        {/* <Route index element={<Home />} /> */}
+
+                        <Route
+                            element={
+                                <ProtectedRoute allowedRoles={["admin"]} />
+                            }
+                        >
+                            <Route path="admin" element={<AdminDashboard />} />
+                        </Route>
 
                         {/* ✅ Teacher-only routes */}
                         <Route
@@ -45,6 +64,7 @@ function App() {
                             }
                         >
                             <Route path="teacher">
+                                <Route index element={<TeacherDashboard />} />
                                 <Route
                                     path="create-test"
                                     element={<CreateTest />}
@@ -73,6 +93,7 @@ function App() {
                             }
                         >
                             <Route path="student">
+                                <Route index element={<StudentDashboard />} />
                                 <Route
                                     path="test/:testId"
                                     element={<TakeTest />}

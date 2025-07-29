@@ -135,7 +135,7 @@ export default function AdminDashboard() {
         });
 
         if (response.success) {
-            toast(`${response.message}`);
+            toast.success(`${response.message}`);
 
             setIsDialogOpen(false);
             setUserForm({
@@ -145,7 +145,7 @@ export default function AdminDashboard() {
                 role: "student",
             });
         } else {
-            toast(`${response.message}`);
+            toast.error(`${response.message}`);
         }
         console.log({ userForm });
     };

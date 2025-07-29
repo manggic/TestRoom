@@ -9,7 +9,7 @@ createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <AuthProvider>
             <App />
-            <Toaster />
+            <Toaster position="top-center" />
         </AuthProvider>
     </StrictMode>
 );

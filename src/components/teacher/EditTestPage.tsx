@@ -176,7 +176,7 @@ export default function EditTestPage() {
                 toast.success("Test updated successfully");
                 navigate(`/teacher/test/preview/${test.id}`);
             } else {
-                toast("Update Test Failed");
+                toast.error("Update Test Failed");
             }
         } catch (err) {
             console.error("❌ Error during test update:", err);

@@ -98,7 +98,7 @@ export function TestCard({ test }: { test: Test }) {
                                         }
                                     );
                                 } else {
-                                    toast("Not allowed to edit attempted test");
+                                    toast.error("Not allowed to edit attempted test");
                                 }
                             }}
                         >

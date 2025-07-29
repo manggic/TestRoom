@@ -22,11 +22,11 @@ export default function TeacherDashboard() {
     const [tab, setTab] = useState("my");
     const [hasLoadedAllTests, setHasLoadedAllTests] = useState(false);
 
-    useEffect(() => {
-        if (!loading && user && user.role !== "teacher") {
-            navigate("/unauthorized");
-        }
-    }, [currentUser, loading, user, navigate]);
+    // useEffect(() => {
+    //     if (!loading && user && user.role !== "teacher") {
+    //         navigate("/unauthorized");
+    //     }
+    // }, [currentUser, loading, user, navigate]);
 
     useEffect(() => {
         async function loadMyTest() {
@@ -38,7 +38,7 @@ export default function TeacherDashboard() {
 
                         setMyTests(tests);
                     } else {
-                        toast(response?.message);
+                        toast.error(response?.message);
                         setMyTests([]);
                     }
                 } else {
@@ -72,9 +72,9 @@ export default function TeacherDashboard() {
         }
     }, [tab, hasLoadedAllTests]);
 
-    if (loading || user?.role !== "teacher") {
-        return null;
-    }
+    // if (loading || user?.role !== "teacher") {
+    //     return null;
+    // }
 
     return (
         <div className="min-h-screen px-4 py-6 bg-slate-100 dark:bg-zinc-900 text-gray-900 dark:text-white">

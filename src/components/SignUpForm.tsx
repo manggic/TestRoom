@@ -35,7 +35,6 @@ export default function SignUpForm() {
         setErrors({ ...errors, [e.target.name]: "" });
     };
 
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -50,7 +49,7 @@ export default function SignUpForm() {
             setCurrentUser({ user: res.data });
             navigate("/");
         } else {
-            toast('message' in res ? res.message : "Something went wrong");
+            toast.error("message" in res ? res.message : "Something went wrong");
         }
     };
 
@@ -76,7 +75,10 @@ export default function SignUpForm() {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {/* Name */}
                             <div className="space-y-1">
-                                <Label htmlFor="name" className="text-sm sm:text-base">
+                                <Label
+                                    htmlFor="name"
+                                    className="text-sm sm:text-base"
+                                >
                                     Name
                                 </Label>
                                 <div className="relative">
@@ -101,7 +103,10 @@ export default function SignUpForm() {
 
                             {/* Email */}
                             <div className="space-y-1">
-                                <Label htmlFor="email" className="text-sm sm:text-base">
+                                <Label
+                                    htmlFor="email"
+                                    className="text-sm sm:text-base"
+                                >
                                     Email
                                 </Label>
                                 <div className="relative">
@@ -127,7 +132,10 @@ export default function SignUpForm() {
 
                             {/* Password */}
                             <div className="space-y-1">
-                                <Label htmlFor="password" className="text-sm sm:text-base">
+                                <Label
+                                    htmlFor="password"
+                                    className="text-sm sm:text-base"
+                                >
                                     Password
                                 </Label>
                                 <div className="relative">
@@ -137,7 +145,9 @@ export default function SignUpForm() {
                                     <Input
                                         id="password"
                                         name="password"
-                                        type={showPassword ? "text" : "password"}
+                                        type={
+                                            showPassword ? "text" : "password"
+                                        }
                                         placeholder="••••••••"
                                         value={form.password}
                                         onChange={handleChange}
@@ -145,11 +155,17 @@ export default function SignUpForm() {
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => setShowPassword(prev => !prev)}
+                                        onClick={() =>
+                                            setShowPassword((prev) => !prev)
+                                        }
                                         className="absolute right-3 top-2.5 text-muted-foreground"
                                         aria-label="Toggle Password"
                                     >
-                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        {showPassword ? (
+                                            <EyeOff size={18} />
+                                        ) : (
+                                            <Eye size={18} />
+                                        )}
                                     </button>
                                 </div>
                                 {errors.password && (

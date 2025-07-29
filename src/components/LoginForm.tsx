@@ -26,18 +26,19 @@ export default function LoginForm() {
 
     useEffect(() => {
         if (currentUser?.user?.email && location.pathname !== "/") {
-            navigate("/", { replace: true });
+            navigate(`/${currentUser?.user?.role}`, { replace: true });
         }
     }, [currentUser, navigate, location.pathname]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const res = await logInUser(form.email, form.password);
+
         if (res.success) {
-            toast("Login successful");
-            navigate("/", { replace: true });
+            toast.success("Login successful");
+            navigate(`/${res?.data?.role}`, { replace: true });
         } else {
-            toast("Login failed: Invalid credentials");
+            toast.error("Login failed: Invalid credentials");
         }
     };
 
@@ -87,7 +88,9 @@ export default function LoginForm() {
                                     <Input
                                         id="password"
                                         name="password"
-                                        type={showPassword ? "text" : "password"}
+                                        type={
+                                            showPassword ? "text" : "password"
+                                        }
                                         placeholder="••••••••"
                                         value={form.password}
                                         onChange={handleChange}
@@ -96,11 +99,17 @@ export default function LoginForm() {
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => setShowPassword(prev => !prev)}
+                                        onClick={() =>
+                                            setShowPassword((prev) => !prev)
+                                        }
                                         className="absolute right-3 top-2.5 text-muted-foreground"
                                         aria-label="Toggle Password"
                                     >
-                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        {showPassword ? (
+                                            <EyeOff size={18} />
+                                        ) : (
+                                            <Eye size={18} />
+                                        )}
                                     </button>
                                 </div>
                             </div>

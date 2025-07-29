@@ -68,10 +68,10 @@ export default function CreateTest() {
                 toast.success(`✅ Test saved as ${status}`);
                 navigate(`/`);
             } else {
-                toast("Create Test Failed");
+                toast.error("Create Test Failed");
             }
         } catch (error) {
-            toast(errorHandler(error).message);
+            toast.error(errorHandler(error).message);
         }
     };
 

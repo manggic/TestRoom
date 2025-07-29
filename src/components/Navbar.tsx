@@ -2,8 +2,7 @@ import { useAuth } from "@/context/useAuth";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router";
 
-
-function Navbar() {
+function Navbar({ withoutAuth = false }) {
     const { currentUser, signOut } = useAuth();
     const navigate = useNavigate();
 
@@ -25,53 +24,59 @@ function Navbar() {
     const getDashboardLink = () => {
         switch (role) {
             case "teacher":
-                return "/";
+                return "/teacher";
             case "student":
-                return "/";
+                return "/student";
             case "admin":
-                return "/"; // Root dashboard
+                return "/admin"; // Root dashboard
             default:
                 return "/";
         }
     };
 
     return (
-        <nav className="flex justify-between items-center px-4 py-4 bg-white/60 dark:bg-zinc-900/60 shadow-md backdrop-blur-md">
+        <nav className="sticky top-0 z-50 w-full backdrop-blur-md shadow-md border-b border-muted bg-white/70 dark:bg-zinc-900/70 supports-[backdrop-filter]:bg-white/40 dark:supports-[backdrop-filter]:bg-zinc-900/40 px-4 py-4 flex justify-between items-center transition-colors">
             <Link
                 to={getDashboardLink()}
                 className="text-xl font-bold text-gray-900 dark:text-white"
             >
-                <img src={'/images/logo.png'} width={'133px'} height={'40px'}></img>
+                <img
+                    src={"/images/logo.png"}
+                    width={"133px"}
+                    height={"40px"}
+                    alt="Test Room Logo"
+                />
             </Link>
 
-            <div className="flex items-center gap-4">
-                {currentUser ? (
-                    <>
-                        <span className="text-sm text-muted-foreground">
-                            Hi, {currentUser.user?.name}
-                        </span>
-
-                        {/* Role-specific navigation */}
-                        {/* Removed teacher dashboard and create test for teacher role */}
-                        <Button
-                            variant="outline"
-                            className="cursor-pointer"
-                            onClick={handleLogout}
-                        >
-                            Logout
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        <Link to="/login">
-                            <Button variant="ghost">Login</Button>
-                        </Link>
-                        <Link to="/register">
-                            <Button>Register</Button>
-                        </Link>
-                    </>
-                )}
-            </div>
+            {!withoutAuth ? (
+                <div className="flex items-center gap-4">
+                    {currentUser ? (
+                        <>
+                            <span className="text-sm text-muted-foreground">
+                                Hi, {currentUser.user?.name}
+                            </span>
+                            <Button
+                                variant="outline"
+                                className="cursor-pointer"
+                                onClick={handleLogout}
+                            >
+                                Logout
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/login">
+                                <Button variant="ghost" className="cursor-pointer">Login</Button>
+                            </Link>
+                            <Link to="/register">
+                                <Button className="cursor-pointer">Register</Button>
+                            </Link>
+                        </>
+                    )}
+                </div>
+            ) : (
+                ""
+            )}
         </nav>
     );
 }
