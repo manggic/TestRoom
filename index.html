@@ -29,7 +29,6 @@
         <meta property="og:url" content="https://test-room-omega.vercel.app/" />
         <meta property="og:image" content="/images/og-image.png" />
 
-
         <meta name="twitter:card" content="summary_large_image" />
         <meta
             name="twitter:title"
@@ -39,10 +38,17 @@
             name="twitter:description"
             content="Modern test-taking app for students and teachers."
         />
-        <meta
-            name="twitter:image"
-            content="/images/og-image.png"
-        />
+        <meta name="twitter:image" content="/images/og-image.png" />
+        <script type="application/ld+json">
+            {
+                "@context": "http://schema.org",
+                "@type": "SoftwareApplication",
+                "name": "Test Room",
+                "url": "https://test-room-omega.vercel.app/",
+                "applicationCategory": "Conduct online tests",
+                "downloadUrl": "https://test-room-omega.vercel.app/login"
+            }
+        </script>
     </head>
     <body>
         <div id="root"></div>
