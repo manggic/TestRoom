@@ -4,9 +4,8 @@ import { useAuth } from "@/context/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Trophy, Clock, CheckCircle, XCircle } from "lucide-react";
-import jsPDF from "jspdf";
 import { getTestAttemptById } from "@/services/testAttemptService";
-import { formatDate } from "@/lib/utils";
+import { downloadPDF, formatDate } from "@/lib/utils";
 import { BackButton } from "../BackButton";
 
 interface Question {
@@ -77,91 +76,15 @@ export default function TestResult() {
         }
     };
 
-    const downloadPDF = () => {
-        if (!attempt) return;
-
-        const doc = new jsPDF({ unit: "pt", format: "a4" });
-        const pageHeight = doc.internal.pageSize.height;
-        const margin = 40;
-        let y = 60;
-        let total = 0,
-            obtained = 0;
-
-        doc.setFontSize(18).text(
-            `🧪 ${attempt.tests.test_name} Result`,
-            margin,
-            y
-        );
-        y += 30;
-        doc.setFontSize(12);
-
-        // Calculate correct answers
-        const correctAnswers = attempt.tests.questions.filter(
-            (q, i) => attempt.answers[`q${i}`] === q.correct_answer
-        ).length;
-
-        // Add summary
-        doc.text(
-            `Score: ${attempt.score_achieved}/${attempt.tests.total_marks}`,
-            margin,
-            y
-        );
-        y += 20;
-        doc.text(
-            `Correct Answers: ${correctAnswers}/${attempt.total_questions}`,
-            margin,
-            y
-        );
-        y += 20;
-        const mins = Math.floor((attempt.time_taken_seconds || 0) / 60);
-        const secs = (attempt.time_taken_seconds || 0) % 60;
-        doc.text(`Time Taken: ${mins}m ${secs}s`, margin, y);
-        y += 30;
-
-        attempt.tests.questions.forEach((q, i) => {
-            const selected = attempt.answers[`q${i}`];
-            const correct = q.correct_answer;
-            const marks = selected === correct ? q.marks : 0;
-            total += q.marks;
-            obtained += marks;
-
-            doc.text(`${i + 1}. ${q.question_text}`, margin, y);
-            y += 18;
-
-            Object.entries(q.options).forEach(([key, value]) => {
-                let label = `${key.toUpperCase()}. ${value}`;
-                if (key === correct) label += " ✅";
-                if (key === selected && key !== correct) label += " ❌";
-                doc.text(label, margin + 20, y);
-                y += 16;
-            });
-
-            doc.text(
-                `Your Answer: ${
-                    q.options[selected as keyof typeof q.options] ||
-                    "Not Answered"
-                }`.trim(),
-                margin + 20,
-                y
-            );
-            y += 16;
-            doc.text(
-                `Correct Answer: ${
-                    q.options[correct as keyof typeof q.options]
-                }`.trim(),
-                margin + 20,
-                y
-            );
-            y += 24;
-
-            if (y > pageHeight - 100) {
-                doc.addPage();
-                y = 60;
-            }
+    const handleDownload = () => {
+        downloadPDF({
+            data: attempt?.tests,
+            answers: attempt?.answers,
+            currentUser,
+            timeLeft:
+                attempt?.tests?.duration_minutes * 60 -
+                attempt?.time_taken_seconds,
         });
-
-        doc.text(`Total Marks: ${obtained}/${total}`, margin, y);
-        doc.save(`${attempt.tests.test_name}-Result.pdf`);
     };
 
     const getScorePercentage = (score: number, totalMarks: number) => {
@@ -196,7 +119,11 @@ export default function TestResult() {
                         Error Loading Result
                     </h3>
                     <p className="text-muted-foreground mb-4">{error}</p>
-                    <Button onClick={() => navigate("/")}>Back</Button>
+                    <Button
+                        onClick={() => navigate(`/${currentUser?.user?.role}`)}
+                    >
+                        Back To Dashboard
+                    </Button>
                 </div>
             </div>
         );
@@ -427,7 +354,7 @@ export default function TestResult() {
                 {/* Download Button */}
                 <div className="flex justify-center mt-8">
                     <Button
-                        onClick={downloadPDF}
+                        onClick={handleDownload}
                         className="shadow-lg cursor-pointer"
                     >
                         <Download className="mr-2 h-4 w-4" /> Download Result

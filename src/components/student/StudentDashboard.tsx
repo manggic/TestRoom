@@ -129,7 +129,7 @@ export default function StudentDashboard() {
                 <TabsList className="w-full flex sm:grid sm:grid-cols-2 gap-2 sm:gap-0 overflow-x-auto sm:overflow-visible no-scrollbar p-1 bg-muted rounded-md">
                     <TabsTrigger
                         value="unattempted"
-                        className="flex-shrink-0 flex items-center gap-2 px-4 py-2 text-sm rounded-md whitespace-nowrap
+                        className="cursor-pointer flex-shrink-0 flex items-center gap-2 px-4 py-2 text-sm rounded-md whitespace-nowrap
                data-[state=active]:bg-primary data-[state=active]:text-white transition"
                     >
                         <FileText className="h-4 w-4" />
@@ -137,7 +137,7 @@ export default function StudentDashboard() {
                     </TabsTrigger>
                     <TabsTrigger
                         value="attempted"
-                        className="flex-shrink-0 flex items-center gap-2 px-4 py-2 text-sm rounded-md whitespace-nowrap
+                        className="cursor-pointer flex-shrink-0 flex items-center gap-2 px-4 py-2 text-sm rounded-md whitespace-nowrap
                data-[state=active]:bg-primary data-[state=active]:text-white transition"
                     >
                         <Trophy className="h-4 w-4" />

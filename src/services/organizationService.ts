@@ -29,3 +29,25 @@ export async function registerOrganization(formData) {
         return errorHandler(error);
     }
 }
+
+export const checkIfAlreadyRegistered = async ({ email }) => {
+    try {
+        const { data, error } = await supabaseClient
+            .from("organizations")
+            .select("email")
+            .eq("email", email)
+            .single();
+
+            console.log('response ',error || !data);
+            
+
+        if (error || !data) {
+            // Do not reveal if the email exists, for security reasons
+            return false
+        }
+        return true
+    } catch (error) {
+         console.log({error});
+        return false
+    }
+};

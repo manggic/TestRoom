@@ -49,7 +49,9 @@ export default function SignUpForm() {
             setCurrentUser({ user: res.data });
             navigate("/");
         } else {
-            toast.error("message" in res ? res.message : "Something went wrong");
+            toast.error(
+                "message" in res ? res.message : "Something went wrong"
+            );
         }
     };
 

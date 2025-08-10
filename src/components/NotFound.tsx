@@ -1,10 +1,13 @@
 // src/pages/NotFound.tsx
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/useAuth";
 import { motion } from "framer-motion";
 import { Ghost } from "lucide-react";
 import { Link } from "react-router";
 
 export default function NotFound() {
+
+  const {currentUser}=useAuth()
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 dark:from-zinc-900 dark:to-zinc-800 px-4">
       <motion.div
@@ -21,7 +24,7 @@ export default function NotFound() {
           The page you're looking for doesn't exist.
         </p>
 
-        <Link to="/">
+        <Link to={currentUser?.user?.role?`/${currentUser?.user?.role}`:"/"}>
           <Button>Go Home</Button>
         </Link>
       </motion.div>

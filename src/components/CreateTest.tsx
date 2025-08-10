@@ -66,7 +66,7 @@ export default function CreateTest() {
 
             if (response.success) {
                 toast.success(`✅ Test saved as ${status}`);
-                navigate(`/`);
+                navigate(`/teacher`);
             } else {
                 toast.error("Create Test Failed");
             }

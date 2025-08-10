@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/useAuth";
 import {
     GraduationCap,
     ShieldCheck,
@@ -10,6 +11,8 @@ import {
 import { Link } from "react-router";
 
 function LandingNavbar() {
+    const { currentUser } = useAuth();
+
     return (
         <header className="sticky top-0 z-50 w-full border-b shadow-md bg-white/90 dark:bg-zinc-900/80 backdrop-blur-xl transition-colors">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
@@ -27,6 +30,16 @@ function LandingNavbar() {
 
                 {/* Desktop Menu */}
                 <nav className="hidden gap-6 text-sm font-medium md:flex">
+                    {currentUser?.user?.role ? (
+                        <Link
+                            to={`/${currentUser?.user?.role}`}
+                            className="text-muted-foreground hover:text-foreground transition"
+                        >
+                            Dashboard
+                        </Link>
+                    ) : (
+                        ""
+                    )}
                     <a
                         href="#why-test-room"
                         className="text-muted-foreground hover:text-foreground transition"

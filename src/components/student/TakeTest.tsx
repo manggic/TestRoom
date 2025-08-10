@@ -14,9 +14,9 @@ import { Download, TimerReset, AlertCircle } from "lucide-react";
 
 import type { Question } from "@/types/test";
 
-import jsPDF from "jspdf";
 import { submitTestAttempt } from "@/services/testAttemptService";
 import { getTestById } from "@/services/testService";
+import { downloadPDF } from "@/lib/utils";
 
 interface TestData {
     id: string;
@@ -40,12 +40,8 @@ export default function TakeTest() {
     const [showResult, setShowResult] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
     const [timerStarted, setTimerStarted] = useState(false);
-    const [testSubmitted, setTestSubmitted] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [submitting, setSubmitting] = useState(false);
-    // Prevent duplicate loadTest calls
-    const [testLoaded, setTestLoaded] = useState(false);
     const [startTime, setStartTime] = useState("");
 
     // Mutex to prevent parallel loadTest/startTestAttempt
@@ -76,12 +72,9 @@ export default function TakeTest() {
         : 1;
 
     useEffect(() => {
-        if (testId && currentUser?.user?.id && !testLoaded) {
-            setTestLoaded(true);
+        if (testId && currentUser?.user?.id && !testData) {
             loadTest();
         }
-        // Cleanup to allow re-attempt if testId changes
-        return () => setTestLoaded(false);
     }, [testId, currentUser]);
 
     const loadTest = async () => {
@@ -130,7 +123,6 @@ export default function TakeTest() {
     const handleSubmit = async () => {
         // if (submitting || !attemptId || testSubmitted) return;
         try {
-            setSubmitting(true);
             // Calculate time taken in seconds
             const timeTakenSeconds = testData!.duration_minutes * 60 - timeLeft;
 
@@ -167,22 +159,18 @@ export default function TakeTest() {
             const result = await submitTestAttempt(finalObj);
             if (result.success) {
                 setShowResult(true);
-                setTestSubmitted(true);
             } else {
                 setError("Failed to submit test. Please try again.");
             }
         } catch (error) {
             setError("An error occurred while submitting the test.");
             console.error("Error submitting test:", error);
-        } finally {
-            setSubmitting(false);
         }
     };
 
     const handleTimeout = async () => {
         try {
             setShowResult(true);
-            setTestSubmitted(true);
         } catch (error) {
             console.error("Error handling timeout:", error);
         }
@@ -194,172 +182,13 @@ export default function TakeTest() {
         }
     }, [timeLeft, timerStarted]);
 
-    const downloadPDF = () => {
-        if (!testData) return;
-        const doc = new jsPDF({ unit: "pt", format: "a4" });
-        const pageWidth = doc.internal.pageSize.width;
-        const pageHeight = doc.internal.pageSize.height;
-        const margin = 40;
-        let y = 60;
-        let total = 0,
-            obtained = 0,
-            correctCount = 0;
-
-        // Header
-        doc.setFontSize(22)
-            .setFont("helvetica", "bold")
-            .text(`${testData.test_name} - Result Summary`, margin, y);
-        y += 30;
-        doc.setFontSize(12).setFont("helvetica", "normal");
-        doc.text(`Student: ${currentUser?.user?.name || ""}`, margin, y);
-        y += 18;
-        doc.text(`Test Duration: ${testData.duration_minutes} min`, margin, y);
-        y += 18;
-        doc.text(`Total Questions: ${testData.questions.length}`, margin, y);
-        y += 18;
-        const now = new Date();
-        doc.text(
-            `Date: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`,
-            margin,
-            y
-        );
-        y += 24;
-        doc.setLineWidth(0.5);
-        doc.line(margin, y, pageWidth - margin, y);
-        y += 16;
-
-        // Summary Section
-        testData.questions.forEach((q, i) => {
-            const selected = answers[`q${i}`];
-            const correct = q.correct_answer;
-            const marks = selected === correct ? q.marks : 0;
-            total += q.marks;
-            obtained += marks;
-            if (selected === correct) correctCount++;
+    const handleDownload = () => {
+        downloadPDF({
+            data: testData,
+            answers,
+            currentUser,
+            timeLeft,
         });
-        const mins = Math.floor(
-            (testData.duration_minutes * 60 - timeLeft) / 60
-        );
-        const secs = (testData.duration_minutes * 60 - timeLeft) % 60;
-        doc.setFont("helvetica", "bold");
-        doc.text(`Score: ${obtained} / ${total}`, margin, y);
-        doc.text(
-            `Correct: ${correctCount} / ${testData.questions.length}`,
-            margin + 180,
-            y
-        );
-        doc.text(`Time: ${mins}m ${secs}s`, margin + 340, y);
-        y += 24;
-        doc.setFont("helvetica", "normal");
-        doc.setLineWidth(0.5);
-        doc.line(margin, y, pageWidth - margin, y);
-        y += 18;
-
-        // Table header
-        const colQ = margin + 2;
-        const colQuestion = margin + 35;
-        const colYour = margin + 230;
-        const colCorrect = margin + 370;
-        const colMarks = margin + 500;
-        const rowHeight = 18;
-        doc.setFont("helvetica", "bold");
-        doc.setFillColor(230, 230, 230);
-        doc.rect(margin, y - 12, pageWidth - margin * 2, rowHeight, "F");
-        doc.text("Q#", colQ, y);
-        doc.text("Question", colQuestion, y);
-        doc.text("Your Answer", colYour, y);
-        doc.text("Correct", colCorrect, y);
-        doc.text("Marks", colMarks, y);
-        y += rowHeight;
-        doc.setFont("helvetica", "normal");
-
-        testData.questions.forEach((q, i) => {
-            const selected = answers[`q${i}`];
-            const correct = q.correct_answer;
-            const marks = selected === correct ? q.marks : 0;
-            const yourAns =
-                selected && q.options[selected as keyof typeof q.options]
-                    ? `${selected.toUpperCase()}. ${
-                          q.options[selected as keyof typeof q.options]
-                      }`
-                    : "Not Answered";
-            const correctAns =
-                correct && q.options[correct as keyof typeof q.options]
-                    ? `${correct.toUpperCase()}. ${
-                          q.options[correct as keyof typeof q.options]
-                      }`
-                    : "";
-            const markStr = marks > 0 ? `+${marks}` : "0";
-
-            // Wrap question text
-            const questionLines = doc.splitTextToSize(
-                q.question_text,
-                colYour - colQuestion - 10
-            );
-            const maxLines = Math.max(1, questionLines.length);
-            // Highlight row if correct/incorrect
-            if (selected === correct) {
-                doc.setFillColor(220, 255, 220); // light green
-            } else if (selected) {
-                doc.setFillColor(255, 220, 220); // light red
-            } else {
-                doc.setFillColor(240, 240, 240); // gray for not answered
-            }
-            doc.rect(
-                margin,
-                y - 12,
-                pageWidth - margin * 2,
-                rowHeight * maxLines,
-                "F"
-            );
-            doc.setTextColor(0, 0, 0);
-            doc.text(`${i + 1}`, colQ, y);
-            doc.text(questionLines, colQuestion, y, {
-                maxWidth: colYour - colQuestion - 10,
-            });
-            doc.text(
-                doc.splitTextToSize(yourAns, colCorrect - colYour - 10),
-                colYour,
-                y,
-                { maxWidth: colCorrect - colYour - 10 }
-            );
-            doc.text(
-                doc.splitTextToSize(correctAns, colMarks - colCorrect - 10),
-                colCorrect,
-                y,
-                { maxWidth: colMarks - colCorrect - 10 }
-            );
-            doc.text(markStr, colMarks, y);
-            y += rowHeight * maxLines;
-            // Draw border below row
-            doc.setDrawColor(200);
-            doc.line(margin, y - 12, pageWidth - margin, y - 12);
-            // Page break if needed
-            if (y > pageHeight - 80) {
-                // Footer with page number
-                const pageNum = doc.internal.pages.length;
-                doc.setFontSize(10).setTextColor(120);
-                doc.text(`Page ${pageNum}`, pageWidth / 2, pageHeight - 20, {
-                    align: "center",
-                });
-                doc.addPage();
-                y = 60;
-                doc.setFontSize(12).setTextColor(0);
-            }
-        });
-        y += 10;
-        doc.setLineWidth(0.5);
-        doc.line(margin, y, pageWidth - margin, y);
-        y += 18;
-        doc.setFont("helvetica", "bold");
-        doc.text(`Total Marks: ${obtained} / ${total}`, margin, y);
-        // Final footer with page number
-        const finalPageNum = doc.internal.pages.length;
-        doc.setFontSize(10).setTextColor(120);
-        doc.text(`Page ${finalPageNum}`, pageWidth / 2, pageHeight - 20, {
-            align: "center",
-        });
-        doc.save(`${testData.test_name}-Result.pdf`);
     };
 
     const start = (currentPage - 1) * questionsPerPage;
@@ -436,7 +265,7 @@ export default function TakeTest() {
             </div>
 
             <form className="space-y-6">
-                {timeLeft > 0 && !testSubmitted && (
+                {timeLeft > 0 && timerStarted && (
                     <>
                         {questions.map((q, idx) => {
                             const qIndex = start + idx;
@@ -543,7 +372,7 @@ export default function TakeTest() {
                                 handleSubmit();
                                 setTimerStarted(false);
                             }}
-                            disabled={testSubmitted || submitting}
+                            disabled={!timerStarted}
                         >
                             Submit Test
                         </Button>
@@ -653,10 +482,10 @@ export default function TakeTest() {
                 </SheetContent>
             </Sheet>
 
-            {testSubmitted && (
+            {!timerStarted && (
                 <div className="flex justify-center mt-6">
                     <Button
-                        onClick={downloadPDF}
+                        onClick={handleDownload}
                         className="shadow cursor-pointer"
                     >
                         <Download className="mr-2 h-4 w-4" /> Download Result
