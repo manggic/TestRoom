@@ -195,7 +195,7 @@ const RegisterOrg = () => {
                     <CardContent>
                         {step === "start" && (
                             <>
-                                <Label htmlFor="email">
+                                <Label htmlFor="email" className="pb-3">
                                     Organization Email
                                 </Label>
                                 <Input
@@ -217,7 +217,7 @@ const RegisterOrg = () => {
                         )}
                         {step === "verify" && (
                             <>
-                                <Label htmlFor="otp">Enter OTP</Label>
+                                <Label htmlFor="otp" className="pb-3">Enter OTP</Label>
                                 <Input
                                     id="otp"
                                     type="text"
@@ -227,7 +227,7 @@ const RegisterOrg = () => {
                                     pattern="\\d{6}"
                                     onChange={(e) => setOtp(e.target.value)}
                                     placeholder="123456"
-                                    className="text-center text-lg tracking-widest"
+                                    className="text-center text-lg tracking-widest mb-3"
                                     required
                                 />
                                 <div className="flex justify-between items-center mt-2">

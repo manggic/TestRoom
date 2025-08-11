@@ -17,6 +17,7 @@ export async function submitTestAttempt(testAttemptDataObj) {
             updated_at,
             answers,
             testData,
+            organization_id,
         } = testAttemptDataObj;
 
         // 1. Insert the test attempt
@@ -35,6 +36,7 @@ export async function submitTestAttempt(testAttemptDataObj) {
                 total_questions,
                 time_taken_seconds,
                 correct_answer_count: correctAnswers,
+                organization_id,
             })
             .select()
             .single();
@@ -151,7 +153,10 @@ export async function getTestAttempts() {
     }
 }
 
-export async function getTestAttemptsByStudentId(studentId: string) {
+export async function getTestAttemptsByStudentId(
+    studentId: string,
+    orgId: string
+) {
     try {
         const { data, error } = await supabaseClient
             .from("test_attempts")
@@ -177,7 +182,7 @@ export async function getTestAttemptsByStudentId(studentId: string) {
                 users(name)
             `
             )
-
+            .eq("organization_id", orgId)
             .eq("student_id", studentId)
             .order("created_at", { ascending: false });
 
@@ -208,7 +213,10 @@ export async function getTestAttemptsByTestIdAndStudentId(
     }
 }
 
-export async function getUnattemptedTestsOfStudentId(studentId: string) {
+export async function getUnattemptedTestsOfStudentId(
+    studentId: string,
+    orgId: string
+) {
     try {
         // Get all published tests
         const { data: tests, error: testsError } = await supabaseClient
@@ -219,13 +227,16 @@ export async function getUnattemptedTestsOfStudentId(studentId: string) {
                 users!created_by(name)
             `
             )
+            .eq("organization_id", orgId)
             .eq("status", "published");
+
         if (testsError) throw testsError;
 
         // Get tests that the student has attempted
         const { data: attempts, error: attemptsError } = await supabaseClient
             .from("test_attempts")
             .select("test_id")
+            .eq("organization_id", orgId)
             .eq("student_id", studentId);
         if (attemptsError) throw attemptsError;
 

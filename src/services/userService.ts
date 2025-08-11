@@ -29,12 +29,14 @@ export async function getUserById(id: string) {
     }
 }
 
-export async function getUsersForAdmin() {
+export async function getUsersForAdmin({orgId}) {
     try {
         // Step 1: Get all users
         const { data: users, error: usersError } = await supabaseClient
             .from("users")
-            .select("*");
+            .select("*")
+            .eq('organization_id', orgId)
+            
 
         if (usersError) throw usersError;
 

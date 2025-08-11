@@ -62,6 +62,7 @@ export default function CreateTest() {
                 created_by: currentUser.user.id,
                 status: status.toLowerCase(),
                 description,
+                organization_id:currentUser.user.organization_id
             });
 
             if (response.success) {

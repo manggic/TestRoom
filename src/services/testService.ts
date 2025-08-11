@@ -11,6 +11,7 @@ export const createTest = async (testDataToCreate) => {
             description,
             last_updated_by,
             created_by,
+            organization_id
         } = testDataToCreate;
         const total_marks = (questions || []).reduce(
             (sum, q) => sum + (Number(q.marks) || 0),
@@ -34,6 +35,7 @@ export const createTest = async (testDataToCreate) => {
                     updated_at: now,
                     last_updated_by,
                     created_by,
+                    organization_id
                 },
             ])
             .select()
@@ -171,6 +173,62 @@ export async function updateTest(
     }
 }
 
+
+export async function getTestsOfOrg({orgId}) {
+    try {
+        // Step 1: Fetch all tests
+        const { data: tests, error: testsError } = await supabaseClient
+            .from("tests")
+            .select("*")
+            .eq('organization_id', orgId)
+        if (testsError) throw testsError;
+
+        // Step 2: Get all user IDs used in createdBy and updatedBy fields
+        const userIds = Array.from(
+            new Set(
+                tests
+                    .flatMap((test) => [test.created_by, test.last_updated_by])
+                    .filter(Boolean)
+            )
+        );
+
+        // Step 3: Fetch only required users
+        const { data: users, error: usersError } = await supabaseClient
+            .from("users")
+            .select("id, name")
+            .in("id", userIds);
+        if (usersError) throw usersError;
+
+        const userMap = Object.fromEntries(
+            (users || []).map((u) => [u.id, u.name])
+        );
+
+        // Step 4: Fetch questions for each test and attach user names
+        const allTests = await Promise.all(
+            (tests || []).map(async (test) => {
+                const { data: questions, error: questionsError } =
+                    await supabaseClient
+                        .from("questions")
+                        .select("*")
+                        .eq("test_id", test.id);
+                if (questionsError) throw questionsError;
+
+                return {
+                    ...test,
+                    questions: questions || [],
+                    createdByName: userMap[test.created_by] || "Unknown",
+                    updatedByName: userMap[test.last_updated_by] || "Unknown",
+                };
+            })
+        );
+
+        return { success: true, data: allTests , message:"success" };
+    } catch (error) {
+        return errorHandler(error);
+    }
+}
+
+
 export async function getTests() {
     try {
         // Step 1: Fetch all tests
@@ -273,12 +331,13 @@ export async function getTestById(testId: string) {
     }
 }
 
-export async function getTestsByTeacherId(userId: string) {
+export async function getTestsByTeacherId(userId: string,orgId:string) {
     try {
         // Step 1: Fetch all tests created by the given user
         const { data: tests, error: testsError } = await supabaseClient
             .from("tests")
             .select("*")
+            .eq('organization_id', orgId)
             .eq("created_by", userId);
 
         if (testsError) throw testsError;
@@ -300,6 +359,7 @@ export async function getTestsByTeacherId(userId: string) {
         const { data: users, error: usersError } = await supabaseClient
             .from("users")
             .select("id, name")
+            .eq('organization_id', orgId)
             .in("id", userIds);
 
         if (usersError) throw usersError;

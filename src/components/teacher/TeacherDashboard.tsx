@@ -10,7 +10,11 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Test } from "@/types/test";
-import { getTests, getTestsByTeacherId } from "@/services/testService";
+import {
+    getTests,
+    getTestsByTeacherId,
+    getTestsOfOrg,
+} from "@/services/testService";
 
 export default function TeacherDashboard() {
     const [allTests, setAllTests] = useState<Array<Test>>([]);
@@ -32,7 +36,10 @@ export default function TeacherDashboard() {
         async function loadMyTest() {
             try {
                 if (user?.id) {
-                    const response = await getTestsByTeacherId(user?.id);
+                    const response = await getTestsByTeacherId(
+                        user?.id,
+                        user?.organization_id
+                    );
                     if (response?.success) {
                         const tests = response?.data as Array<Test>;
 
@@ -50,14 +57,20 @@ export default function TeacherDashboard() {
                 setIsTestDataLoading(false);
             }
         }
-        loadMyTest();
+        if (!user?.organization_id) {
+            toast(`You don't belong to any organization`);
+        } else {
+            loadMyTest();
+        }
     }, []);
 
     useEffect(() => {
         const loadTests = async () => {
             try {
                 setIsTestDataLoading(true);
-                const result = await getTests();
+                const result = await getTestsOfOrg({
+                    orgId: user?.organization_id,
+                });
 
                 setAllTests(result?.data as Array<Test>);
                 setHasLoadedAllTests(true);
@@ -67,7 +80,9 @@ export default function TeacherDashboard() {
                 setIsTestDataLoading(false);
             }
         };
-        if (tab === "all" && !hasLoadedAllTests) {
+        if (!user?.organization_id) {
+            toast(`You don't belong to any organization`);
+        } else if (tab === "all" && !hasLoadedAllTests) {
             loadTests();
         }
     }, [tab, hasLoadedAllTests]);
@@ -122,7 +137,9 @@ export default function TeacherDashboard() {
 
                 {/* === ALL TESTS TAB === */}
                 <TabsContent value="all">
-                    {isTestDataloading && !hasLoadedAllTests ? (
+                    {isTestDataloading &&
+                    !hasLoadedAllTests &&
+                    user?.organization_id ? (
                         <p>Loading All Tests...</p>
                     ) : allTests?.length === 0 ? (
                         <div className="text-center text-sm text-muted-foreground">

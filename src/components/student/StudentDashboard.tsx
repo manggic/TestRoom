@@ -48,7 +48,7 @@ export default function StudentDashboard() {
     const navigate = useNavigate();
     const [unattemptedTests, setUnattemptedTests] = useState<Test[]>([]);
     const [attemptedTests, setAttemptedTests] = useState<TestAttempt[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);    
 
     useEffect(() => {
         if (currentUser?.user?.id) {
@@ -63,14 +63,15 @@ export default function StudentDashboard() {
 
             // Load unattempted tests
             const unattemptedResult = await getUnattemptedTestsOfStudentId(
-                studentId
+                studentId,
+                currentUser.user.organization_id
             );
             if (unattemptedResult.success) {
                 setUnattemptedTests(unattemptedResult.data as Test[]);
             }
 
             // Load attempted tests
-            const attemptedResult = await getTestAttemptsByStudentId(studentId);
+            const attemptedResult = await getTestAttemptsByStudentId(studentId,currentUser.user.organization_id);
             if (attemptedResult.success) {
                 setAttemptedTests(attemptedResult.data as TestAttempt[]);
             }

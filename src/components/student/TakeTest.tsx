@@ -154,6 +154,7 @@ export default function TakeTest() {
                 testData,
                 correctAnswers,
                 score_achieved: totalScore,
+                organization_id: currentUser.user.organization_id
             };
 
             const result = await submitTestAttempt(finalObj);

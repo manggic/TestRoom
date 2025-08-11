@@ -11,6 +11,7 @@ export const signupUser = async (
         name: string;
         role: "admin" | "student" | "teacher";
         actionBy?: string;
+        organization_id:string;
     }
 ) => {
     try {
@@ -22,6 +23,7 @@ export const signupUser = async (
                 data: {
                     name: additionalInfo.name,
                     role: additionalInfo.role,
+                    organization_id:additionalInfo.organization_id
                 },
             },
         });
@@ -39,6 +41,7 @@ export const signupUser = async (
                 name: additionalInfo.name,
                 email,
                 role: additionalInfo.role,
+                organization_id:additionalInfo.organization_id,
                 attempted_tests_count: 0,
                 is_active: true,
                 created_at: new Date().toISOString(),

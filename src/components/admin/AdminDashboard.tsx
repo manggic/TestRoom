@@ -17,6 +17,8 @@ import {
     AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 
+import { FileText, UserPlus } from "lucide-react";
+
 import {
     Dialog,
     DialogContent,
@@ -32,12 +34,13 @@ import type { TeacherUser, StudentUser } from "@/types/adminDashboard";
 import { Loader2, Trash2, User2, Plus, EyeOff, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TestCard } from "../teacher/TestCard";
-import { getTests } from "@/services/testService";
+import { getTestsOfOrg } from "@/services/testService";
 import { getUsersForAdmin } from "@/services/userService";
 import { useNavigate } from "react-router";
 import { formatDate, validateSignUpForm } from "@/lib/utils";
 import { signupUser } from "@/services/authService";
 import { toast } from "sonner";
+import { useAuth } from "@/context/useAuth";
 
 type UserForm = {
     name: string;
@@ -56,6 +59,8 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState("students");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [isSpeedDialOpen, setIsSpeedDialOpen] = useState(false);
+    const { currentUser } = useAuth();
 
     const [userForm, setUserForm] = useState<UserForm>({
         name: "",
@@ -72,7 +77,9 @@ export default function AdminDashboard() {
     const navigate = useNavigate();
 
     const fetchUsers = async () => {
-        const response = await getUsersForAdmin();
+        const response = await getUsersForAdmin({
+            orgId: currentUser?.user?.organization_id,
+        });
 
         if (response.success) {
             setStudents(
@@ -85,7 +92,9 @@ export default function AdminDashboard() {
     };
 
     const fetchTests = async () => {
-        const response = await getTests();
+        const response = await getTestsOfOrg({
+            orgId: currentUser?.user?.organization_id,
+        });
 
         if (response.success) {
             setTests(response.data);
@@ -132,6 +141,7 @@ export default function AdminDashboard() {
             name: userForm.name,
             role: userForm.role,
             actionBy: "admin",
+            organization_id: currentUser.user.organization_id,
         });
 
         if (response.success) {
@@ -326,175 +336,251 @@ export default function AdminDashboard() {
             <h1 className="text-2xl md:text-3xl font-bold text-center my-4">
                 🛠️ Admin Dashboard
             </h1>
+
             <div className="flex justify-end sm:justify-end">
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="gap-2 sm:w-auto mb-4 sm:mb-0">
-                            <Plus size={18} /> Create User
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                            <DialogTitle>Create New User</DialogTitle>
-                            <DialogDescription>
-                                Enter the user details below.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleSubmit}>
-                            <div className="grid gap-4 py-4">
-                                <div className=" items-center gap-4">
-                                    <div className="grid grid-cols-4 ">
-                                        <Label
-                                            htmlFor="name"
-                                            className="text-right"
-                                        >
-                                            Name
-                                        </Label>
-                                        <Input
-                                            id="name"
-                                            placeholder="Full Name"
-                                            className="col-span-3"
-                                            value={userForm.name}
-                                            onChange={(e) =>
-                                                setUserForm((prev) => ({
-                                                    ...prev,
-                                                    name: e.target.value,
-                                                }))
-                                            }
-                                        />
+                {/* Desktop buttons */}
+                <div className="hidden sm:flex gap-2">
+                    <Button
+                        className="gap-2"
+                        onClick={() => navigate("/teacher/create-test")}
+                    >
+                        <Plus size={18} /> Create Test
+                    </Button>
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="gap-2">
+                                <Plus size={18} /> Create User
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>Create New User</DialogTitle>
+                                <DialogDescription>
+                                    Enter the user details below.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleSubmit}>
+                                <div className="grid gap-4 py-4">
+                                    <div className=" items-center gap-4">
+                                        <div className="grid grid-cols-4 ">
+                                            <Label
+                                                htmlFor="name"
+                                                className="text-right"
+                                            >
+                                                Name
+                                            </Label>
+                                            <Input
+                                                id="name"
+                                                placeholder="Full Name"
+                                                className="col-span-3"
+                                                value={userForm.name}
+                                                onChange={(e) =>
+                                                    setUserForm((prev) => ({
+                                                        ...prev,
+                                                        name: e.target.value,
+                                                    }))
+                                                }
+                                            />
+                                        </div>
+
+                                        {errors.name && (
+                                            <p className="text-red-500 text-xs mt-1">
+                                                {errors.name}
+                                            </p>
+                                        )}
                                     </div>
 
-                                    {errors.name && (
-                                        <p className="text-red-500 text-xs mt-1">
-                                            {errors.name}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Email */}
-                                <div className="items-center gap-4">
-                                    <div className="grid grid-cols-4">
-                                        <Label
-                                            htmlFor="email"
-                                            className="text-right"
-                                        >
-                                            Email
-                                        </Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            placeholder="example@email.com"
-                                            className="col-span-3"
-                                            value={userForm.email}
-                                            onChange={(e) =>
-                                                setUserForm((prev) => ({
-                                                    ...prev,
-                                                    email: e.target.value,
-                                                }))
-                                            }
-                                        />
+                                    {/* Email */}
+                                    <div className="items-center gap-4">
+                                        <div className="grid grid-cols-4">
+                                            <Label
+                                                htmlFor="email"
+                                                className="text-right"
+                                            >
+                                                Email
+                                            </Label>
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                placeholder="example@email.com"
+                                                className="col-span-3"
+                                                value={userForm.email}
+                                                onChange={(e) =>
+                                                    setUserForm((prev) => ({
+                                                        ...prev,
+                                                        email: e.target.value,
+                                                    }))
+                                                }
+                                            />
+                                        </div>
+                                        {errors.email && (
+                                            <p className="text-red-500 text-xs mt-1">
+                                                {errors.email}
+                                            </p>
+                                        )}
                                     </div>
-                                    {errors.email && (
-                                        <p className="text-red-500 text-xs mt-1">
-                                            {errors.email}
-                                        </p>
-                                    )}
-                                </div>
 
-                                {/* Password */}
-                                <div className="items-center gap-4">
-                                    <div className="relative grid grid-cols-4">
-                                        <Label
-                                            htmlFor="password"
-                                            className="text-right"
-                                        >
-                                            Password
-                                        </Label>
-                                        <Input
-                                            id="password"
-                                            type={
-                                                showPassword
-                                                    ? "text"
-                                                    : "password"
-                                            }
-                                            placeholder="••••••••"
-                                            className="col-span-3"
-                                            value={userForm.password}
-                                            onChange={(e) =>
-                                                setUserForm((prev) => ({
-                                                    ...prev,
-                                                    password: e.target.value,
-                                                }))
-                                            }
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setShowPassword((prev) => !prev)
-                                            }
-                                            className="absolute right-3 top-2.5 text-muted-foreground"
-                                            aria-label="Toggle Password"
-                                        >
-                                            {showPassword ? (
-                                                <EyeOff size={18} />
-                                            ) : (
-                                                <Eye size={18} />
-                                            )}
-                                        </button>
+                                    {/* Password */}
+                                    <div className="items-center gap-4">
+                                        <div className="relative grid grid-cols-4">
+                                            <Label
+                                                htmlFor="password"
+                                                className="text-right"
+                                            >
+                                                Password
+                                            </Label>
+                                            <Input
+                                                id="password"
+                                                type={
+                                                    showPassword
+                                                        ? "text"
+                                                        : "password"
+                                                }
+                                                placeholder="••••••••"
+                                                className="col-span-3"
+                                                value={userForm.password}
+                                                onChange={(e) =>
+                                                    setUserForm((prev) => ({
+                                                        ...prev,
+                                                        password:
+                                                            e.target.value,
+                                                    }))
+                                                }
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setShowPassword(
+                                                        (prev) => !prev
+                                                    )
+                                                }
+                                                className="absolute right-3 top-2.5 text-muted-foreground"
+                                                aria-label="Toggle Password"
+                                            >
+                                                {showPassword ? (
+                                                    <EyeOff size={18} />
+                                                ) : (
+                                                    <Eye size={18} />
+                                                )}
+                                            </button>
+                                        </div>
+                                        {errors.password && (
+                                            <p className="text-red-500 text-xs mt-1">
+                                                {errors.password}
+                                            </p>
+                                        )}
                                     </div>
-                                    {errors.password && (
-                                        <p className="text-red-500 text-xs mt-1">
-                                            {errors.password}
-                                        </p>
-                                    )}
-                                </div>
 
-                                {/* Role */}
-                                <div className="items-center gap-4">
-                                    <div className="grid grid-cols-4">
-                                        <Label
-                                            htmlFor="role"
-                                            className="text-right"
-                                        >
-                                            Role
-                                        </Label>
-                                        <select
-                                            id="role"
-                                            className="col-span-3 bg-background border border-input rounded-md px-3 py-2 text-sm text-foreground"
-                                            value={userForm.role}
-                                            onChange={(e) =>
-                                                setUserForm((prev) => ({
-                                                    ...prev,
-                                                    role: e.target.value as
-                                                        | "admin"
-                                                        | "student"
-                                                        | "teacher",
-                                                }))
-                                            }
-                                        >
-                                            <option value="admin">Admin</option>
-                                            <option value="teacher">
-                                                Teacher
-                                            </option>
-                                            <option value="student">
-                                                Student
-                                            </option>
-                                        </select>
+                                    {/* Role */}
+                                    <div className="items-center gap-4">
+                                        <div className="grid grid-cols-4">
+                                            <Label
+                                                htmlFor="role"
+                                                className="text-right"
+                                            >
+                                                Role
+                                            </Label>
+                                            <select
+                                                id="role"
+                                                className="col-span-3 bg-background border border-input rounded-md px-3 py-2 text-sm text-foreground"
+                                                value={userForm.role}
+                                                onChange={(e) =>
+                                                    setUserForm((prev) => ({
+                                                        ...prev,
+                                                        role: e.target.value as
+                                                            | "admin"
+                                                            | "student"
+                                                            | "teacher",
+                                                    }))
+                                                }
+                                            >
+                                                <option value="admin">
+                                                    Admin
+                                                </option>
+                                                <option value="teacher">
+                                                    Teacher
+                                                </option>
+                                                <option value="student">
+                                                    Student
+                                                </option>
+                                            </select>
+                                        </div>
+                                        {errors.role && (
+                                            <p className="text-red-500 text-xs mt-1">
+                                                {errors.role}
+                                            </p>
+                                        )}
                                     </div>
-                                    {errors.role && (
-                                        <p className="text-red-500 text-xs mt-1">
-                                            {errors.role}
-                                        </p>
-                                    )}
                                 </div>
-                            </div>
 
-                            <div className="flex justify-end gap-2">
-                                <Button type="submit">Submit</Button>
-                            </div>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                                <div className="flex justify-end gap-2">
+                                    <Button type="submit">Submit</Button>
+                                </div>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+
+                {/* Mobile floating action button */}
+                <div className="sm:hidden fixed bottom-6 right-6 z-50">
+                    <div className="relative">
+                        {/* Speed Dial Menu */}
+                        <div
+                            className={`absolute bottom-16 right-0 flex flex-col gap-2 mb-2 transition-all duration-200 ease-out ${
+                                isSpeedDialOpen
+                                    ? "opacity-100 visible translate-y-0"
+                                    : "opacity-0 invisible translate-y-2"
+                            }`}
+                        >
+                            {/* Create Test Button */}
+                            <button
+                                onClick={() => {
+                                    setIsSpeedDialOpen(false);
+                                    navigate("/teacher/create-test");
+                                }}
+                                className="flex items-center justify-center rounded-full w-12 h-12 shadow-md bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+                            >
+                                <div className="flex flex-col items-center text-gray-700">
+                                    <FileText className="h-4 w-4" />
+                                    <span className="text-[10px] mt-0.5">
+                                        Test
+                                    </span>
+                                </div>
+                            </button>
+
+                            {/* Create User Button */}
+                            <button
+                                onClick={() => {
+                                    setIsSpeedDialOpen(false);
+                                    setIsDialogOpen(true);
+                                }}
+                                className="flex items-center justify-center rounded-full w-12 h-12 shadow-md bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+                            >
+                                <div className="flex flex-col items-center text-gray-700">
+                                    <UserPlus className="h-4 w-4" />
+                                    <span className="text-[10px] mt-0.5">
+                                        User
+                                    </span>
+                                </div>
+                            </button>
+                        </div>
+
+                        {/* Main FAB Button */}
+                        <button
+                            onClick={() => setIsSpeedDialOpen(!isSpeedDialOpen)}
+                            className={`flex items-center justify-center rounded-full w-14 h-14 shadow-lg ${
+                                isSpeedDialOpen ? "bg-gray-800" : "bg-gray-900"
+                            } text-white transition-all duration-200`}
+                        >
+                            <Plus
+                                className={`transition-transform duration-200 ${
+                                    isSpeedDialOpen ? "rotate-45" : ""
+                                }`}
+                                size={20}
+                            />
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {loading ? (
