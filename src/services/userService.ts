@@ -49,6 +49,7 @@ export async function getUsersForAdmin({orgId}) {
                         await supabaseClient
                             .from("test_attempts")
                             .select("id, test_id")
+                            .eq('organization_id', orgId)
                             .eq("student_id", user.id);
 
                     if (attemptsError) throw attemptsError;
@@ -90,6 +91,7 @@ export async function getUsersForAdmin({orgId}) {
                         await supabaseClient
                             .from("tests")
                             .select("id, test_name")
+                            .eq('organization_id', orgId)
                             .eq("created_by", user.id);
 
                     if (createdTestsError) throw createdTestsError;
