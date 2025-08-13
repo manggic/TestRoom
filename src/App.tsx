@@ -18,6 +18,10 @@ import TeacherDashboard from "./components/teacher/TeacherDashboard";
 import StudentDashboard from "./components/student/StudentDashboard";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import RegisterOrg from "./components/RegisterOrg";
+import SuperAdminDashboard from "./components/superadmin/SuperAdminDashboard";
+import OrgDetails from "./components/superadmin/OrgDetails";
+
+
 
 function App() {
     const { loading } = useAuth();
@@ -46,6 +50,21 @@ function App() {
                     <Route element={<AuthLayout />}>
                         {/* 🔁 Dashboard via role in Home */}
                         {/* <Route index element={<Home />} /> */}
+
+                        <Route
+                            element={
+                                <ProtectedRoute allowedRoles={["superadmin"]} />
+                            }
+                        >
+                            <Route
+                                path="superadmin"
+                                element={<SuperAdminDashboard />}
+                            />
+                            <Route
+                                path="superadmin/org/:orgId"
+                                element={<OrgDetails />}
+                            />
+                        </Route>
 
                         <Route
                             element={

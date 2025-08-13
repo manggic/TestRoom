@@ -127,6 +127,13 @@ export default function LoginForm() {
                                     Create an account
                                 </Link>
                             </p>
+
+                            <a
+                                href="/"
+                                className="inline-flex items-center gap-1 rounded-md border border-transparent bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                            >
+                                Visit Home
+                            </a>
                         </form>
                     </CardContent>
                 </Card>

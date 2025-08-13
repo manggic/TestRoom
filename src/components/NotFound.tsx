@@ -25,7 +25,7 @@ export default function NotFound() {
         </p>
 
         <Link to={currentUser?.user?.role?`/${currentUser?.user?.role}`:"/"}>
-          <Button>Go Home</Button>
+          <Button className="cursor-pointer">Go Home</Button>
         </Link>
       </motion.div>
     </div>

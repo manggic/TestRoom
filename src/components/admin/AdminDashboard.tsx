@@ -35,7 +35,7 @@ import { Loader2, Trash2, User2, Plus, EyeOff, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TestCard } from "../teacher/TestCard";
 import { getTestsOfOrg } from "@/services/testService";
-import { getUsersForAdmin } from "@/services/userService";
+import { getUsersOfOrg } from "@/services/userService";
 import { useNavigate } from "react-router";
 import { formatDate, validateSignUpForm } from "@/lib/utils";
 import { signupUser } from "@/services/authService";
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
     const navigate = useNavigate();
 
     const fetchUsers = async () => {
-        const response = await getUsersForAdmin({
+        const response = await getUsersOfOrg({
             orgId: currentUser?.user?.organization_id,
         });
 

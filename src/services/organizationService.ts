@@ -38,16 +38,69 @@ export const checkIfAlreadyRegistered = async ({ email }) => {
             .eq("email", email)
             .single();
 
-            console.log('response ',error || !data);
-            
-
         if (error || !data) {
             // Do not reveal if the email exists, for security reasons
-            return false
+            return false;
         }
-        return true
+        return true;
     } catch (error) {
-         console.log({error});
-        return false
+        return false;
+    }
+};
+
+export const getAllOrg = async () => {
+    try {
+        const { data, error } = await supabaseClient
+            .from("organizations")
+            .select("*");
+
+        if (error || !data) {
+            return { success: false, data: [] };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        return { success: false, data: [], message: error.message };
+    }
+};
+
+export const getAdminsOfOrg = async ({ orgId }) => {
+    try {
+        const { data: admins, error } = await supabaseClient
+            .from("users")
+            .select("*")
+            .eq("organization_id", orgId)
+            .eq("role", "admin");
+
+        if (error || !admins) {
+            return { success: false, data: [] };
+        }
+
+        const enrichedAdmins = await Promise.all(
+            (admins || []).map(async (admin) => {
+                const { data: createdTests, error: createdTestsError } =
+                    await supabaseClient
+                        .from("tests")
+                        .select("id, test_name")
+                        .eq("organization_id", orgId)
+                        .eq("created_by", admin.id);
+
+                if (createdTestsError) throw createdTestsError;
+
+                const created_tests = (createdTests || []).map((test) => ({
+                    test_id: test.id,
+                    test_name: test.test_name,
+                }));
+
+                return {
+                    ...admin,
+                    created_tests,
+                };
+            })
+        );
+
+        return { success: true, data: enrichedAdmins };
+    } catch (error) {
+        return { success: false, data: [], message: error.message };
     }
 };

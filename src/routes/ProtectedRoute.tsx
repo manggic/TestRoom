@@ -3,7 +3,7 @@ import { useAuth } from "@/context/useAuth";
 import type { ReactNode } from "react";
 
 interface ProtectedRouteProps {
-  allowedRoles?: ("teacher" | "student" | "admin")[];
+  allowedRoles?: ("teacher" | "student" | "admin"|'superadmin')[];
   children?: ReactNode; // ✅ allow children too
 }
 
