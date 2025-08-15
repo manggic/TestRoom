@@ -104,3 +104,21 @@ export const getAdminsOfOrg = async ({ orgId }) => {
         return { success: false, data: [], message: error.message };
     }
 };
+
+export const getOrgById = async ({ orgId }) => {
+    try {
+        const { data, error } = await supabaseClient
+            .from("organizations")
+            .select("*")
+            .eq("id", orgId)
+            .single();
+
+        if (error || !data) {
+            return { success: false, data: [] };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        return { success: false, data: [], message: error.message };
+    }
+};

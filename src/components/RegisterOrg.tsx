@@ -1,8 +1,5 @@
-(""); // --- Supabase Edge Function Based OTP Flow ---
-
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -15,6 +12,17 @@ import {
 } from "@/services/organizationService";
 import { useNavigate } from "react-router";
 import { Textarea } from "@/components/ui/textarea";
+import { indiaStatesAndCities } from "@/lib/constants";
+import { Label } from "@/components/ui/label";
+
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+
 const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -35,6 +43,7 @@ const RegisterOrg = () => {
         owner_name: "",
         email: "",
     });
+    const [cities, setCities] = useState<string[]>([]);
 
     useEffect(() => {
         if (timer > 0) {
@@ -43,15 +52,35 @@ const RegisterOrg = () => {
         }
     }, [timer]);
 
+    // Handle State change
+    const handleStateChange = (state: string) => {
+        setFormData((prev: any) => ({ ...prev, state, city: "" })); // Reset city
+        setCities(indiaStatesAndCities[state] || []);
+    };
+
+    // Handle City change
+    const handleCityChange = (city: string) => {
+        setFormData((prev: any) => ({ ...prev, city }));
+    };
+
+    // Load cities if state already has a value (edit mode)
+    useEffect(() => {
+        if (formData.state) {
+            setCities(indiaStatesAndCities[formData.state] || []);
+        }
+    }, [formData.state]);
+
     const handleSendOtp = async () => {
         try {
             if (!isEmail(email))
                 return toast.error("Please enter a valid email");
 
-            const orgAlreadyRegistered = await checkIfAlreadyRegistered({email})
+            const orgAlreadyRegistered = await checkIfAlreadyRegistered({
+                email,
+            });
 
-            if(orgAlreadyRegistered){
-              return toast.error("Organization Already Registered");
+            if (orgAlreadyRegistered) {
+                return toast.error("Organization Already Registered");
             }
 
             setOnFly(true);
@@ -217,7 +246,9 @@ const RegisterOrg = () => {
                         )}
                         {step === "verify" && (
                             <>
-                                <Label htmlFor="otp" className="pb-3">Enter OTP</Label>
+                                <Label htmlFor="otp" className="pb-3">
+                                    Enter OTP
+                                </Label>
                                 <Input
                                     id="otp"
                                     type="text"
@@ -295,27 +326,65 @@ const RegisterOrg = () => {
                                     />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="city">City</Label>
-                                    <Input
-                                        id="city"
-                                        name="city"
-                                        value={formData.city}
-                                        onChange={handleChange}
-                                        placeholder="e.g. Jaipur"
-                                        required
-                                    />
-                                </div>
+                                {/* State Dropdown */}
                                 <div className="space-y-2">
                                     <Label htmlFor="state">State</Label>
-                                    <Input
-                                        id="state"
-                                        name="state"
+                                    <Select
                                         value={formData.state}
-                                        onChange={handleChange}
-                                        placeholder="e.g. Rajasthan"
-                                        required
-                                    />
+                                        onValueChange={handleStateChange}
+                                    >
+                                        <SelectTrigger
+                                            id="state"
+                                            className="w-full"
+                                        >
+                                            <SelectValue placeholder="Select State" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Object.keys(
+                                                indiaStatesAndCities
+                                            ).map((state) => (
+                                                <SelectItem
+                                                    key={state}
+                                                    value={state}
+                                                >
+                                                    {state}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* City Dropdown */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="city">City</Label>
+                                    <Select
+                                        value={formData.city}
+                                        onValueChange={handleCityChange}
+                                        disabled={!formData.state}
+                                    >
+                                        <SelectTrigger
+                                            id="city"
+                                            className="w-full"
+                                        >
+                                            <SelectValue
+                                                placeholder={
+                                                    formData.state
+                                                        ? "Select City"
+                                                        : "Select State First"
+                                                }
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {cities.map((city) => (
+                                                <SelectItem
+                                                    key={city}
+                                                    value={city}
+                                                >
+                                                    {city}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="pincode">Pincode</Label>

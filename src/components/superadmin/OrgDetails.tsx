@@ -25,7 +25,7 @@ import {
     AlertDialogCancel,
     AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { getAdminsOfOrg } from "@/services/organizationService";
+import { getAdminsOfOrg, getOrgById } from "@/services/organizationService";
 import { BackButton } from "../BackButton";
 
 export type User = StudentUser | TeacherUser;
@@ -38,6 +38,8 @@ export default function OrgDetails() {
     const [tests, setTests] = useState<Test[]>([]);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState("admins");
+
+    const [orgDetails, setOrgDetails] = useState(null);
 
     const { currentUser } = useAuth();
     const navigate = useNavigate();
@@ -138,6 +140,17 @@ export default function OrgDetails() {
             fetchAdmins();
         }
     }, [activeTab]);
+
+    useEffect(() => {
+        const getOrg = async () => {
+            const response = await getOrgById({ orgId });
+            console.log({ response });
+            if (response?.success) {
+                setOrgDetails(response?.data);
+            }
+        };
+        getOrg();
+    }, []);
 
     const renderUserRow = (user: User) => (
         <Card
@@ -305,10 +318,9 @@ export default function OrgDetails() {
     );
     return (
         <div className="max-w-6xl mx-auto px-4 py-6">
-
-          <BackButton />
+            <BackButton />
             <h1 className="text-2xl md:text-3xl font-bold text-center my-4">
-                🛠️ Organization Details
+                🛠️ {orgDetails?.org_name || 'Organization '} Details
             </h1>
 
             {loading ? (
@@ -327,21 +339,28 @@ export default function OrgDetails() {
                             type="button"
                             className="cursor-pointer"
                         >
-                            Admins {admins.length === 0 ? "" : `(${admins.length})`}
+                            Admins{" "}
+                            {admins.length === 0 ? "" : `(${admins.length})`}
                         </TabsTrigger>
                         <TabsTrigger
                             value="students"
                             type="button"
                             className="cursor-pointer"
                         >
-                            Students {students.length === 0 ? "" : `(${students.length})`}
+                            Students{" "}
+                            {students.length === 0
+                                ? ""
+                                : `(${students.length})`}
                         </TabsTrigger>
                         <TabsTrigger
                             type="button"
                             value="teachers"
                             className="cursor-pointer"
                         >
-                            Teachers {teachers.length === 0 ? "" : `(${teachers.length})`}
+                            Teachers{" "}
+                            {teachers.length === 0
+                                ? ""
+                                : `(${teachers.length})`}
                         </TabsTrigger>
                         <TabsTrigger
                             type="button"
