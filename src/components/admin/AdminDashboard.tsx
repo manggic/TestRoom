@@ -341,14 +341,14 @@ export default function AdminDashboard() {
                 {/* Desktop buttons */}
                 <div className="hidden sm:flex gap-2">
                     <Button
-                        className="gap-2"
+                        className="gap-2 cursor-pointer"
                         onClick={() => navigate("/teacher/create-test")}
                     >
                         <Plus size={18} /> Create Test
                     </Button>
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button className="gap-2">
+                            <Button className="gap-2 cursor-pointer">
                                 <Plus size={18} /> Create User
                             </Button>
                         </DialogTrigger>

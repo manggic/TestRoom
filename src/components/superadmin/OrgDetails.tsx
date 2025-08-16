@@ -320,7 +320,7 @@ export default function OrgDetails() {
         <div className="max-w-6xl mx-auto px-4 py-6">
             <BackButton />
             <h1 className="text-2xl md:text-3xl font-bold text-center my-4">
-                🛠️ {orgDetails?.org_name || 'Organization '} Details
+                🛠️ {orgDetails?.org_name || "Organization "} Details
             </h1>
 
             {loading ? (
@@ -390,7 +390,7 @@ export default function OrgDetails() {
                             admins.map(renderUserRow)
                         ) : (
                             <p className="text-muted-foreground text-center">
-                                No students found.
+                                No admins found.
                             </p>
                         )}
                     </TabsContent>

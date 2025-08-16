@@ -81,7 +81,7 @@ export default function TakeTest() {
         try {
             if (!testId) return;
             setLoading(true);
-            const data = await getTestById(testId);
+            const data = await getTestById({testId});
 
             if (data.success) {
                 setTestData(data.data);

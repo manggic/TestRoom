@@ -170,7 +170,7 @@ export default function EditTestPage() {
                 last_updated_by: user?.id,
             };
 
-            const response = await updateTest(test.id, updatedTestData);
+            const response = await updateTest({testId:test.id, testDataToUpdate:updatedTestData});
 
             if (response.success) {
                 toast.success("Test updated successfully");

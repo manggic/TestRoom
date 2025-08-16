@@ -1,8 +1,5 @@
-import { supabaseClient } from "../supabase/config";
-
-// TODO: Replace all Firebase auth logic with Supabase equivalents.
-
 import { errorHandler } from "@/lib/utils";
+import { supabaseClient } from "@/supabase/config";
 
 export const signupUser = async (
     email: string,
@@ -11,7 +8,7 @@ export const signupUser = async (
         name: string;
         role: "admin" | "student" | "teacher";
         actionBy?: string;
-        organization_id:string;
+        organization_id: string;
     }
 ) => {
     try {
@@ -23,7 +20,7 @@ export const signupUser = async (
                 data: {
                     name: additionalInfo.name,
                     role: additionalInfo.role,
-                    organization_id:additionalInfo.organization_id
+                    organization_id: additionalInfo.organization_id,
                 },
             },
         });
@@ -41,7 +38,7 @@ export const signupUser = async (
                 name: additionalInfo.name,
                 email,
                 role: additionalInfo.role,
-                organization_id:additionalInfo.organization_id,
+                organization_id: additionalInfo.organization_id,
                 attempted_tests_count: 0,
                 is_active: true,
                 created_at: new Date().toISOString(),
@@ -80,8 +77,10 @@ export const signupUser = async (
 };
 
 // Sign in with email/password
-export const logInUser = async (email: string, password: string) => {
+export const logInUser = async ({ email, password }) => {
     try {
+        // Sign up
+        // const signUpData = await supabase.auth.signUp({
         const { data, error } = await supabaseClient.auth.signInWithPassword({
             email,
             password,

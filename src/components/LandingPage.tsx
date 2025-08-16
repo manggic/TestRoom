@@ -33,7 +33,7 @@ function LandingNavbar() {
                     {currentUser?.user?.role ? (
                         <Link
                             to={`/${currentUser?.user?.role}`}
-                            className="text-muted-foreground hover:text-foreground transition"
+                            className="text-teal-600 font-bold"
                         >
                             Dashboard
                         </Link>
@@ -138,7 +138,7 @@ const LandingPage = () => {
                             variant="outline"
                             className="text-base text-white border bg-white/10 hover:bg-white/20 "
                         >
-                            <Link to="/login">🚀 Try Test Room</Link>
+                            <Link to="/demo">🚀 Try Test Room</Link>
                         </Button>
                     </div>
                 </div>
@@ -219,7 +219,7 @@ const LandingPage = () => {
                         variant="secondary"
                         className="text-lg font-semibold"
                     >
-                        <Link to="/register">Get Started</Link>
+                        <Link to="/login">Get Started</Link>
                     </Button>
                 </div>
             </section>

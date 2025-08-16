@@ -281,11 +281,3 @@ export async function getAttemptsListing(testId: string) {
         return errorHandler(error);
     }
 }
-
-// sample
-// export async function sample() {
-//     try {
-//     } catch (error) {
-//         return errorHandler(error);
-//     }
-// }

@@ -1,7 +1,7 @@
 import { errorHandler } from "@/lib/utils";
 import { supabaseClient } from "@/supabase/config";
 
-export const createTest = async (testDataToCreate) => {
+export const createTest = async ({ testDataToCreate }) => {
     try {
         const {
             test_name,
@@ -11,7 +11,7 @@ export const createTest = async (testDataToCreate) => {
             description,
             last_updated_by,
             created_by,
-            organization_id
+            organization_id,
         } = testDataToCreate;
         const total_marks = (questions || []).reduce(
             (sum, q) => sum + (Number(q.marks) || 0),
@@ -35,7 +35,7 @@ export const createTest = async (testDataToCreate) => {
                     updated_at: now,
                     last_updated_by,
                     created_by,
-                    organization_id
+                    organization_id,
                 },
             ])
             .select()
@@ -68,10 +68,7 @@ export const createTest = async (testDataToCreate) => {
     }
 };
 
-export async function updateTest(
-    testId: string,
-    testDataToUpdate: Partial<TEST_DATA_TO_CREATE>
-) {
+export async function updateTest({ testId, testDataToUpdate }) {
     try {
         const {
             test_name,
@@ -173,14 +170,13 @@ export async function updateTest(
     }
 }
 
-
-export async function getTestsOfOrg({orgId}) {
+export async function getTestsOfOrg({ orgId }) {
     try {
         // Step 1: Fetch all tests
         const { data: tests, error: testsError } = await supabaseClient
             .from("tests")
             .select("*")
-            .eq('organization_id', orgId)
+            .eq("organization_id", orgId);
         if (testsError) throw testsError;
 
         // Step 2: Get all user IDs used in createdBy and updatedBy fields
@@ -222,12 +218,11 @@ export async function getTestsOfOrg({orgId}) {
             })
         );
 
-        return { success: true, data: allTests , message:"success" };
+        return { success: true, data: allTests, message: "success" };
     } catch (error) {
         return errorHandler(error);
     }
 }
-
 
 export async function getTests() {
     try {
@@ -276,13 +271,13 @@ export async function getTests() {
             })
         );
 
-        return { success: true, data: allTests , message:"success" };
+        return { success: true, data: allTests, message: "success" };
     } catch (error) {
         return errorHandler(error);
     }
 }
 
-export async function getTestById(testId: string) {
+export async function getTestById({ testId }) {
     try {
         // Step 1: Fetch the test by ID
         const { data: test, error: testError } = await supabaseClient
@@ -331,19 +326,19 @@ export async function getTestById(testId: string) {
     }
 }
 
-export async function getTestsByTeacherId(userId: string,orgId:string) {
+export async function getTestsByTeacherId({ userId, orgId }) {
     try {
         // Step 1: Fetch all tests created by the given user
         const { data: tests, error: testsError } = await supabaseClient
             .from("tests")
             .select("*")
-            .eq('organization_id', orgId)
+            .eq("organization_id", orgId)
             .eq("created_by", userId);
 
         if (testsError) throw testsError;
 
         if (!tests || tests.length === 0) {
-            return { success: true, data: [], message:"data is empty" }; // no tests found
+            return { success: true, data: [], message: "data is empty" }; // no tests found
         }
 
         // Step 2: Extract all unique user IDs (created_by and last_updated_by)
@@ -359,7 +354,7 @@ export async function getTestsByTeacherId(userId: string,orgId:string) {
         const { data: users, error: usersError } = await supabaseClient
             .from("users")
             .select("id, name")
-            .eq('organization_id', orgId)
+            .eq("organization_id", orgId)
             .in("id", userIds);
 
         if (usersError) throw usersError;
@@ -388,10 +383,8 @@ export async function getTestsByTeacherId(userId: string,orgId:string) {
             })
         );
 
-        return { success: true, data: allTests , message:"success" };
+        return { success: true, data: allTests, message: "success" };
     } catch (error) {
         return errorHandler(error);
     }
 }
-
-

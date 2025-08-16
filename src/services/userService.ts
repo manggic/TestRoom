@@ -1,6 +1,5 @@
 import { errorHandler, handleResponse } from "@/lib/utils";
 import { supabaseClient } from "@/supabase/config";
-
 // Get all users
 export async function getUsers() {
     try {
@@ -29,14 +28,13 @@ export async function getUserById(id: string) {
     }
 }
 
-export async function getUsersOfOrg({orgId}) {
+export async function getUsersOfOrg({ orgId }) {
     try {
         // Step 1: Get all users
         const { data: users, error: usersError } = await supabaseClient
             .from("users")
             .select("*")
-            .eq('organization_id', orgId)
-            
+            .eq("organization_id", orgId);
 
         if (usersError) throw usersError;
 
@@ -49,7 +47,7 @@ export async function getUsersOfOrg({orgId}) {
                         await supabaseClient
                             .from("test_attempts")
                             .select("id, test_id")
-                            .eq('organization_id', orgId)
+                            .eq("organization_id", orgId)
                             .eq("student_id", user.id);
 
                     if (attemptsError) throw attemptsError;
@@ -91,7 +89,7 @@ export async function getUsersOfOrg({orgId}) {
                         await supabaseClient
                             .from("tests")
                             .select("id, test_name")
-                            .eq('organization_id', orgId)
+                            .eq("organization_id", orgId)
                             .eq("created_by", user.id);
 
                     if (createdTestsError) throw createdTestsError;
@@ -107,9 +105,6 @@ export async function getUsersOfOrg({orgId}) {
                     };
                 }
 
-                
-                
-
                 // For admin or other roles
                 return user;
             })
@@ -120,7 +115,6 @@ export async function getUsersOfOrg({orgId}) {
         return errorHandler(error);
     }
 }
-
 
 export async function getStudentsOfOrg({ orgId }) {
     try {
@@ -181,7 +175,6 @@ export async function getStudentsOfOrg({ orgId }) {
     }
 }
 
-
 export async function getTeachersOfOrg({ orgId }) {
     try {
         const { data: teachers, error: teachersError } = await supabaseClient
@@ -220,6 +213,3 @@ export async function getTeachersOfOrg({ orgId }) {
         return errorHandler(error);
     }
 }
-
-
-// delete user

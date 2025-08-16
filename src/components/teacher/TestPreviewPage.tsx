@@ -1,5 +1,5 @@
 // src/pages/TestPreviewPage.tsx
-import {useLocation, useParams } from "react-router";
+import { useLocation, useParams } from "react-router";
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/context/useAuth";
@@ -22,7 +22,7 @@ export default function TestPreviewPage() {
         async function testData() {
             if (!testId) return; // ✅ TypeScript now knows testId is string below
             try {
-                const response = await getTestById(testId);
+                const response = await getTestById({ testId });
 
                 if (response.success) {
                     setTest(response.data);

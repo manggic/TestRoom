@@ -23,8 +23,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const VITE_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const VITE_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
 
 const RegisterOrg = () => {
     const navigate = useNavigate();
@@ -91,11 +91,11 @@ const RegisterOrg = () => {
             // });
 
             const response = await fetch(
-                `https://${projectId}.supabase.co/functions/v1/send-otp`,
+                `${VITE_SUPABASE_URL}/functions/v1/send-otp`,
                 {
                     method: "POST",
                     headers: {
-                        Authorization: `Bearer ${anonKey}`,
+                        Authorization: `Bearer ${VITE_SUPABASE_KEY}`,
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({ email }),
@@ -133,11 +133,11 @@ const RegisterOrg = () => {
             setOnFly(true);
             // Use the full URL to the Supabase Edge Function to avoid CORS errors
             const response = await fetch(
-                `https://${projectId}.supabase.co/functions/v1/verify-otp`,
+                `${VITE_SUPABASE_URL}/functions/v1/verify-otp`,
                 {
                     method: "POST",
                     headers: {
-                        Authorization: `Bearer ${anonKey}`,
+                        Authorization: `Bearer ${VITE_SUPABASE_KEY}`,
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({ email, otp }),

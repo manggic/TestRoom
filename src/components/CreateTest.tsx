@@ -55,19 +55,21 @@ export default function CreateTest() {
             }
 
             const response = await createTest({
-                test_name: testName,
-                duration_minutes: durationMinutes,
-                questions,
-                last_updated_by: currentUser.user.id,
-                created_by: currentUser.user.id,
-                status: status.toLowerCase(),
-                description,
-                organization_id:currentUser.user.organization_id
+                testDataToCreate: {
+                    test_name: testName,
+                    duration_minutes: durationMinutes,
+                    questions,
+                    last_updated_by: currentUser?.user?.id,
+                    created_by: currentUser?.user?.id,
+                    status: status.toLowerCase(),
+                    description,
+                    organization_id: currentUser?.user?.organization_id,
+                },
             });
 
             if (response.success) {
                 toast.success(`✅ Test saved as ${status}`);
-                navigate(`/teacher`);
+                navigate(`/${currentUser?.user?.role}`);
             } else {
                 toast.error("Create Test Failed");
             }

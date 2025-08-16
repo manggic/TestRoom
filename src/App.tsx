@@ -20,6 +20,7 @@ import AdminDashboard from "./components/admin/AdminDashboard";
 import RegisterOrg from "./components/RegisterOrg";
 import SuperAdminDashboard from "./components/superadmin/SuperAdminDashboard";
 import OrgDetails from "./components/superadmin/OrgDetails";
+import DemoPage from "./components/demo/DemoPage";
 
 
 
@@ -43,6 +44,7 @@ function App() {
                 </Route>
 
                 <Route path="register-org" element={<RegisterOrg />} />
+                <Route path="demo" element={<DemoPage />} />
 
                 {/* <Route path="testing" element={<Testing />} /> */}
                 {/* Protected Routes */}

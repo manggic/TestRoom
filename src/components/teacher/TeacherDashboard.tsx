@@ -36,10 +36,10 @@ export default function TeacherDashboard() {
         async function loadMyTest() {
             try {
                 if (user?.id) {
-                    const response = await getTestsByTeacherId(
-                        user?.id,
-                        user?.organization_id
-                    );
+                    const response = await getTestsByTeacherId({
+                        userId: user?.id,
+                        orgId: user?.organization_id,
+                    });
                     if (response?.success) {
                         const tests = response?.data as Array<Test>;
 

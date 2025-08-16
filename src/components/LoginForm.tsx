@@ -5,8 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate, useLocation } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { toast } from "sonner";
+
 import { logInUser } from "@/services/authService";
 import { useAuth } from "@/context/useAuth";
 
@@ -32,7 +33,10 @@ export default function LoginForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const res = await logInUser(form.email, form.password);
+        const res = await logInUser({
+            email: form.email,
+            password: form.password,
+        });
 
         if (res.success) {
             toast.success("Login successful");
@@ -118,22 +122,23 @@ export default function LoginForm() {
                                 Login
                             </Button>
 
-                            <p className="text-sm text-center text-muted-foreground mt-4">
-                                Not registered yet?{" "}
-                                <Link
-                                    to="/register"
-                                    className="text-primary font-medium hover:underline"
+                            <div className="flex justify-center gap-3 mt-4">
+                                {/* Visit Home */}
+                                <a
+                                    href="/"
+                                    className="
+      flex items-center justify-center gap-2
+      px-5 py-2.5 rounded-full font-semibold text-sm
+      text-blue-600 bg-gradient-to-r from-blue-50 to-blue-100
+      border border-blue-200 shadow-sm
+      hover:shadow-md hover:scale-105 hover:from-blue-100 hover:to-blue-200
+      transition-all duration-300 ease-in-out
+      focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2
+    "
                                 >
-                                    Create an account
-                                </Link>
-                            </p>
-
-                            <a
-                                href="/"
-                                className="inline-flex items-center gap-1 rounded-md border border-transparent bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-50"
-                            >
-                                Visit Home
-                            </a>
+                                    Visit Home
+                                </a>
+                            </div>
                         </form>
                     </CardContent>
                 </Card>
