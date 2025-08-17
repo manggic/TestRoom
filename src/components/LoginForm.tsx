@@ -125,19 +125,11 @@ export default function LoginForm() {
                             <div className="flex justify-center gap-3 mt-4">
                                 {/* Visit Home */}
                                 <a
-                                    href="/"
-                                    className="
-      flex items-center justify-center gap-2
-      px-5 py-2.5 rounded-full font-semibold text-sm
-      text-blue-600 bg-gradient-to-r from-blue-50 to-blue-100
-      border border-blue-200 shadow-sm
-      hover:shadow-md hover:scale-105 hover:from-blue-100 hover:to-blue-200
-      transition-all duration-300 ease-in-out
-      focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2
-    "
-                                >
-                                    Visit Home
-                                </a>
+                                href="/"
+                                className="inline-flex items-center gap-1 rounded-md border border-transparent bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                            >
+                                Visit Home
+                            </a>
                             </div>
                         </form>
                     </CardContent>
