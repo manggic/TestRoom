@@ -69,3 +69,9 @@ export const indiaStatesAndCities: Record<string, string[]> = {
     "Amli",
   ],
 };
+
+
+export const isDemoLogin = (userName:any) => {
+  const roles = ['demoadmin', 'demoteacher','demostudent'] 
+  return roles.includes(userName)   
+}

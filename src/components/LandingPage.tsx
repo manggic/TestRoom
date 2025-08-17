@@ -33,7 +33,13 @@ function LandingNavbar() {
                     {currentUser?.user?.role ? (
                         <Link
                             to={`/${currentUser?.user?.role}`}
-                            className="text-teal-600 font-bold"
+                            className="relative font-semibold 
+             bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 
+             bg-clip-text text-transparent
+             hover:opacity-90 transition-all duration-300
+             after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 
+             after:bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500
+             hover:after:w-full after:transition-all after:duration-300"
                         >
                             Dashboard
                         </Link>
@@ -46,6 +52,13 @@ function LandingNavbar() {
                     >
                         Why Test Room
                     </a>
+                    <a
+                        href="#how-it-works"
+                        className="text-muted-foreground hover:text-foreground transition"
+                    >
+                        How It Works
+                    </a>
+
                     <a
                         href="#features"
                         className="text-muted-foreground hover:text-foreground transition"
@@ -132,14 +145,73 @@ const LandingPage = () => {
                                 Register Your Organization
                             </Link>
                         </Button>
+
                         <Button
                             asChild
                             size="lg"
                             variant="outline"
-                            className="text-base text-white border bg-white/10 hover:bg-white/20 "
+                            className="text-base text-white border bg-white/10 hover:bg-white/20"
                         >
-                            <Link to="/demo">🚀 Try Test Room</Link>
+                            <Link to="/demo">🚀 Try Demo</Link>
                         </Button>
+
+                        {/* New Login Button */}
+                        <Button
+                            asChild
+                            size="lg"
+                            variant="ghost"
+                            className="text-base text-white border border-white/20 hover:bg-white/10"
+                        >
+                            <Link to="/login">🔑 Login</Link>
+                        </Button>
+                    </div>
+                </div>
+            </section>
+
+            {/* How It Works Section */}
+            <section
+                id="how-it-works"
+                className="py-20 px-6 bg-background text-center border-b border-border"
+            >
+                <div className="max-w-4xl mx-auto">
+                    <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                        How Organizations Get Started
+                    </h2>
+                    <p className="text-muted-foreground text-lg mb-10">
+                        Setting up your coaching institute on Test Room is
+                        simple and secure. Here’s the process:
+                    </p>
+                    <div className="grid gap-10 sm:grid-cols-3 text-left">
+                        <div className="p-6 bg-muted rounded-2xl shadow-lg border border-border hover:shadow-xl transition-all duration-300">
+                            <h3 className="text-xl font-semibold mb-2">
+                                1. Verify Email via OTP
+                            </h3>
+                            <p className="text-muted-foreground">
+                                Enter your email and we will send a One-Time
+                                Password (OTP). Use it to verify that your email
+                                is valid.
+                            </p>
+                        </div>
+                        <div className="p-6 bg-muted rounded-2xl shadow-lg border border-border hover:shadow-xl transition-all duration-300">
+                            <h3 className="text-xl font-semibold mb-2">
+                                2. Enter Organization Details
+                            </h3>
+                            <p className="text-muted-foreground">
+                                After email verification, fill in your
+                                institute’s details to complete the registration
+                                form.
+                            </p>
+                        </div>
+                        <div className="p-6 bg-muted rounded-2xl shadow-lg border border-border hover:shadow-xl transition-all duration-300">
+                            <h3 className="text-xl font-semibold mb-2">
+                                3. Receive Admin Credentials
+                            </h3>
+                            <p className="text-muted-foreground">
+                                Once submitted successfully, we will email your
+                                admin credentials so you can start managing your
+                                organization.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </section>

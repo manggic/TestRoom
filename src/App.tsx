@@ -41,10 +41,11 @@ function App() {
                 <Route path="/" element={<LandingPage />} />
                 <Route element={<AuthLayout />}>
                     <Route path="contact-us" element={<Contact />} />
+                    <Route path="demo" element={<DemoPage />} />
                 </Route>
 
                 <Route path="register-org" element={<RegisterOrg />} />
-                <Route path="demo" element={<DemoPage />} />
+                
 
                 {/* <Route path="testing" element={<Testing />} /> */}
                 {/* Protected Routes */}
