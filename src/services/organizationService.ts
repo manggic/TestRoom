@@ -44,6 +44,7 @@ export const checkIfAlreadyRegistered = async ({ email }) => {
         }
         return true;
     } catch (error) {
+        console.log('checkIfAlreadyRegistered error', error?.message);
         return false;
     }
 };

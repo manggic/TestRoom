@@ -179,6 +179,21 @@ const RegisterOrg = () => {
         }));
     };
 
+    const notifyMe = async ({ orgName, orgEmail, orgOwner }) => {
+        try {
+            await fetch(`${VITE_SUPABASE_URL}/functions/v1/send-email`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${VITE_SUPABASE_KEY}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ orgEmail, orgName, orgOwner }),
+            });
+        } catch (error) {
+            console.log(error.message);
+        }
+    };
+
     const handleSubmitForm = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -193,6 +208,11 @@ const RegisterOrg = () => {
                 toast.success(
                     "Organization request submitted. You’ll hear from us soon."
                 );
+                notifyMe({
+                    orgName: formData?.org_name,
+                    orgEmail: email,
+                    orgOwner: formData?.owner_name,
+                });
                 navigate("/");
             } else {
                 toast.error("Submit failed: " + resp.error);
