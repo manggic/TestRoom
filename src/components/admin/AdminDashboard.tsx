@@ -161,7 +161,7 @@ export default function AdminDashboard() {
             
             if (!response.ok) {
                 const errorData = await response.json();
-                toast.error(`${errorData.error}`);
+                toast.error(`${response?.message}`);
                 throw new Error(
                     errorData.error || "Something went wrong on the server."
                 );
