@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { FileText, UserPlus } from "lucide-react";
+const VITE_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const VITE_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
 
 import {
     Dialog,
@@ -137,12 +139,32 @@ export default function AdminDashboard() {
         e.preventDefault();
         if (!validateSignUpForm(userForm, setErrors, { role: true })) return;
 
-        const response = await signupUser(userForm.email, userForm.password, {
-            name: userForm.name,
-            role: userForm.role,
-            actionBy: "admin",
-            organization_id: currentUser.user.organization_id,
-        });
+
+        const response = await fetch(
+                `${VITE_SUPABASE_URL}/functions/v1/create-user`,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${VITE_SUPABASE_KEY}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ email:userForm.email,
+                        password:userForm.password,
+                        name: userForm.name,
+                        role: userForm.role,
+                        organization_id: currentUser.user.organization_id,
+                    }),
+                }
+            );
+
+            console.log('create user response >>>>', response);
+            
+        // const response = await signupUser(userForm.email, userForm.password, {
+        //     name: userForm.name,
+        //     role: userForm.role,
+        //     actionBy: "admin",
+        //     organization_id: currentUser.user.organization_id,
+        // });
 
         if (response.success) {
             toast.success(`${response.message}`);
