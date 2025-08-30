@@ -159,15 +159,14 @@ export default function AdminDashboard() {
 
             console.log('create user response >>>>', response);
             
-        // const response = await signupUser(userForm.email, userForm.password, {
-        //     name: userForm.name,
-        //     role: userForm.role,
-        //     actionBy: "admin",
-        //     organization_id: currentUser.user.organization_id,
-        // });
-
-        if (response.success) {
-            toast.success(`${response.message}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                toast.error(`${errorData.error}`);
+                throw new Error(
+                    errorData.error || "Something went wrong on the server."
+                );
+            }else{
+               toast.success(`user created successfully`);
 
             setIsDialogOpen(false);
             setUserForm({
@@ -176,9 +175,14 @@ export default function AdminDashboard() {
                 password: "",
                 role: "student",
             });
-        } else {
-            toast.error(`${response.message}`);
-        }
+            }
+        // const response = await signupUser(userForm.email, userForm.password, {
+        //     name: userForm.name,
+        //     role: userForm.role,
+        //     actionBy: "admin",
+        //     organization_id: currentUser.user.organization_id,
+        // });
+
         console.log({ userForm });
     };
 
