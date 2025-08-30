@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getAdminsOfOrg, getOrgById } from "@/services/organizationService";
 import { BackButton } from "../BackButton";
+import ActionButtons from "../ActionButtons";
 
 export type User = StudentUser | TeacherUser;
 
@@ -41,7 +42,6 @@ export default function OrgDetails() {
 
     const [orgDetails, setOrgDetails] = useState(null);
 
-    const { currentUser } = useAuth();
     const navigate = useNavigate();
 
     const fetchStudents = async () => {
@@ -322,6 +322,8 @@ export default function OrgDetails() {
             <h1 className="text-2xl md:text-3xl font-bold text-center my-4">
                 🛠️ {orgDetails?.org_name || "Organization "} Details
             </h1>
+
+          <ActionButtons />
 
             {loading ? (
                 <div className="flex justify-center py-20">
