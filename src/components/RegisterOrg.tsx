@@ -78,9 +78,8 @@ const RegisterOrg = () => {
             const orgAlreadyRegistered = await checkIfAlreadyRegistered({
                 email,
             });
-
-            if (orgAlreadyRegistered) {
-                return toast.error("Organization Already Registered");
+            if (orgAlreadyRegistered?.error || orgAlreadyRegistered?.isAlreadyRegistered) {
+                return toast.error("Please check proper details");
             }
 
             setOnFly(true);

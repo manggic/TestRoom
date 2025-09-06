@@ -1,6 +1,6 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router";
-import SignUpForm from "@/components/SignUpForm";
+// import SignUpForm from "@/components/SignUpForm";
 import LoginForm from "@/components/LoginForm";
 import AuthLayout from "@/components/layouts/AuthLayout";
 import NotFound from "@/components/NotFound";
@@ -36,7 +36,7 @@ function App() {
             <Routes>
                 {/* Public Routes */}
                 <Route path="login" element={<LoginForm />} />
-                <Route path="register" element={<SignUpForm />} />
+                {/* <Route path="register" element={<SignUpForm />} /> */}
 
                 <Route path="/" element={<LandingPage />} />
                 <Route element={<AuthLayout />}>

@@ -71,13 +71,11 @@ function ActionButtons() {
             }
         );
 
-        console.log("create user response >>>>", response);
-
         if (!response.ok) {
             const errorData = await response.json();
-            toast.error(`${response?.message}`);
+            toast.error(`${errorData?.message}`);
             throw new Error(
-                errorData.error || "Something went wrong on the server."
+                errorData?.message || "Something went wrong on the server."
             );
         } else {
             toast.success(`user created successfully`);
@@ -235,8 +233,7 @@ function ActionButtons() {
                                         )}
                                     </div>
 
-
-                                      <div className="items-center gap-4">
+                                   {currentUser?.user?.role === 'superadmin' ?  <div className="items-center gap-4">
                                         <div className="grid grid-cols-4">
                                             <Label
                                                 htmlFor="email"
@@ -263,7 +260,8 @@ function ActionButtons() {
                                                 {errors.org_id}
                                             </p>
                                         )}
-                                    </div>
+                                    </div> :""}
+                                     
 
                                     {/* Role */}
                                     <div className="items-center gap-4">

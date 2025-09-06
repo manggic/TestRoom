@@ -90,41 +90,21 @@ export const logInUser = async ({ email, password }) => {
         if (!user?.email) {
             return { success: false, message: "Something went wrong" };
         }
+
+
         // Fetch full user record from 'users' table
         let { data: userRecord, error: userFetchError } = await supabaseClient
             .from("users")
             .select("*")
             .eq("id", user.id)
             .single();
-        if (userFetchError && userFetchError.code === "PGRST116") {
-            // User not found in users table, insert now
-            const { data: insertedUser, error: insertError } =
-                await supabaseClient
-                    .from("users")
-                    .insert([
-                        {
-                            id: user.id,
-                            name: user.user_metadata?.name || "",
-                            email: user.email,
-                            role: user.user_metadata?.role || "student",
-                            attempted_tests_count: 0,
-                            is_active: true,
-                            created_at: new Date().toISOString(),
-                            updated_at: new Date().toISOString(),
-                        },
-                    ])
-                    .select()
-                    .single();
-            if (insertError) {
-                return {
-                    success: false,
-                    message:
-                        "Login succeeded, but user profile could not be created. Please contact support.",
-                };
-            }
-            userRecord = insertedUser;
-        } else if (userFetchError) {
-            throw userFetchError;
+
+        if (userFetchError) {
+            return {
+                success: false,
+                data: null,
+                message: userFetchError?.message,
+            };
         }
         return { success: true, data: userRecord };
     } catch (error: any) {

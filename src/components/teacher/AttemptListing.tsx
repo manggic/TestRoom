@@ -152,20 +152,19 @@ export default function AttemptListing() {
                                         <div className="sm:hidden space-y-2 text-sm">
                                             <div>
                                                 <strong>Student:</strong>{" "}
-                                                {attempt.users?.name ||
-                                                    `ID: ${attempt.student_id}`}
+                                                {attempt?.users?.name}
                                             </div>
                                             <div>
                                                 <strong>Score:</strong>{" "}
                                                 <span
                                                     className={cn(
                                                         getScoreColor(
-                                                            attempt.score_achieved,
+                                                            attempt?.score_achieved,
                                                             total_marks
                                                         )
                                                     )}
                                                 >
-                                                    {attempt.score_achieved}/
+                                                    {attempt?.score_achieved}/
                                                     {total_marks}
                                                 </span>{" "}
                                                 <Badge
@@ -177,18 +176,18 @@ export default function AttemptListing() {
                                             </div>
                                             <div>
                                                 <strong>Correct:</strong>{" "}
-                                                {attempt.correct_answer_count}/
-                                                {attempt.total_questions}
+                                                {attempt?.correct_answer_count}/
+                                                {attempt?.total_questions}
                                             </div>
                                             <div>
                                                 <strong>Time Taken:</strong>{" "}
                                                 {formatDuration(
-                                                    attempt.time_taken_seconds
+                                                    attempt?.time_taken_seconds
                                                 )}
                                             </div>
                                             <div>
                                                 <strong>Attempted On:</strong>{" "}
-                                                {formatDate(attempt.created_at)}
+                                                {formatDate(attempt?.created_at)}
                                             </div>
                                             <div>
                                                 <Button
@@ -197,7 +196,7 @@ export default function AttemptListing() {
                                                     className="mt-2"
                                                     onClick={() =>
                                                         navigate(
-                                                            `/student/result/${attempt.id}`
+                                                            `/student/result/${attempt?.id}`
                                                         )
                                                     }
                                                 >
@@ -210,19 +209,19 @@ export default function AttemptListing() {
                                         {/* Desktop view (hidden on mobile) */}
                                         <div className="hidden sm:grid grid-cols-6 gap-3 sm:gap-4 items-center text-sm">
                                             <div className="font-medium">
-                                                {attempt.users?.name ||
-                                                    `Student ID: ${attempt.student_id}`}
+                                                {attempt?.users?.name ||
+                                                    `Student ID: ${attempt?.student_id}`}
                                             </div>
                                             <div className="font-medium flex items-center justify-center gap-2">
                                                 <span
                                                     className={cn(
                                                         getScoreColor(
-                                                            attempt.score_achieved,
+                                                            attempt?.score_achieved,
                                                             total_marks
                                                         )
                                                     )}
                                                 >
-                                                    {attempt.score_achieved}/
+                                                    {attempt?.score_achieved}/
                                                     {total_marks}
                                                 </span>
                                                 <Badge
@@ -233,16 +232,16 @@ export default function AttemptListing() {
                                                 </Badge>
                                             </div>
                                             <div className="font-medium">
-                                                {attempt.correct_answer_count}/
-                                                {attempt.total_questions}
+                                                {attempt?.correct_answer_count}/
+                                                {attempt?.total_questions}
                                             </div>
                                             <div className="font-medium">
                                                 {formatDuration(
-                                                    attempt.time_taken_seconds
+                                                    attempt?.time_taken_seconds
                                                 )}
                                             </div>
                                             <div className="font-medium text-right">
-                                                {formatDate(attempt.created_at)}
+                                                {formatDate(attempt?.created_at)}
                                             </div>
                                             <div className="flex justify-center">
                                                 <Button
@@ -251,7 +250,7 @@ export default function AttemptListing() {
                                                     className="cursor-pointer"
                                                     onClick={() =>
                                                         navigate(
-                                                            `/student/result/${attempt.id}`
+                                                            `/student/result/${attempt?.id}`
                                                         )
                                                     }
                                                 >
