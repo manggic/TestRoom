@@ -4,9 +4,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // Define a reusable set of CORS headers
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers":
+        "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 serve(async (req) => {
@@ -14,22 +15,27 @@ serve(async (req) => {
     if (req.method === "OPTIONS") {
         return new Response("ok", { headers: corsHeaders });
     }
-  
+
     try {
         // ONLY try to parse the body if the method is POST
         const { email, otp } = await req.json();
 
         if (!email || !otp) {
-            return new Response(JSON.stringify({ error: "Email and OTP are required" }), {
-                status: 400,
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
+            return new Response(
+                JSON.stringify({ error: "Email and OTP are required" }),
+                {
+                    status: 400,
+                    headers: {
+                        ...corsHeaders,
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
         }
 
         const supabase = createClient(
             Deno.env.get("SUPABASE_URL")!,
-            Deno.env.get("SUPABASE_ANON_KEY")!,
-            { global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } } }
+            Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
         );
 
         const { data, error } = await supabase
@@ -51,13 +57,45 @@ serve(async (req) => {
             throw new Error("Invalid OTP.");
         }
 
-        // Delete the OTP after successful verification to prevent reuse
-        await supabase.from("email_otps").delete().eq("email", email);
+        async function markEmailVerified(email: string) {
+            const { data, error } = await supabase
+                .from("email_otps")
+                .update({ isEmailVerified: true })
+                .eq("email", email);
 
-        return new Response(JSON.stringify({ success: true, message: "Organization verified successfully." }), {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+            if (error) {
+                console.error("Error updating verification:", error.message);
+                return new Response(
+                    JSON.stringify({
+                        success: false,
+                        message: "Please verify again",
+                    }),
+                    {
+                        status: 200,
+                        headers: {
+                            ...corsHeaders,
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
+            }
+        }
+
+        markEmailVerified(email);
+
+        // Delete the OTP after successful verification to prevent reuse
+        // await supabase.from("email_otps").delete().eq("email", email);
+
+        return new Response(
+            JSON.stringify({
+                success: true,
+                message: "Organization verified successfully.",
+            }),
+            {
+                status: 200,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+            }
+        );
     } catch (error) {
         return new Response(JSON.stringify({ error: error.message }), {
             status: 400,

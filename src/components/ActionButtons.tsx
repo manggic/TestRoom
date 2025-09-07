@@ -17,9 +17,9 @@ import { toast } from "sonner";
 import { Plus, EyeOff, Eye } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { supabaseClient } from "@/supabase/config";
 
 const VITE_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const VITE_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
 type UserForm = {
     name: string;
     email: string;
@@ -53,12 +53,17 @@ function ActionButtons() {
         e.preventDefault();
         if (!validateSignUpForm(userForm, setErrors, { role: true })) return;
 
+
+        const session = await supabaseClient?.auth?.getSession()
+
+        const token = session.data.session?.access_token
+        
         const response = await fetch(
             `${VITE_SUPABASE_URL}/functions/v1/create-user`,
             {
                 method: "POST",
                 headers: {
-                    Authorization: `Bearer ${VITE_SUPABASE_KEY}`,
+                    Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
