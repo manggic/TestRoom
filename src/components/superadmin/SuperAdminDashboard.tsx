@@ -16,7 +16,7 @@ import { useNavigate } from "react-router";
 function SuperAdminDashboard() {
     const [orgs, setOrgs] = useState([]);
 
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     useEffect(() => {
         const fetchAllOrg = async () => {
             const response = await getAllOrg();
@@ -44,7 +44,7 @@ function SuperAdminDashboard() {
                             state,
                             city,
                             created_at,
-                            id
+                            id,
                         } = org || {};
                         return (
                             <Card className="bg-white dark:bg-zinc-800 shadow-md hover:shadow-xl transition-all p-5 flex flex-col justify-between">
@@ -86,7 +86,14 @@ function SuperAdminDashboard() {
                                     </div>
                                 </div>
 
-                                <Button onClick={()=> navigate(`/superadmin/org/${id}`)} className="cursor-pointer">More Details</Button>
+                                <Button
+                                    onClick={() =>
+                                        navigate(`/superadmin/org/${id}`)
+                                    }
+                                    className="cursor-pointer"
+                                >
+                                    More Details
+                                </Button>
                             </Card>
                         );
                     })}

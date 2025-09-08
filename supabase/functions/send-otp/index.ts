@@ -32,6 +32,8 @@ serve(async (req) => {
                 );
             }
 
+            
+
             // Generate OTP & expiry
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
             const expires_at = new Date(Date.now() + 10 * 60 * 1000).toISOString();
@@ -39,20 +41,15 @@ serve(async (req) => {
             // Supabase client
             const supabase = createClient(
                 Deno.env.get("SUPABASE_URL")!,
-                Deno.env.get("SUPABASE_ANON_KEY")!,
-                {
-                    global: {
-                        headers: {
-                            Authorization: req.headers.get("Authorization") ?? "",
-                        },
-                    },
-                }
+                Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
             );
+
+            await supabase.from("email_otps").delete().eq("email", email);
 
             // Upsert OTP in DB
             const { error: upsertError } = await supabase
                 .from("email_otps")
-                .upsert({ email, otp, expires_at }, { onConflict: "email" });
+                .upsert({ email, otp, expires_at, isEmailVerified: false }, { onConflict: "email" });
 
             if (upsertError) throw new Error(upsertError.message);
 

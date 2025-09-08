@@ -38,7 +38,7 @@ export default function LoginForm() {
             password: form.password,
         });
 
-        if (res.success) {
+        if (res?.success) {
             toast.success("Login successful");
             navigate(`/${res?.data?.role}`, { replace: true });
         } else {

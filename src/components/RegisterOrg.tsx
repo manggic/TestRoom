@@ -78,9 +78,8 @@ const RegisterOrg = () => {
             const orgAlreadyRegistered = await checkIfAlreadyRegistered({
                 email,
             });
-
-            if (orgAlreadyRegistered) {
-                return toast.error("Organization Already Registered");
+            if (orgAlreadyRegistered?.error || orgAlreadyRegistered?.isAlreadyRegistered) {
+                return toast.error("Please check proper details");
             }
 
             setOnFly(true);
@@ -203,8 +202,19 @@ const RegisterOrg = () => {
             });
             if (!isValid) return toast.error(message);
 
-            const resp = await registerOrganization({ ...formData, email });
-            if (resp.success) {
+            // const resp = await registerOrganization({ ...formData, email });
+
+
+            const resp =await fetch(`${VITE_SUPABASE_URL}/functions/v1/register-organization`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${VITE_SUPABASE_KEY}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ ...formData, email }),
+            });
+            
+            if (resp.ok) {
                 toast.success(
                     "Organization request submitted. You’ll hear from us soon."
                 );

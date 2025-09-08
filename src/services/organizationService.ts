@@ -35,17 +35,20 @@ export const checkIfAlreadyRegistered = async ({ email }) => {
         const { data, error } = await supabaseClient
             .from("organizations")
             .select("email")
-            .eq("email", email)
-            .single();
+            .eq("email", email);
+        // .single();        
 
-        if (error || !data) {
+        if (error) {
             // Do not reveal if the email exists, for security reasons
-            return false;
+            return { error: true };
         }
-        return true;
+        if (data?.length) {
+            return { error: false, isAlreadyRegistered: true };
+        }
+        return { error: false, isAlreadyRegistered: false };
     } catch (error) {
-        console.log('checkIfAlreadyRegistered error', error?.message);
-        return false;
+        console.log("checkIfAlreadyRegistered error", error?.message);
+        return { error: true };
     }
 };
 
