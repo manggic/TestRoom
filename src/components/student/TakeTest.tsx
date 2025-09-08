@@ -14,7 +14,7 @@ import { Download, TimerReset, AlertCircle } from "lucide-react";
 
 import type { Question } from "@/types/test";
 
-import { submitTestAttempt } from "@/services/testAttemptService";
+import { getTestAttemptStatus, submitTestAttempt } from "@/services/testAttemptService";
 import { getTestById } from "@/services/testService";
 import { downloadPDF } from "@/lib/utils";
 
@@ -29,7 +29,6 @@ interface TestData {
         name: string;
     };
 }
-
 export default function TakeTest() {
     const { testId } = useParams();
     const navigate = useNavigate();
@@ -43,6 +42,25 @@ export default function TakeTest() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [startTime, setStartTime] = useState("");
+    const [isTestAlreadyAttempted, setisTestAlreadyAttempted ] = useState(false)
+
+    const [testAttemptId, setTestAttemptId] = useState(null)
+
+    const checkIfStudentAlreadyAttempted = async () => {
+
+        if (!testId || !currentUser?.user?.id) return;
+
+        try {
+            const response = await getTestAttemptStatus({ testId, userId: currentUser.user.id, organizationId: currentUser?.user?.organization_id });
+
+            if (response.success) {
+                setisTestAlreadyAttempted(response.data.length );
+                setTestAttemptId(response.data.length ? response?.data?.[0]?.id : null)
+            }
+        } catch (error) {
+            console.error("Error checking test attempt status:", error);
+        }
+    };
 
     // Mutex to prevent parallel loadTest/startTestAttempt
 
@@ -71,13 +89,17 @@ export default function TakeTest() {
         ? Math.ceil(testData.questions.length / questionsPerPage)
         : 1;
 
+     useEffect(()=> {
+        checkIfStudentAlreadyAttempted();
+     }, [testId, currentUser]);
+
     useEffect(() => {
         if (testId && currentUser?.user?.id && !testData) {
             loadTest();
         }
     }, [testId, currentUser]);
 
-    const loadTest = async () => {
+    const loadTest = async () => {        
         try {
             if (!testId) return;
             setLoading(true);
@@ -238,13 +260,39 @@ export default function TakeTest() {
                         The test you're looking for doesn't exist or has been
                         removed.
                     </p>
-                    <Button onClick={() => navigate("/dashboard")}>
+                    <Button onClick={() => navigate(`/${currentUser?.user?.role}`)}>
                         Back to Dashboard
                     </Button>
                 </div>
             </div>
         );
     }
+
+
+
+    if (isTestAlreadyAttempted) {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center max-w-md p-6 bg-card rounded-2xl shadow-lg">
+        <AlertCircle className="h-14 w-14 text-yellow-500 mx-auto mb-4" />
+        <h3 className="text-xl font-bold mb-2">Test Already Attempted</h3>
+        <p className="text-muted-foreground mb-6">
+          You’ve already submitted this test. You can view your results or go back
+          to the dashboard.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Button asChild variant="secondary">
+            <a href={`/${currentUser?.user?.role}`}>Back to Dashboard</a>
+          </Button>
+          <Button asChild>
+            <a href={`/student/result/${testAttemptId}`}>View Results</a>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
     return (
         <div className="max-w-4xl mx-auto p-6">

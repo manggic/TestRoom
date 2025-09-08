@@ -281,3 +281,21 @@ export async function getAttemptsListing(testId: string) {
         return errorHandler(error);
     }
 }
+
+export async function getTestAttemptStatus(params: { testId: string; userId: string, organizationId?: string }) {
+    try {
+        const { data, error } = await supabaseClient
+            .from("test_attempts")
+            .select("id")
+            .eq("test_id", params.testId)
+            .eq("student_id", params.userId)
+            .eq("organization_id", params.organizationId)
+            .order("created_at", { ascending: false })
+            .limit(1);            
+
+        if (error) throw error;
+        return handleResponse(data, error);
+    } catch (error) {
+        return errorHandler(error);
+    }
+}
