@@ -25,7 +25,7 @@ function LandingNavbar() {
                         src={"/images/logo.png"}
                         width={"133px"}
                         height={"40px"}
-                    ></img>
+                    />
                 </Link>
 
                 {/* Desktop Menu */}
@@ -82,37 +82,37 @@ const features = [
         title: "Students",
         icon: GraduationCap,
         description:
-            "Take tests assigned by teachers, view your attempts, and download result summaries instantly.",
+            "Take tests created by parents, teachers, or admins. Review your attempts and download results instantly.",
     },
     {
         title: "Teachers",
         icon: ClipboardList,
         description:
-            "Create MCQ-based tests, track student performance, and manage test data effectively.",
+            "Easily create and manage MCQ tests, track student progress, and analyze performance data.",
     },
     {
         title: "Admins",
         icon: ShieldCheck,
         description:
-            "Full control over users and tests. Manage teachers, students, and audit test activities globally.",
+            "As soon as you sign up, you become an Admin. Manage your own space with teachers, students, and tests.",
     },
     {
         title: "Detailed Reports",
         icon: BarChart2,
         description:
-            "Auto-generated performance reports with per-question analytics for better evaluation.",
+            "Instant performance reports with per-question analytics for smarter evaluation.",
     },
     {
         title: "Role-based Access",
         icon: Users,
         description:
-            "Every user gets tailored access – keeping things secure, organized, and efficient.",
+            "Every role gets the right access – secure, simple, and organized.",
     },
     {
         title: "Smart Authentication",
         icon: UserCheck,
         description:
-            "Secure login/signup with real-time session management across all roles.",
+            "Quick signup and secure login. Start creating tests in seconds.",
     },
 ];
 
@@ -125,14 +125,15 @@ const LandingPage = () => {
                 <div className="absolute inset-0 bg-grid-white/[0.05] pointer-events-none" />
                 <div className="max-w-5xl mx-auto z-10 relative">
                     <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
-                        Empower Your Coaching Institute with{" "}
+                        Create Tests & Manage Students with{" "}
                         <span className="bg-gradient-to-r from-yellow-300 via-pink-500 to-purple-600 text-transparent bg-clip-text drop-shadow-lg">
                             Test Room
                         </span>
                     </h1>
                     <p className="text-lg md:text-xl max-w-2xl mx-auto mb-10 text-white/90">
-                        Conduct online tests, analyze performance, and manage
-                        students and teachers seamlessly – all in one place.
+                        Whether you’re a parent, tutor, or institute – Test Room
+                        lets you create online tests, track performance, and
+                        manage everything in one place.
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <Button
@@ -142,7 +143,7 @@ const LandingPage = () => {
                             className="text-base font-semibold"
                         >
                             <Link to="/register-org">
-                                Register Your Organization
+                                🚀 Get Started for Free
                             </Link>
                         </Button>
 
@@ -152,10 +153,9 @@ const LandingPage = () => {
                             variant="outline"
                             className="text-base text-white border bg-white/10 hover:bg-white/20"
                         >
-                            <Link to="/demo">🚀 Try Demo</Link>
+                            <Link to="/demo">🎯 Try Demo</Link>
                         </Button>
 
-                        {/* New Login Button */}
                         <Button
                             asChild
                             size="lg"
@@ -175,41 +175,38 @@ const LandingPage = () => {
             >
                 <div className="max-w-4xl mx-auto">
                     <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                        How Organizations Get Started
+                        How It Works
                     </h2>
                     <p className="text-muted-foreground text-lg mb-10">
-                        Setting up your coaching institute on Test Room is
-                        simple and secure. Here’s the process:
+                        Getting started is quick and easy – no waiting, no
+                        verification needed.
                     </p>
                     <div className="grid gap-10 sm:grid-cols-3 text-left">
                         <div className="p-6 bg-muted rounded-2xl shadow-lg border border-border hover:shadow-xl transition-all duration-300">
                             <h3 className="text-xl font-semibold mb-2">
-                                1. Verify Email via OTP
+                                1. Sign Up
                             </h3>
                             <p className="text-muted-foreground">
-                                Enter your email and we will send a One-Time
-                                Password (OTP). Use it to verify that your email
-                                is valid.
+                                Just enter your name, email, and password to
+                                create your account.
                             </p>
                         </div>
                         <div className="p-6 bg-muted rounded-2xl shadow-lg border border-border hover:shadow-xl transition-all duration-300">
                             <h3 className="text-xl font-semibold mb-2">
-                                2. Enter Organization Details
+                                2. Start Creating Tests
                             </h3>
                             <p className="text-muted-foreground">
-                                After email verification, fill in your
-                                institute’s details to complete the registration
-                                form.
+                                You’re instantly an Admin. Add teachers or
+                                students, and begin building your first test.
                             </p>
                         </div>
                         <div className="p-6 bg-muted rounded-2xl shadow-lg border border-border hover:shadow-xl transition-all duration-300">
                             <h3 className="text-xl font-semibold mb-2">
-                                3. Receive Admin Credentials
+                                3. Share & Track Results
                             </h3>
                             <p className="text-muted-foreground">
-                                Once submitted successfully, we will email your
-                                admin credentials so you can start managing your
-                                organization.
+                                Students can log in, attempt tests, and results
+                                are available instantly for review.
                             </p>
                         </div>
                     </div>
@@ -226,26 +223,15 @@ const LandingPage = () => {
                         Why Choose Test Room?
                     </h2>
                     <p className="text-muted-foreground text-lg mb-6">
-                        Designed for coaching classes, schools, and tutors, Test
-                        Room brings powerful test-taking tools into your hands:
+                        Designed for parents, tutors, and institutes alike –
+                        Test Room makes online assessments simple:
                     </p>
                     <ul className="text-left max-w-2xl mx-auto text-base text-muted-foreground space-y-4 list-disc pl-6">
-                        <li>
-                            Create and assign unlimited MCQ tests with time
-                            limits
-                        </li>
-                        <li>
-                            Monitor student performance with accuracy and timing
-                            insights
-                        </li>
-                        <li>
-                            Admin-level control for organization-wide visibility
-                        </li>
-                        <li>
-                            Secure login, real-time submissions, and
-                            downloadable result summaries
-                        </li>
-                        <li>Optimized for both desktop and mobile access</li>
+                        <li>Create and assign unlimited MCQ tests</li>
+                        <li>Instant results with performance analytics</li>
+                        <li>Role-based dashboard for Admin, Teacher, Student</li>
+                        <li>Secure login & real-time submissions</li>
+                        <li>Optimized for both desktop and mobile</li>
                     </ul>
                 </div>
             </section>
@@ -254,7 +240,7 @@ const LandingPage = () => {
             <section id="features" className="py-20 px-6 bg-background">
                 <div className="max-w-6xl mx-auto text-center">
                     <h2 className="text-3xl md:text-4xl font-bold mb-12">
-                        Made for Modern Educators
+                        Made for Everyone
                     </h2>
                     <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                         {features.map((feature, idx) => (
@@ -279,11 +265,11 @@ const LandingPage = () => {
             <section className="py-20 px-6 bg-indigo-700 text-white text-center">
                 <div className="max-w-4xl mx-auto">
                     <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                        Ready to simplify your test management process?
+                        Ready to create your first test?
                     </h2>
                     <p className="text-lg mb-8">
-                        Join hundreds of educators using Test Room to digitize
-                        assessments and accelerate student results.
+                        Join thousands of users who are already testing smarter
+                        with Test Room.
                     </p>
                     <Button
                         asChild
@@ -291,7 +277,7 @@ const LandingPage = () => {
                         variant="secondary"
                         className="text-lg font-semibold"
                     >
-                        <Link to="/login">Get Started</Link>
+                        <Link to="/register-org">Get Started</Link>
                     </Button>
                 </div>
             </section>
@@ -301,12 +287,10 @@ const LandingPage = () => {
                 className="bg-muted/10 py-20 px-6 text-center border-t border-border"
             >
                 <div className="max-w-3xl mx-auto">
-                    <h2 className="text-3xl font-bold">
-                        Need Help or Have a Question?
-                    </h2>
+                    <h2 className="text-3xl font-bold">Need Help?</h2>
                     <p className="text-muted-foreground mt-3 text-lg">
-                        Our team is always ready to support you. Reach out for
-                        help, feedback, or demo.
+                        Our team is here to support you. Reach out for help,
+                        feedback, or demo.
                     </p>
                     <Link to="/contact-us">
                         <Button className="mt-6 text-base px-6 py-2">

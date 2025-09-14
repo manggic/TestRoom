@@ -5,23 +5,22 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { isEmail } from "validator";
 import Navbar from "./Navbar";
+import { Eye, EyeOff } from "lucide-react";
+
 import { validateOrgRegistration } from "@/lib/utils";
-import {
-    checkIfAlreadyRegistered,
-    registerOrganization,
-} from "@/services/organizationService";
+import { checkIfAlreadyRegistered } from "@/services/organizationService";
 import { useNavigate } from "react-router";
-import { Textarea } from "@/components/ui/textarea";
-import { indiaStatesAndCities } from "@/lib/constants";
+// import { Textarea } from "@/components/ui/textarea";
+// import { indiaStatesAndCities } from "@/lib/constants";
 import { Label } from "@/components/ui/label";
 
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+// import {
+//     Select,
+//     SelectContent,
+//     SelectItem,
+//     SelectTrigger,
+//     SelectValue,
+// } from "@/components/ui/select";
 
 const VITE_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const VITE_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
@@ -33,17 +32,21 @@ const RegisterOrg = () => {
     const [otp, setOtp] = useState("");
     const [timer, setTimer] = useState(0);
     const [onFly, setOnFly] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [passwordErrorMsg, setPasswordErrorMsg] = useState("");
+
     const [formData, setFormData] = useState<any>({
-        org_name: "",
-        org_address: "",
-        pincode: "",
-        state: "",
-        city: "",
-        contact_number: "",
+        // org_name: "",
+        // org_address: "",
+        // pincode: "",
+        // state: "",
+        // city: "",
+        // contact_number: "",
         owner_name: "",
+        password: "",
         email: "",
     });
-    const [cities, setCities] = useState<string[]>([]);
+    // const [cities, setCities] = useState<string[]>([]);
 
     useEffect(() => {
         if (timer > 0) {
@@ -53,22 +56,35 @@ const RegisterOrg = () => {
     }, [timer]);
 
     // Handle State change
-    const handleStateChange = (state: string) => {
-        setFormData((prev: any) => ({ ...prev, state, city: "" })); // Reset city
-        setCities(indiaStatesAndCities[state] || []);
-    };
+    // const handleStateChange = (state: string) => {
+    //     setFormData((prev: any) => ({ ...prev, state, city: "" })); // Reset city
+    //     setCities(indiaStatesAndCities[state] || []);
+    // };
 
-    // Handle City change
-    const handleCityChange = (city: string) => {
-        setFormData((prev: any) => ({ ...prev, city }));
-    };
+    // // Handle City change
+    // const handleCityChange = (city: string) => {
+    //     setFormData((prev: any) => ({ ...prev, city }));
+    // };
 
     // Load cities if state already has a value (edit mode)
-    useEffect(() => {
-        if (formData.state) {
-            setCities(indiaStatesAndCities[formData.state] || []);
+    // useEffect(() => {
+    //     if (formData.state) {
+    //         setCities(indiaStatesAndCities[formData.state] || []);
+    //     }
+    // }, [formData.state]);
+
+    const validatePassword = (value: string) => {
+        const strongPasswordRegex =
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+        if (!strongPasswordRegex.test(value)) {
+            setPasswordErrorMsg(
+                "Password must be at least 8 characters long and include at least one uppercase (A–Z), one lowercase (a–z), one number (0–9), and one special character (@ $ ! % * ? &)."
+            );
+        } else {
+            setPasswordErrorMsg("");
         }
-    }, [formData.state]);
+    };
 
     const handleSendOtp = async () => {
         try {
@@ -78,7 +94,10 @@ const RegisterOrg = () => {
             const orgAlreadyRegistered = await checkIfAlreadyRegistered({
                 email,
             });
-            if (orgAlreadyRegistered?.error || orgAlreadyRegistered?.isAlreadyRegistered) {
+            if (
+                orgAlreadyRegistered?.error ||
+                orgAlreadyRegistered?.isAlreadyRegistered
+            ) {
                 return toast.error("Please check proper details");
             }
 
@@ -178,7 +197,7 @@ const RegisterOrg = () => {
         }));
     };
 
-    const notifyMe = async ({ orgName, orgEmail, orgOwner }) => {
+    const notifyMe = async ({orgEmail, orgOwner }) => {
         try {
             await fetch(`${VITE_SUPABASE_URL}/functions/v1/send-email`, {
                 method: "POST",
@@ -186,7 +205,7 @@ const RegisterOrg = () => {
                     Authorization: `Bearer ${VITE_SUPABASE_KEY}`,
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ orgEmail, orgName, orgOwner }),
+                body: JSON.stringify({ orgEmail, orgOwner }),
             });
         } catch (error) {
             console.log(error.message);
@@ -204,22 +223,24 @@ const RegisterOrg = () => {
 
             // const resp = await registerOrganization({ ...formData, email });
 
+            const resp = await fetch(
+                `${VITE_SUPABASE_URL}/functions/v1/register-organization`,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${VITE_SUPABASE_KEY}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ ...formData, email }),
+                }
+            );
 
-            const resp =await fetch(`${VITE_SUPABASE_URL}/functions/v1/register-organization`, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${VITE_SUPABASE_KEY}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ ...formData, email }),
-            });
-            
             if (resp.ok) {
                 toast.success(
-                    "Organization request submitted. You’ll hear from us soon."
+                    "Registration successful"
                 );
                 notifyMe({
-                    orgName: formData?.org_name,
+                    // orgName: formData?.org_name,
                     orgEmail: email,
                     orgOwner: formData?.owner_name,
                 });
@@ -241,21 +262,21 @@ const RegisterOrg = () => {
                 <Card className="w-full max-w-lg shadow-lg border border-muted backdrop-blur-md bg-white/5 rounded-2xl">
                     <CardHeader className="text-center space-y-2">
                         <CardTitle className="text-xl sm:text-3xl font-bold">
-                            🏢 Register Your Organization
+                            🏢 Register Form
                         </CardTitle>
-                        <p className="text-muted-foreground text-sm">
+                        {/* <p className="text-muted-foreground text-sm">
                             {step === "start"
                                 ? "Enter your organization email to get started."
                                 : step === "verify"
                                 ? "Verify the OTP sent to your email."
-                                : "Fill in your organization details."}
-                        </p>
+                                : "Fill in your details."}
+                        </p> */}
                     </CardHeader>
                     <CardContent>
                         {step === "start" && (
                             <>
                                 <Label htmlFor="email" className="pb-3">
-                                    Organization Email
+                                    Enter Email
                                 </Label>
                                 <Input
                                     id="email"
@@ -316,7 +337,7 @@ const RegisterOrg = () => {
                                 onSubmit={handleSubmitForm}
                                 className="grid grid-cols-1 md:grid-cols-2 gap-6"
                             >
-                                <div className="space-y-2">
+                                {/* <div className="space-y-2">
                                     <Label htmlFor="org_name">
                                         Organization Name
                                     </Label>
@@ -328,22 +349,9 @@ const RegisterOrg = () => {
                                         placeholder="e.g. Wisdom International School"
                                         required
                                     />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="owner_name">
-                                        Owner / Admin Name
-                                    </Label>
-                                    <Input
-                                        id="owner_name"
-                                        name="owner_name"
-                                        value={formData.owner_name}
-                                        onChange={handleChange}
-                                        placeholder="e.g. Radhika Mehta"
-                                        required
-                                    />
-                                </div>
+                                </div> */}
 
-                                <div className="space-y-2 md:col-span-2">
+                                {/* <div className="space-y-2 md:col-span-2">
                                     <Label htmlFor="org_address">Address</Label>
                                     <Textarea
                                         id="org_address"
@@ -354,10 +362,10 @@ const RegisterOrg = () => {
                                         rows={2}
                                         required
                                     />
-                                </div>
+                                </div> */}
 
                                 {/* State Dropdown */}
-                                <div className="space-y-2">
+                                {/* <div className="space-y-2">
                                     <Label htmlFor="state">State</Label>
                                     <Select
                                         value={formData.state}
@@ -382,10 +390,10 @@ const RegisterOrg = () => {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                </div>
+                                </div> */}
 
                                 {/* City Dropdown */}
-                                <div className="space-y-2">
+                                {/* <div className="space-y-2">
                                     <Label htmlFor="city">City</Label>
                                     <Select
                                         value={formData.city}
@@ -415,8 +423,8 @@ const RegisterOrg = () => {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                </div>
-                                <div className="space-y-2">
+                                </div> */}
+                                {/* <div className="space-y-2">
                                     <Label htmlFor="pincode">Pincode</Label>
                                     <Input
                                         id="pincode"
@@ -441,6 +449,19 @@ const RegisterOrg = () => {
                                         placeholder="e.g. +91 9876543210"
                                         required
                                     />
+                                </div> */}
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label htmlFor="owner_name">
+                                        Owner / Admin Name
+                                    </Label>
+                                    <Input
+                                        id="owner_name"
+                                        name="owner_name"
+                                        value={formData?.owner_name}
+                                        onChange={handleChange}
+                                        placeholder="e.g. Radhika Mehta"
+                                        required
+                                    />
                                 </div>
                                 <div className="space-y-2 md:col-span-2">
                                     <Label htmlFor="email">Email Address</Label>
@@ -455,13 +476,55 @@ const RegisterOrg = () => {
                                         readOnly
                                     />
                                 </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label htmlFor="password">Password</Label>
+                                    <div className="relative">
+                                        <Input
+                                            id="password"
+                                            type={
+                                                showPassword
+                                                    ? "text"
+                                                    : "password"
+                                            }
+                                            name="password"
+                                            value={formData?.password}
+                                            onChange={(e) => {
+                                                handleChange(e);
+                                                validatePassword(
+                                                    e.target.value
+                                                );
+                                            }}
+                                            placeholder="e.g. ********"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setShowPassword((prev) => !prev)
+                                            }
+                                            className="absolute right-3 top-2.5 text-muted-foreground"
+                                            aria-label="Toggle Password"
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff size={18} />
+                                            ) : (
+                                                <Eye size={18} />
+                                            )}
+                                        </button>
+                                    </div>
+                                    {passwordErrorMsg && (
+                                        <p className="text-red-500 text-sm">
+                                            {passwordErrorMsg}
+                                        </p>
+                                    )}
+                                </div>
 
                                 <Button
                                     type="submit"
                                     className="w-full text-base mt-4 md:col-span-2"
                                     disabled={onFly}
                                 >
-                                    🚀 Register Organization
+                                    🚀 Register
                                 </Button>
                             </form>
                         )}

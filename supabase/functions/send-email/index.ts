@@ -17,17 +17,17 @@ serve(async (req) => {
 
   if (req.method === "POST") {
     try {
-      const { orgName , orgEmail, orgOwner } = await req.json();
+      const { orgEmail, orgOwner } = await req.json();
 
-      if (!orgName) {
-        return new Response(
-          JSON.stringify({ error: "Organization name is required" }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
+      // if (!orgName) {
+      //   return new Response(
+      //     JSON.stringify({ error: "Organization name is required" }),
+      //     {
+      //       status: 400,
+      //       headers: { ...corsHeaders, "Content-Type": "application/json" },
+      //     }
+      //   );
+      // }
 
       // Setup Nodemailer transporter (Gmail example)
       const transporter = nodemailer.createTransport({
@@ -45,9 +45,8 @@ serve(async (req) => {
         subject: "🚀 New Organization Registered",
         html: `
           <h2>New Organization Registered</h2>
-          <p><strong>Org Name:</strong> ${orgName}</p>
           <p><strong>Org Email:</strong> ${orgEmail || "N/A"}</p>
-          <p><strong>Org Email:</strong> ${orgOwner || "N/A"}</p>
+          <p><strong>Owner Name:</strong> ${orgOwner || "N/A"}</p>
         `,
       });
 
