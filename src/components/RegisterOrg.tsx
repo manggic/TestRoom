@@ -122,7 +122,7 @@ const RegisterOrg = () => {
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(
-                    errorData.error || "Something went wrong on the server."
+                    errorData?.message || "Something went wrong"
                 );
             }
 

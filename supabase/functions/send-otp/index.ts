@@ -5,9 +5,10 @@ import nodemailer from "npm:nodemailer";
 
 // Define a reusable set of CORS headers
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers":
+        "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 serve(async (req) => {
@@ -27,16 +28,13 @@ serve(async (req) => {
                     JSON.stringify({ error: "Email is required" }),
                     {
                         status: 400,
-                        headers: { ...corsHeaders, "Content-Type": "application/json" },
+                        headers: {
+                            ...corsHeaders,
+                            "Content-Type": "application/json",
+                        },
                     }
                 );
             }
-
-            
-
-            // Generate OTP & expiry
-            const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            const expires_at = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
             // Supabase client
             const supabase = createClient(
@@ -44,12 +42,50 @@ serve(async (req) => {
                 Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
             );
 
+            // ✅ Check if email already exists in organizations table
+            const { data: existingOrg, error: orgCheckError } = await supabase
+                .from("organizations")
+                .select("id") // only need id, lightweight query
+                .eq("email", email)
+                .single();
+
+            if (orgCheckError && orgCheckError.code !== "PGRST116") {
+                // If error is not "no rows found"
+                throw new Error(orgCheckError.message);
+            }
+
+            if (existingOrg) {
+                return new Response(
+                    JSON.stringify({
+                        success: false,
+                        message:
+                            "Please check your inputs.",
+                    }),
+                    {
+                        status: 400,
+                        headers: {
+                            ...corsHeaders,
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
+            }
+
             await supabase.from("email_otps").delete().eq("email", email);
+
+            // Generate OTP & expiry
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            const expires_at = new Date(
+                Date.now() + 10 * 60 * 1000
+            ).toISOString();
 
             // Upsert OTP in DB
             const { error: upsertError } = await supabase
                 .from("email_otps")
-                .upsert({ email, otp, expires_at, isEmailVerified: false }, { onConflict: "email" });
+                .upsert(
+                    { email, otp, expires_at, isEmailVerified: false },
+                    { onConflict: "email" }
+                );
 
             if (upsertError) throw new Error(upsertError.message);
 
@@ -77,7 +113,10 @@ serve(async (req) => {
                 }),
                 {
                     status: 200,
-                    headers: { ...corsHeaders, "Content-Type": "application/json" },
+                    headers: {
+                        ...corsHeaders,
+                        "Content-Type": "application/json",
+                    },
                 }
             );
         } catch (error) {
