@@ -95,37 +95,48 @@ const supabase = createClient(
 // 🔹 Validation
 function validateOrgRegistration(formData: Record<string, any>) {
     const {
-        org_name,
-        org_address,
-        pincode,
-        state,
-        city,
-        contact_number,
+        // org_name,
+        // org_address,
+        // pincode,
+        // state,
+        // city,
+        // contact_number,
+        password,
         owner_name,
         email,
     } = formData;
 
-    if (!org_name?.trim())
-        return { isValid: false, message: "Organization name is required" };
-    if (!org_address?.trim())
-        return { isValid: false, message: "Organization address is required" };
+    // if (!org_name?.trim())
+    //     return { isValid: false, message: "Organization name is required" };
+    // if (!org_address?.trim())
+    //     return { isValid: false, message: "Organization address is required" };
 
-    if (!pincode || !validator.isPostalCode(String(pincode), "IN"))
-        return { isValid: false, message: "Invalid pincode" };
+    // if (!pincode || !validator.isPostalCode(String(pincode), "IN"))
+    //     return { isValid: false, message: "Invalid pincode" };
 
-    if (!state || !indiaStatesAndCities[state])
-        return { isValid: false, message: "Invalid state" };
+    // if (!state || !indiaStatesAndCities[state])
+    //     return { isValid: false, message: "Invalid state" };
 
-    if (!city || !indiaStatesAndCities[state].includes(city))
-        return { isValid: false, message: `Invalid city for state ${state}` };
+    // if (!city || !indiaStatesAndCities[state].includes(city))
+    //     return { isValid: false, message: `Invalid city for state ${state}` };
 
-    if (!contact_number || !validator.isMobilePhone(contact_number, "en-IN"))
-        return { isValid: false, message: "Invalid phone number" };
+    // if (!contact_number || !validator.isMobilePhone(contact_number, "en-IN"))
+    //     return { isValid: false, message: "Invalid phone number" };
 
     if (!owner_name?.trim())
         return { isValid: false, message: "Owner name is required" };
     if (!email || !validator.isEmail(email))
         return { isValid: false, message: "Invalid email address" };
+    const strongPasswordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+    if (!password || !strongPasswordRegex.test(password)) {
+        return {
+            isValid: false,
+            message:
+                "Password must be at least 8 characters and include uppercase, lowercase, number, and special character (@ $ ! % * ? &)",
+        };
+    }
 
     return { isValid: true, message: "Validation passed" };
 }
@@ -194,7 +205,7 @@ serve(async (req) => {
                         success: false,
                         error: validation.message,
                     }),
-                   {
+                    {
                         status: 400,
                         headers: {
                             ...corsHeaders,
@@ -208,18 +219,84 @@ serve(async (req) => {
                 .from("organizations")
                 .insert([
                     {
-                        request_status: "pending",
-                        org_name: formData.org_name,
-                        org_address: formData.org_address,
-                        pincode: formData.pincode,
-                        state: formData.state,
-                        city: formData.city,
-                        contact_number: formData.contact_number,
+                        // request_status: "pending",
+                        // org_name: formData.org_name,
+                        // org_address: formData.org_address,
+                        // pincode: formData.pincode,
+                        // state: formData.state,
+                        // city: formData.city,
+                        // contact_number: formData.contact_number,
                         owner_name: formData.owner_name,
                         email: formData.email,
                     },
                 ])
                 .select();
+
+            if (!error) {
+                // 1️⃣ Create Auth user
+                const { data: authUser, error: authError } =
+                    await supabase.auth.admin.createUser({
+                        email: formData.email,
+                        password: formData.password,
+                        email_confirm: true,
+                        app_metadata: {
+                            role: "admin",
+                            organization_id: data?.[0]?.id,
+                        },
+                    });
+
+                if (authError) {
+                    return new Response(
+                        JSON.stringify({
+                            success: false,
+                            message: `Auth error: ${authError.message}`,
+                        }),
+                        {
+                            status: 400,
+                            headers: {
+                                ...corsHeaders,
+                                "Content-Type": "application/json",
+                            },
+                        }
+                    );
+                }
+
+                const userId = authUser.user.id;
+
+                // 2️⃣ Insert into users table
+                const { error: userError } = await supabase
+                    .from("users")
+                    .insert([
+                        {
+                            id: userId,
+                            name: formData.owner_name,
+                            email: formData.email,
+                            role: "admin",
+                            organization_id: data?.[0]?.id,
+                            attempted_tests_count: 0,
+                            is_active: true,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                        },
+                    ]);
+
+                if (userError) {
+                    await supabase.auth.admin.deleteUser(userId);
+                    return new Response(
+                        JSON.stringify({
+                            success: false,
+                            message: `User profile creation failed: ${userError.message}`,
+                        }),
+                        {
+                            status: 500,
+                            headers: {
+                                ...corsHeaders,
+                                "Content-Type": "application/json",
+                            },
+                        }
+                    );
+                }
+            }
 
             // 4️⃣ Delete OTP row after success
             await supabase
@@ -230,7 +307,7 @@ serve(async (req) => {
             if (error) {
                 return new Response(
                     JSON.stringify({ success: false, error: error.message }),
-                   {
+                    {
                         status: 400,
                         headers: {
                             ...corsHeaders,
@@ -241,22 +318,22 @@ serve(async (req) => {
             }
 
             return new Response(JSON.stringify({ success: true, data }), {
-                        status: 200,
-                        headers: {
-                            ...corsHeaders,
-                            "Content-Type": "application/json",
-                        },
-                    });
+                status: 200,
+                headers: {
+                    ...corsHeaders,
+                    "Content-Type": "application/json",
+                },
+            });
         } catch (err) {
             return new Response(
                 JSON.stringify({ success: false, error: err.message }),
                 {
-                        status: 400,
-                        headers: {
-                            ...corsHeaders,
-                            "Content-Type": "application/json",
-                        },
-                    }
+                    status: 400,
+                    headers: {
+                        ...corsHeaders,
+                        "Content-Type": "application/json",
+                    },
+                }
             );
         }
     }

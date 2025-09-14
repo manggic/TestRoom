@@ -114,12 +114,7 @@ export const validateSignUpForm = (
 
 export const validateOrgRegistration = ({ formData }) => {
     const {
-        org_name,
-        org_address,
-        pincode,
-        state,
-        city,
-        contact_number,
+        password,
         owner_name,
         email,
     } = formData;
@@ -130,54 +125,8 @@ export const validateOrgRegistration = ({ formData }) => {
         message: "",
     };
 
-    // Validate each field
-    if (
-        !org_name ||
-        typeof org_name !== "string" ||
-        org_name.trim().length === 0
-    ) {
-        response.isValid = false;
-        response.message = "Organization name is required";
-        return response;
-    }
+  
 
-    if (
-        !org_address ||
-        typeof org_address !== "string" ||
-        org_address.trim().length === 0
-    ) {
-        response.isValid = false;
-        response.message = "Organization address is required";
-        return response;
-    }
-
-    if (
-        !pincode ||
-        typeof pincode !== "number" ||
-        !validator.isPostalCode(String(pincode), "IN")
-    ) {
-        response.isValid = false;
-        response.message = "Invalid pincode";
-        return response;
-    }
-
-    if (!state || typeof state !== "string" || state.trim().length === 0) {
-        response.isValid = false;
-        response.message = "State is required";
-        return response;
-    }
-
-    if (!city || typeof city !== "string" || city.trim().length === 0) {
-        response.isValid = false;
-        response.message = "City is required";
-        return response;
-    }
-
-    if (!contact_number || !validator.isMobilePhone(contact_number, "en-IN")) {
-        response.isValid = false;
-        response.message = "Invalid phone number";
-        return response;
-    }
 
     if (
         !owner_name ||
@@ -194,6 +143,16 @@ export const validateOrgRegistration = ({ formData }) => {
         response.message = "Invalid email address";
         return response;
     }
+
+    const strongPasswordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  if (!password || !strongPasswordRegex.test(password)) {
+    response.isValid = false;
+    response.message =
+      "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character (@ $ ! % * ? &).";
+    return response;
+  }
 
     // All validations passed
     return response;
