@@ -121,8 +121,9 @@ export default function LoginForm() {
                             <Button type="submit" className="w-full h-11 mt-2">
                                 Login
                             </Button>
+                            
 
-                            <div className="flex justify-center gap-3 mt-4">
+                            <div className="flex justify-between gap-3 mt-4">
                                 {/* Visit Home */}
                                 <a
                                 href="/"
@@ -130,6 +131,7 @@ export default function LoginForm() {
                             >
                                 Visit Home
                             </a>
+                            <a href="/forgot-password" className="inline-flex items-center gap-1 rounded-md border border-transparent bg-blue-50 px-3 py-1 text-sm font-medium">forgot password ?</a>
                             </div>
                         </form>
                     </CardContent>

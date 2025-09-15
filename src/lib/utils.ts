@@ -150,7 +150,7 @@ export const validateOrgRegistration = ({ formData }) => {
   if (!password || !strongPasswordRegex.test(password)) {
     response.isValid = false;
     response.message =
-      "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character (@ $ ! % * ? &).";
+      "Please check inputs provided.";
     return response;
   }
 

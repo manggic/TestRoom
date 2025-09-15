@@ -44,7 +44,7 @@ const RegisterOrg = () => {
         // contact_number: "",
         owner_name: "",
         password: "",
-        email: "",
+        // email: "",
     });
     // const [cities, setCities] = useState<string[]>([]);
 
@@ -217,7 +217,7 @@ const RegisterOrg = () => {
         try {
             setOnFly(true);
             const { isValid, message } = validateOrgRegistration({
-                formData: { ...formData, email },
+                formData,
             });
             if (!isValid) return toast.error(message);
 
@@ -248,7 +248,8 @@ const RegisterOrg = () => {
             } else {
                 toast.error("Submit failed: " + resp.error);
             }
-        } catch {
+        } catch(error) {
+            console.log({error});            
             toast.error("Unexpected error during submission");
         } finally {
             setOnFly(false);

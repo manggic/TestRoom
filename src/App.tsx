@@ -21,6 +21,8 @@ import RegisterOrg from "./components/RegisterOrg";
 import SuperAdminDashboard from "./components/superadmin/SuperAdminDashboard";
 import OrgDetails from "./components/superadmin/OrgDetails";
 import DemoPage from "./components/demo/DemoPage";
+import ForgotPassword from "./components/ForgotPassword";
+import UpdatePassword from "./components/UpdatePassword";
 
 
 
@@ -36,6 +38,8 @@ function App() {
             <Routes>
                 {/* Public Routes */}
                 <Route path="login" element={<LoginForm />} />
+                <Route path="forgot-password" element={<ForgotPassword />} />
+                <Route path="update-password" element={<UpdatePassword />} />
                 {/* <Route path="register" element={<SignUpForm />} /> */}
 
                 <Route path="/" element={<LandingPage />} />

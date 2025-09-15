@@ -25,7 +25,7 @@ type UserForm = {
     email: string;
     password: string;
     role: "admin" | "teacher" | "student";
-    org_id?:string;
+    org_id?: string;
 };
 function ActionButtons() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -33,31 +33,56 @@ function ActionButtons() {
     const [isSpeedDialOpen, setIsSpeedDialOpen] = useState(false);
     const { currentUser } = useAuth();
 
-
     const navigate = useNavigate();
     const [userForm, setUserForm] = useState<UserForm>({
         name: "",
         email: "",
         password: "",
         role: "student",
-        org_id: ''
+        org_id: "",
     });
     const [errors, setErrors] = useState({
         name: "",
         email: "",
         password: "",
-        org_id: ''
+        org_id: "",
     });
+
+    const validatePassword = (value: string) => {
+        const strongPasswordRegex =
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+        if (!strongPasswordRegex.test(value)) {
+            setErrors((prev) => {
+                return {
+                    ...prev,
+                    password:
+                        "Password must be at least 8 characters long and include at least one uppercase (A–Z), one lowercase (a–z), one number (0–9), and one special character (@ $ ! % * ? &).",
+                };
+            });
+            // setPasswordErrorMsg(
+            //     "Password must be at least 8 characters long and include at least one uppercase (A–Z), one lowercase (a–z), one number (0–9), and one special character (@ $ ! % * ? &)."
+            // );
+        } else {
+            setErrors((prev) => {
+                return { ...prev, password: "" };
+            });
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (errors?.password) {
+            toast.error("Please fix the errors in the form before submitting.");
+            return;
+        }
         if (!validateSignUpForm(userForm, setErrors, { role: true })) return;
 
+        const session = await supabaseClient?.auth?.getSession();
 
-        const session = await supabaseClient?.auth?.getSession()
+        const token = session.data.session?.access_token;
 
-        const token = session.data.session?.access_token
-        
         const response = await fetch(
             `${VITE_SUPABASE_URL}/functions/v1/create-user`,
             {
@@ -71,7 +96,8 @@ function ActionButtons() {
                     password: userForm.password,
                     name: userForm.name,
                     role: userForm.role,
-                    organization_id: currentUser?.user?.organization_id || userForm.org_id,
+                    organization_id:
+                        currentUser?.user?.organization_id || userForm.org_id,
                 }),
             }
         );
@@ -91,7 +117,7 @@ function ActionButtons() {
                 email: "",
                 password: "",
                 role: "student",
-                org_id:""
+                org_id: "",
             });
         }
         // const response = await signupUser(userForm.email, userForm.password, {
@@ -100,7 +126,6 @@ function ActionButtons() {
         //     actionBy: "admin",
         //     organization_id: currentUser.user.organization_id,
         // });
-
     };
     return (
         <>
@@ -113,7 +138,24 @@ function ActionButtons() {
                     >
                         <Plus size={18} /> Create Test
                     </Button>
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <Dialog
+                        open={isDialogOpen}
+                        onOpenChange={(open) => {
+                            setIsDialogOpen(open);
+                            if (!open) {
+                                // Reset form + errors when dialog closes
+                                setUserForm({
+                                    name: "",
+                                    email: "",
+                                    password: "",
+                                    org_id: "",
+                                    role: "student",
+                                });
+                                setErrors({});
+                                setShowPassword(false);
+                            }
+                        }}
+                    >
                         <DialogTrigger asChild>
                             <Button className="gap-2 cursor-pointer">
                                 <Plus size={18} /> Create User
@@ -141,6 +183,7 @@ function ActionButtons() {
                                                 placeholder="Full Name"
                                                 className="col-span-3"
                                                 value={userForm.name}
+                                                required
                                                 onChange={(e) =>
                                                     setUserForm((prev) => ({
                                                         ...prev,
@@ -172,6 +215,7 @@ function ActionButtons() {
                                                 placeholder="example@email.com"
                                                 className="col-span-3"
                                                 value={userForm.email}
+                                                required
                                                 onChange={(e) =>
                                                     setUserForm((prev) => ({
                                                         ...prev,
@@ -206,21 +250,25 @@ function ActionButtons() {
                                                 placeholder="••••••••"
                                                 className="col-span-3"
                                                 value={userForm.password}
-                                                onChange={(e) =>
+                                                required
+                                                onChange={(e) => {
                                                     setUserForm((prev) => ({
                                                         ...prev,
                                                         password:
                                                             e.target.value,
-                                                    }))
-                                                }
+                                                    }));
+                                                    validatePassword(
+                                                        e.target.value
+                                                    );
+                                                }}
                                             />
                                             <button
                                                 type="button"
-                                                onClick={() =>
+                                                onClick={() => {
                                                     setShowPassword(
                                                         (prev) => !prev
-                                                    )
-                                                }
+                                                    );
+                                                }}
                                                 className="absolute right-3 top-2.5 text-muted-foreground"
                                                 aria-label="Toggle Password"
                                             >
@@ -238,35 +286,40 @@ function ActionButtons() {
                                         )}
                                     </div>
 
-                                   {currentUser?.user?.role === 'superadmin' ?  <div className="items-center gap-4">
-                                        <div className="grid grid-cols-4">
-                                            <Label
-                                                htmlFor="email"
-                                                className="text-right"
-                                            >
-                                                Org Id
-                                            </Label>
-                                            <Input
-                                                id="email"
-                                                type="text"
-                                                placeholder="org_id"
-                                                className="col-span-3"
-                                                value={userForm.org_id}
-                                                onChange={(e) =>
-                                                    setUserForm((prev) => ({
-                                                        ...prev,
-                                                        org_id: e.target.value,
-                                                    }))
-                                                }
-                                            />
+                                    {currentUser?.user?.role ===
+                                    "superadmin" ? (
+                                        <div className="items-center gap-4">
+                                            <div className="grid grid-cols-4">
+                                                <Label
+                                                    htmlFor="email"
+                                                    className="text-right"
+                                                >
+                                                    Org Id
+                                                </Label>
+                                                <Input
+                                                    id="email"
+                                                    type="text"
+                                                    placeholder="org_id"
+                                                    className="col-span-3"
+                                                    value={userForm.org_id}
+                                                    onChange={(e) =>
+                                                        setUserForm((prev) => ({
+                                                            ...prev,
+                                                            org_id: e.target
+                                                                .value,
+                                                        }))
+                                                    }
+                                                />
+                                            </div>
+                                            {errors.email && (
+                                                <p className="text-red-500 text-xs mt-1">
+                                                    {errors.org_id}
+                                                </p>
+                                            )}
                                         </div>
-                                        {errors.email && (
-                                            <p className="text-red-500 text-xs mt-1">
-                                                {errors.org_id}
-                                            </p>
-                                        )}
-                                    </div> :""}
-                                     
+                                    ) : (
+                                        ""
+                                    )}
 
                                     {/* Role */}
                                     <div className="items-center gap-4">
