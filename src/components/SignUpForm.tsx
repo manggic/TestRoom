@@ -4,17 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import { Link } from "react-router";
 import { toast } from "sonner";
-import { signupUser } from "@/services/authService";
 import { useAuth } from "@/context/useAuth";
 import { validateSignUpForm } from "@/lib/utils";
 
 const VITE_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const VITE_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
-
 
 export default function SignUpForm() {
     const navigate = useNavigate();
@@ -44,23 +41,22 @@ export default function SignUpForm() {
 
         if (!validateSignUpForm(form, setErrors)) return;
 
-
-       
-const res = await fetch(
-                `${VITE_SUPABASE_URL}/functions/v1/create-user`,
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${VITE_SUPABASE_KEY}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ email:form.email,
-                        password:form.password,
-                        name:form.name,
-                        role:"student"
-                     }),
-                }
-            );
+        const res = await fetch(
+            `${VITE_SUPABASE_URL}/functions/v1/create-user`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${VITE_SUPABASE_KEY}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email: form.email,
+                    password: form.password,
+                    name: form.name,
+                    role: "student",
+                }),
+            }
+        );
 
         // const res = await signupUser(form.email, form.password, {
         //     name: form.name,
@@ -79,12 +75,7 @@ const res = await fetch(
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 dark:from-zinc-900 dark:to-zinc-800 px-2 sm:px-4">
-            <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-sm sm:max-w-md"
-            >
+            <div className="w-full max-w-sm sm:max-w-md">
                 <Card className="rounded-2xl shadow-xl border-none">
                     <CardContent className="px-5 py-6 sm:px-8 sm:py-8 space-y-6">
                         <div className="text-center">
@@ -226,7 +217,7 @@ const res = await fetch(
                         </form>
                     </CardContent>
                 </Card>
-            </motion.div>
+            </div>
         </div>
     );
 }

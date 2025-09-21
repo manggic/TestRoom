@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router";
 import { toast } from "sonner";
 
@@ -48,12 +47,7 @@ export default function LoginForm() {
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 dark:from-zinc-900 dark:to-zinc-800 px-4 py-8">
-            <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-md"
-            >
+            <div className="w-full max-w-md">
                 <Card className="rounded-2xl shadow-lg border-none">
                     <CardContent className="p-6 sm:p-8 space-y-6">
                         <div className="text-center">
@@ -121,22 +115,26 @@ export default function LoginForm() {
                             <Button type="submit" className="w-full h-11 mt-2">
                                 Login
                             </Button>
-                            
 
                             <div className="flex justify-between gap-3 mt-4">
                                 {/* Visit Home */}
                                 <a
-                                href="/"
-                                className="inline-flex items-center gap-1 rounded-md border border-transparent bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-50"
-                            >
-                                Visit Home
-                            </a>
-                            <a href="/forgot-password" className="inline-flex items-center gap-1 rounded-md border border-transparent bg-blue-50 px-3 py-1 text-sm font-medium">forgot password ?</a>
+                                    href="/"
+                                    className="inline-flex items-center gap-1 rounded-md border border-transparent bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                                >
+                                    Visit Home
+                                </a>
+                                <a
+                                    href="/forgot-password"
+                                    className="inline-flex items-center gap-1 rounded-md border border-transparent bg-blue-50 px-3 py-1 text-sm font-medium"
+                                >
+                                    forgot password ?
+                                </a>
                             </div>
                         </form>
                     </CardContent>
                 </Card>
-            </motion.div>
+            </div>
         </div>
     );
 }
