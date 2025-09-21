@@ -2,7 +2,6 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { roles } from "./constants";
 import validator from "validator";
-import jsPDF from "jspdf";
 
 type ErrorHandler<T = unknown> = {
     success: boolean;
@@ -158,16 +157,17 @@ export const validateOrgRegistration = ({ formData }) => {
     return response;
 };
 
-export const downloadPDF = ({
+export const downloadPDF = async ({
     data, // testData or attempt
     answers, // answers object { q0: 'a', q1: 'b' }
     currentUser, // current logged in user object
     timeLeft = 0, // remaining seconds
     logoBase64 = "", // optional logo in base64
 }) => {
-    console.log({ timeLeft });
+
 
     if (!data) return;
+    const { jsPDF } = await import('jspdf');
 
     const doc = new jsPDF({ unit: "pt", format: "a4" });
     const pageWidth = doc.internal.pageSize.width;
