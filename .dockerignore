@@ -1,0 +1,31 @@
+# Node modules (installed inside container)
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-lock.yaml
+
+# Build output (we rebuild inside container)
+dist
+build
+
+# Local environment files (use --build-arg instead)
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+
+# Git files
+.git
+.gitignore
+
+# IDE/editor files
+.vscode
+.idea
+.DS_Store
+
+# Optional: any test output or temp files
+*.log
+*.tmp
+*.swp
+
