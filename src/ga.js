@@ -7,4 +7,3 @@ if (import.meta.env.MODE === 'production') {
   gtag('js', new Date());
   gtag('config', 'G-SS8KN1QVJ8');
 }
-s
