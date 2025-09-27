@@ -18,7 +18,9 @@ import { Plus, EyeOff, Eye } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { supabaseClient } from "@/supabase/config";
-
+import { getUsersOfOrg } from "@/services/userService";
+import type { TeacherUser, StudentUser } from "@/types/adminDashboard";
+export type User = StudentUser | TeacherUser;
 const VITE_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 type UserForm = {
     name: string;
@@ -27,7 +29,7 @@ type UserForm = {
     role: "admin" | "teacher" | "student";
     org_id?: string;
 };
-function ActionButtons() {
+function ActionButtons({setStudents, setTeachers}) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [isSpeedDialOpen, setIsSpeedDialOpen] = useState(false);
@@ -47,6 +49,21 @@ function ActionButtons() {
         password: "",
         org_id: "",
     });
+
+     const fetchUsers = async () => {
+            const response = await getUsersOfOrg({
+                orgId: currentUser?.user?.organization_id,
+            });
+    
+            if (response.success) {
+                setStudents(
+                    response.data.filter((u: User) => u.role === "student")
+                );
+                setTeachers(
+                    response.data.filter((u: User) => u.role === "teacher")
+                );
+            }
+        };
 
     const validatePassword = (value: string) => {
         const strongPasswordRegex =
@@ -119,6 +136,8 @@ function ActionButtons() {
                 role: "student",
                 org_id: "",
             });
+
+            fetchUsers()
         }
         // const response = await signupUser(userForm.email, userForm.password, {
         //     name: userForm.name,

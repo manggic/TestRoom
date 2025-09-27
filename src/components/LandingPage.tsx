@@ -9,6 +9,7 @@ import {
     UserCheck,
 } from "lucide-react";
 import { Link } from "react-router";
+import { ScrollToTop } from "./ScrollToTop";
 
 function LandingNavbar() {
     const { currentUser } = useAuth();
@@ -306,6 +307,8 @@ const LandingPage = () => {
                     © {new Date().getFullYear()} Test Room. All rights reserved.
                 </p>
             </footer>
+
+            <ScrollToTop /> 
         </div>
     );
 };

@@ -110,7 +110,7 @@ export default function AdminDashboard() {
             className="p-4 rounded-lg shadow-sm relative text-sm"
         >
             {/* 🖥️ Desktop layout */}
-            <div className="hidden sm:grid sm:grid-cols-5 sm:items-center sm:gap-3">
+            <div className="hidden sm:grid sm:grid-cols-4 sm:items-center sm:gap-3">
                 <div className="font-medium flex items-center gap-2 truncate">
                     <User2 className="h-4 w-4 text-muted-foreground" />
                     {user.name}
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
                     ))}
                 </div>
 
-                <div className="flex justify-end">
+                {/* <div className="flex justify-end">
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
                             <Button
@@ -175,7 +175,7 @@ export default function AdminDashboard() {
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
-                </div>
+                </div> */}
             </div>
 
             {/* 📱 Mobile layout */}
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
                         <User2 className="h-4 w-4 text-muted-foreground" />
                         {user.name}
                     </div>
-
+{/* 
                     <div>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
-                    </div>
+                    </div> */}
                 </div>
 
                 <div className="text-muted-foreground">
@@ -255,12 +255,12 @@ export default function AdminDashboard() {
                                 onClick={() =>
                                     navigate(
                                         user.role === "student"
-                                            ? `/student/result/${test.test_attempt_id}`
-                                            : `/teacher/test/preview/${test.test_id}`
+                                            ? `/student/result/${test?.test_attempt_id}`
+                                            : `/teacher/test/preview/${test?.test_id}`
                                     )
                                 }
                             >
-                                {test.test_name}
+                                {test?.test_name}
                             </Badge>
                         ))}
                     </div>
@@ -275,7 +275,7 @@ export default function AdminDashboard() {
                 🛠️ Admin Dashboard
             </h1>
 
-            <ActionButtons />
+            <ActionButtons setStudents={setStudents} setTeachers={setTeachers} />
 
             {loading ? (
                 <div className="flex justify-center py-20">
@@ -307,7 +307,7 @@ export default function AdminDashboard() {
                     </TabsList>
 
                     {activeTab !== "tests" && (
-                        <div className="hidden sm:grid grid-cols-5 px-2 mb-2 text-sm font-medium text-muted-foreground">
+                        <div className="hidden sm:grid grid-cols-4 px-2 mb-2 text-sm font-medium text-muted-foreground">
                             <div>Name</div>
                             <div>Email</div>
                             <div>Joined</div>
@@ -316,7 +316,7 @@ export default function AdminDashboard() {
                                     ? "Attempted Tests"
                                     : "Created Tests"}
                             </div>
-                            <div className="text-right">Actions</div>
+                            {/* <div className="text-right">Actions</div> */}
                         </div>
                     )}
 

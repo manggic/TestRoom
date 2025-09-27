@@ -28,9 +28,16 @@ export default function CreateTest() {
     const [useJSON, setUseJSON] = useState(true);
 
     const handleSave = async (status: "draft" | "published"): Promise<void> => {
+
+
+        function isValidString(str) {
+          // Only letters a-z or A-Z
+          return /^[a-zA-Z]+$/.test(str);
+        }
+
         try {
-            if (!testName) {
-                toast.error("Please enter test name");
+            if (!testName || !isValidString(testName)) {
+                toast.error("Please check test name");
                 return;
             }
             if (!durationMinutes) {
@@ -71,7 +78,7 @@ export default function CreateTest() {
                 toast.success(`✅ Test saved as ${status}`);
                 navigate(`/${currentUser?.user?.role}`);
             } else {
-                toast.error("Create Test Failed");
+                toast.error(response?.message || "Create Test Failed");
             }
         } catch (error) {
             toast.error(errorHandler(error).message);
@@ -125,9 +132,10 @@ export default function CreateTest() {
                                 className="w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 bg-white dark:bg-zinc-700 focus:outline-none focus:ring-2 "
                                 placeholder="e.g. 10"
                                 required
+                                min="5"
                                 value={durationMinutes}
                                 onChange={(e) =>
-                                    setDurationMinutes(parseInt(e.target.value))
+                                    setDurationMinutes(Math.abs(parseInt(e.target.value)))
                                 }
                             />
                         </div>
@@ -138,7 +146,7 @@ export default function CreateTest() {
                             htmlFor="description"
                             className="block text-sm font-medium mb-1"
                         >
-                            Test Description
+                            Test Description ( Optional )
                         </label>
                         <textarea
                             id="description"
