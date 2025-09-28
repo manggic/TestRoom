@@ -113,7 +113,7 @@ export default function CreateTest() {
                 placeholder="e.g. Science Test"
                 value={testName}
                 required
-                onChange={(e) => setTestName(e.target.value)}
+                onChange={(e) => setTestName(e.target?.value?.trim())}
               />
             </div>
 

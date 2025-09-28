@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, useParams } from 'react-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, Plus, Trash, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -18,6 +18,8 @@ export default function EditTestPage() {
   const navigate = useNavigate();
 
   const [test, setTest] = useState<Test>(state.test || null);
+
+  const testName = useRef(test?.test_name)
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const [errors, setErrors] = useState<{ [index: number]: boolean }>({});
@@ -30,6 +32,8 @@ export default function EditTestPage() {
         if (!testId) return;
         const response = await getTestById(testId);
         if (response.success) {
+
+          testName.current = response?.data?.test_name;
           setTest(response.data);
         }
       } catch (err) {
@@ -140,7 +144,7 @@ export default function EditTestPage() {
         organization_id: currentUser?.user?.organization_id,
       };
 
-      const response = await updateTest({ testId: test.id, testDataToUpdate: updatedTestData });
+      const response = await updateTest({ testId: test.id, testDataToUpdate: updatedTestData,isNameChanged: test.test_name!== testName.current, });
 
       if (response.success) {
         toast.success('Test updated successfully');
@@ -179,7 +183,7 @@ export default function EditTestPage() {
                 onChange={(e) =>
                   setTest({
                     ...test,
-                    test_name: e.target.value,
+                    test_name: e?.target?.value?.trim(),
                   })
                 }
               />
@@ -188,6 +192,8 @@ export default function EditTestPage() {
               <label className="text-sm font-medium">Test Duration (minutes)</label>
               <input
                 type="number"
+                  min="5"
+                max="180"
                 className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
                 value={test.duration_minutes || ''}
                 onChange={(e) =>
@@ -196,6 +202,17 @@ export default function EditTestPage() {
                     duration_minutes: +e.target.value,
                   })
                 }
+                onBlur={() => {
+                  let value = test.duration_minutes;
+
+                  if (isNaN(value) || value < 5) value = 5;
+                  if (value > 180) value = 180;
+
+                  setTest({
+                    ...test,
+                    duration_minutes: value,
+                  })
+                }}
               />
             </div>
           </div>
@@ -291,6 +308,8 @@ export default function EditTestPage() {
                       type="number"
                       className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
                       value={q.marks}
+                      min="1"
+                      max="20"
                       onChange={(e) => handleInputChange(qIndex + start, 'marks', +e.target.value)}
                     />
                   </div>

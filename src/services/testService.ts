@@ -81,7 +81,7 @@ export const createTest = async ({ testDataToCreate }) => {
   }
 };
 
-export async function updateTest({ testId, testDataToUpdate }) {
+export async function updateTest({ testId, testDataToUpdate, isNameChanged }) {
   try {
     const {
       test_name,
@@ -93,22 +93,25 @@ export async function updateTest({ testId, testDataToUpdate }) {
       organization_id,
     } = testDataToUpdate;
 
-    // 1️⃣ Check if a test with the same name already exists
-    const { data: existingTests, error: fetchErr } = await supabaseClient
-      .from('tests')
-      .select('id')
-      .eq('test_name', test_name)
-      .eq('organization_id', organization_id) // optional: restrict per organization
-      .limit(1);
+    if (isNameChanged) {
+      // 1️⃣ Check if a test with the same name already exists
+      const { data: existingTests, error: fetchErr } = await supabaseClient
+        .from('tests')
+        .select('id')
+        .eq('test_name', test_name)
+        .eq('organization_id', organization_id) // optional: restrict per organization
+        .limit(1);
 
-    if (fetchErr) throw fetchErr;
+      if (fetchErr) throw fetchErr;
 
-    if (existingTests?.length > 0) {
-      return {
-        success: false,
-        message: `"${test_name}" already exists!`,
-      };
+      if (existingTests?.length > 0) {
+        return {
+          success: false,
+          message: `"${test_name}" already exists!`,
+        };
+      }
     }
+
     const now = new Date().toISOString();
 
     const total_marks = questions.reduce((sum, q) => sum + (Number(q.marks) || 0), 0);
