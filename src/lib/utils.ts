@@ -312,11 +312,8 @@ export function validateQuestions(data) {
     if (typeof q.question_text !== 'string') {
       return { valid: false, error: `❌ Question ${i + 1}: "question_text" must be a string.` };
     }
-    if (!/^[a-zA-Z0-9 ?!.,'-]+$/.test(q.question_text)) {
-      return {
-        valid: false,
-        error: `❌ Question ${i + 1}: "question_text" contains invalid characters.`,
-      };
+    if (q.question_text.trim() === '') {
+      return { valid: false, error: `❌ Question ${i + 1}: "question_text" cannot be empty.` };
     }
 
     // options
@@ -327,7 +324,7 @@ export function validateQuestions(data) {
       };
     }
 
-    const allowedOptionKeys = ['a', 'b', 'c', 'd']; // allow 4 options
+    const allowedOptionKeys = ['a', 'b', 'c', 'd'];
     const optionKeys = Object.keys(q.options);
 
     // Missing required options
@@ -352,11 +349,8 @@ export function validateQuestions(data) {
       if (typeof q.options[key] !== 'string') {
         return { valid: false, error: `❌ Question ${i + 1}: option "${key}" must be a string.` };
       }
-      if (!/^[a-zA-Z0-9 ?!.,'-]+$/.test(q.options[key])) {
-        return {
-          valid: false,
-          error: `❌ Question ${i + 1}: option "${key}" contains invalid characters.`,
-        };
+      if (q.options[key].trim() === '') {
+        return { valid: false, error: `❌ Question ${i + 1}: option "${key}" cannot be empty.` };
       }
     }
 
@@ -379,6 +373,7 @@ export function validateQuestions(data) {
 
   return { valid: true, message: '✅ All questions are valid.' };
 }
+
 
 export function isEmailValid(email){
    return validator.isEmail(email);  
