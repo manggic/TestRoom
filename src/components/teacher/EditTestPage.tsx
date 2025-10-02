@@ -105,6 +105,73 @@ export default function EditTestPage() {
     setCurrentPage(Math.floor(test.questions.length / questionsPerPage));
   };
 
+
+  function validateQuestions(data) {
+  if (!Array.isArray(data)) {
+    return { valid: false, error: "❌ Root JSON must be an array of questions." };
+  }
+
+  for (let i = 0; i < data.length; i++) {
+    const q = data[i];
+
+    // question_text
+    if (typeof q.question_text !== "string") {
+      return { valid: false, error: `❌ Question ${i + 1}: "question_text" must be a string.` };
+    }
+    if (!/^[a-zA-Z0-9 ?!.,'-]+$/.test(q.question_text)) {
+      return { valid: false, error: `❌ Question ${i + 1}: "question_text" contains invalid characters.` };
+    }
+
+    // options
+    if (typeof q.options !== "object" || q.options === null) {
+      return { valid: false, error: `❌ Question ${i + 1}: "options" must be an object with keys a, b, c, d.` };
+    }
+
+    const allowedOptionKeys = ["a", "b", "c", "d"]; // allow 4 options
+    const optionKeys = Object.keys(q.options);
+
+    // Missing required options
+    for (let key of allowedOptionKeys) {
+      if (!optionKeys.includes(key)) {
+        return { valid: false, error: `❌ Question ${i + 1}: missing option "${key}".` };
+      }
+    }
+
+    // Extra options not allowed
+    for (let key of optionKeys) {
+      if (!allowedOptionKeys.includes(key)) {
+        return { valid: false, error: `❌ Question ${i + 1}: invalid option key "${key}". Only a, b, c, d allowed.` };
+      }
+    }
+
+    // Option values validation
+    for (let key of optionKeys) {
+      if (typeof q.options[key] !== "string") {
+        return { valid: false, error: `❌ Question ${i + 1}: option "${key}" must be a string.` };
+      }
+      if (!/^[a-zA-Z0-9 ?!.,'-]+$/.test(q.options[key])) {
+        return { valid: false, error: `❌ Question ${i + 1}: option "${key}" contains invalid characters.` };
+      }
+    }
+
+    // correct_answer
+    if (!allowedOptionKeys.includes(q.correct_answer)) {
+      return { valid: false, error: `❌ Question ${i + 1}: "correct_answer" must be one of ${allowedOptionKeys.join(", ")}.` };
+    }
+
+    // marks
+    if (typeof q.marks !== "number" || isNaN(q.marks)) {
+      return { valid: false, error: `❌ Question ${i + 1}: "marks" must be a valid number.` };
+    }
+    if (q.marks < 1 || q.marks > 20) {
+      return { valid: false, error: `❌ Question ${i + 1}: "marks" must be between 1 and 20.` };
+    }
+  }
+
+  return { valid: true, message: "✅ All questions are valid." };
+}
+
+
   const handleSave = async () => {
     try {
       const invalidQuestions = Object.entries(errors)
@@ -116,23 +183,12 @@ export default function EditTestPage() {
         return;
       }
 
-      // Validation: Ensure all questions have non-empty questionText
-      const emptyTextIndexes = test.questions
-        .map((q: Question, idx: number) =>
-          !q.question_text || q.question_text.trim() === '' ? idx + 1 : null
-        )
-        .filter((v: number | null) => v !== null);
-      if (emptyTextIndexes.length > 0) {
-        toast.error(`Please enter question text for question(s): ${emptyTextIndexes.join(', ')}`);
-        return;
-      }
+      const validateData = validateQuestions(test.questions);
 
-      // const questions = test.questions.map((q: any) => ({
-      //     question_text: q.question_text,
-      //     options: q.options,
-      //     correct_answer: q.correct_answer,
-      //     marks: q.marks,
-      // }));
+      if(!validateData.valid) {
+         toast.error(`${validateData.error}`);       
+         return
+      }
 
       const updatedTestData = {
         test_name: test.test_name,
