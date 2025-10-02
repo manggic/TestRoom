@@ -3,12 +3,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import type { QuestionForComp } from "@/types/test";
-
+import { toast } from "sonner";
 type FormInputProps = {
     setFormData: React.Dispatch<React.SetStateAction<QuestionForComp[]>>;
+    totalQuestion:any;
 };
 
-export function FormInput({ setFormData }: FormInputProps) {
+export function FormInput({ setFormData, totalQuestion }: FormInputProps) {
     const [questionAdded, setQuestionAdded] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -41,6 +42,12 @@ export function FormInput({ setFormData }: FormInputProps) {
         const correct_answer = correct as keyof typeof options;
 
         const question = { question_text, options, correct_answer, marks };
+
+        
+        if((totalQuestion?.length + 1) > 50){
+                toast.error("Maximum only 50 questions allowed. Please remove some questions to add more.");
+                return
+            }
 
         setFormData((prev) => [...prev, question]);
 
@@ -94,6 +101,8 @@ export function FormInput({ setFormData }: FormInputProps) {
                 type="number"
                 placeholder="Marks for this question"
                 required
+                min="1"
+                max='20'
                 className="w-full border rounded-md px-3 py-2 bg-white dark:bg-zinc-700"
             />
 

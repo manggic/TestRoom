@@ -89,7 +89,7 @@ const RegisterOrg = () => {
     const handleSendOtp = async () => {
         try {
             if (!isEmail(email))
-                return toast.error("Please enter a valid email");
+                return toast.error("Please enter a valid email address");
 
             const orgAlreadyRegistered = await checkIfAlreadyRegistered({
                 email,
