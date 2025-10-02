@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import type { QuestionForComp } from '@/types/test';
+import { validateQuestions } from '@/lib/utils';
 
 type JsonInputProps = {
   setJsonData: React.Dispatch<React.SetStateAction<QuestionForComp[]>>;
@@ -40,19 +41,26 @@ export function JsonInput({ setJsonData, totalQuestion }: JsonInputProps) {
       if (!Array.isArray(parsed)) throw new Error('Invalid format');
 
       // Validate marks
-      for (let i = 0; i < parsed.length; i++) {
-        const q = parsed[i];
-        const questionText = q.question_text || `Question ${i + 1}`;
+      // for (let i = 0; i < parsed.length; i++) {
+      //   const q = parsed[i];
+      //   const questionText = q.question_text || `Question ${i + 1}`;
 
-        if (typeof q.marks !== 'number') {
-          toast.error(`"${questionText}" has invalid marks. Please enter a number.`);
-          return;
-        }
+      //   if (typeof q.marks !== 'number') {
+      //     toast.error(`"${questionText}" has invalid marks. Please enter a number.`);
+      //     return;
+      //   }
 
-        if (q.marks < 1 || q.marks > 20) {
-          toast.error(`"${questionText}" marks must be between 1 and 20.`);
-          return;
-        }
+      //   if (q.marks < 1 || q.marks > 20) {
+      //     toast.error(`"${questionText}" marks must be between 1 and 20.`);
+      //     return;
+      //   }
+      // }
+
+      const validateData = validateQuestions(parsed);
+
+      if (!validateData.valid) {
+        toast.error(`${validateData.error}`);
+        return;
       }
 
       if (totalQuestion.concat(parsed).length > 50) {

@@ -7,9 +7,9 @@ import { toast } from 'sonner';
 import { useAuth } from '@/context/useAuth';
 import { getTestById, updateTest } from '@/services/testService';
 import type { Test, Question } from '@/types/test';
+import { validateQuestions } from '@/lib/utils';
 
 const optionKeys = ['a', 'b', 'c', 'd'];
-
 export default function EditTestPage() {
   const { currentUser } = useAuth();
   const { user } = currentUser || {};
@@ -19,7 +19,7 @@ export default function EditTestPage() {
 
   const [test, setTest] = useState<Test>(state.test || null);
 
-  const testName = useRef(test?.test_name)
+  const testName = useRef(test?.test_name);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const [errors, setErrors] = useState<{ [index: number]: boolean }>({});
@@ -32,7 +32,6 @@ export default function EditTestPage() {
         if (!testId) return;
         const response = await getTestById(testId);
         if (response.success) {
-
           testName.current = response?.data?.test_name;
           setTest(response.data);
         }
@@ -105,73 +104,6 @@ export default function EditTestPage() {
     setCurrentPage(Math.floor(test.questions.length / questionsPerPage));
   };
 
-
-  function validateQuestions(data) {
-  if (!Array.isArray(data)) {
-    return { valid: false, error: "❌ Root JSON must be an array of questions." };
-  }
-
-  for (let i = 0; i < data.length; i++) {
-    const q = data[i];
-
-    // question_text
-    if (typeof q.question_text !== "string") {
-      return { valid: false, error: `❌ Question ${i + 1}: "question_text" must be a string.` };
-    }
-    if (!/^[a-zA-Z0-9 ?!.,'-]+$/.test(q.question_text)) {
-      return { valid: false, error: `❌ Question ${i + 1}: "question_text" contains invalid characters.` };
-    }
-
-    // options
-    if (typeof q.options !== "object" || q.options === null) {
-      return { valid: false, error: `❌ Question ${i + 1}: "options" must be an object with keys a, b, c, d.` };
-    }
-
-    const allowedOptionKeys = ["a", "b", "c", "d"]; // allow 4 options
-    const optionKeys = Object.keys(q.options);
-
-    // Missing required options
-    for (let key of allowedOptionKeys) {
-      if (!optionKeys.includes(key)) {
-        return { valid: false, error: `❌ Question ${i + 1}: missing option "${key}".` };
-      }
-    }
-
-    // Extra options not allowed
-    for (let key of optionKeys) {
-      if (!allowedOptionKeys.includes(key)) {
-        return { valid: false, error: `❌ Question ${i + 1}: invalid option key "${key}". Only a, b, c, d allowed.` };
-      }
-    }
-
-    // Option values validation
-    for (let key of optionKeys) {
-      if (typeof q.options[key] !== "string") {
-        return { valid: false, error: `❌ Question ${i + 1}: option "${key}" must be a string.` };
-      }
-      if (!/^[a-zA-Z0-9 ?!.,'-]+$/.test(q.options[key])) {
-        return { valid: false, error: `❌ Question ${i + 1}: option "${key}" contains invalid characters.` };
-      }
-    }
-
-    // correct_answer
-    if (!allowedOptionKeys.includes(q.correct_answer)) {
-      return { valid: false, error: `❌ Question ${i + 1}: "correct_answer" must be one of ${allowedOptionKeys.join(", ")}.` };
-    }
-
-    // marks
-    if (typeof q.marks !== "number" || isNaN(q.marks)) {
-      return { valid: false, error: `❌ Question ${i + 1}: "marks" must be a valid number.` };
-    }
-    if (q.marks < 1 || q.marks > 20) {
-      return { valid: false, error: `❌ Question ${i + 1}: "marks" must be between 1 and 20.` };
-    }
-  }
-
-  return { valid: true, message: "✅ All questions are valid." };
-}
-
-
   const handleSave = async () => {
     try {
       const invalidQuestions = Object.entries(errors)
@@ -185,9 +117,9 @@ export default function EditTestPage() {
 
       const validateData = validateQuestions(test.questions);
 
-      if(!validateData.valid) {
-         toast.error(`${validateData.error}`);       
-         return
+      if (!validateData.valid) {
+        toast.error(`${validateData.error}`);
+        return;
       }
 
       const updatedTestData = {
@@ -200,7 +132,11 @@ export default function EditTestPage() {
         organization_id: currentUser?.user?.organization_id,
       };
 
-      const response = await updateTest({ testId: test.id, testDataToUpdate: updatedTestData,isNameChanged: test.test_name!== testName.current, });
+      const response = await updateTest({
+        testId: test.id,
+        testDataToUpdate: updatedTestData,
+        isNameChanged: test.test_name !== testName.current,
+      });
 
       if (response.success) {
         toast.success('Test updated successfully');
@@ -248,7 +184,7 @@ export default function EditTestPage() {
               <label className="text-sm font-medium">Test Duration (minutes)</label>
               <input
                 type="number"
-                  min="5"
+                min="5"
                 max="180"
                 className="w-full rounded-md px-3 py-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600"
                 value={test.duration_minutes || ''}
@@ -267,7 +203,7 @@ export default function EditTestPage() {
                   setTest({
                     ...test,
                     duration_minutes: value,
-                  })
+                  });
                 }}
               />
             </div>

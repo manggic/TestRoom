@@ -1,48 +1,48 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { roles } from "./constants";
-import validator from "validator";
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import { roles } from './constants';
+import validator from 'validator';
 
 type ErrorHandler<T = unknown> = {
-    success: boolean;
-    message: string;
-    data: T;
+  success: boolean;
+  message: string;
+  data: T;
 };
 
 export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs));
 }
 
 export function errorHandler<T>(error: unknown): ErrorHandler<T> {
-    const defaultError = "Something went wrong";
-    let errorMessage = "";
+  const defaultError = 'Something went wrong';
+  let errorMessage = '';
 
-    console.log("ERROR occurred ---------- ", error);
+  console.log('ERROR occurred ---------- ', error);
 
-    if (error instanceof Error) {
-        errorMessage = error.message;
-    }
+  if (error instanceof Error) {
+    errorMessage = error.message;
+  }
 
-    return {
-        success: false,
-        message: errorMessage || defaultError,
-        data: [] as T,
-    };
+  return {
+    success: false,
+    message: errorMessage || defaultError,
+    data: [] as T,
+  };
 }
 
 export function handleResponse(data, error) {
-    if (error) {
-        return {
-            success: false,
-            message: error,
-            data: [],
-        };
-    } else {
-        return {
-            success: true,
-            data,
-        };
-    }
+  if (error) {
+    return {
+      success: false,
+      message: error,
+      data: [],
+    };
+  } else {
+    return {
+      success: true,
+      data,
+    };
+  }
 }
 
 // export const formatDate = (dateString: string) => {
@@ -56,298 +56,332 @@ export function handleResponse(data, error) {
 // };
 
 export const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = date.getDate();
-    const month = date.toLocaleString("en-US", { month: "short" });
-    const year = date.getFullYear().toString().slice(-2);
-    const time = date.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-    });
+  const date = new Date(dateString);
+  const day = date.getDate();
+  const month = date.toLocaleString('en-US', { month: 'short' });
+  const year = date.getFullYear().toString().slice(-2);
+  const time = date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
 
-    return `${day} ${month} ${year}, ${time}`;
+  return `${day} ${month} ${year}, ${time}`;
 };
 
-export const validateSignUpForm = (
-    formData,
-    setErrors,
-    additionChecks = { role: false }
-) => {
-    const newErrors = { name: "", email: "", password: "" };
-    let isValid = true;
+export const validateSignUpForm = (formData, setErrors, additionChecks = { role: false }) => {
+  const newErrors = { name: '', email: '', password: '' };
+  let isValid = true;
 
-    if (!formData.name.trim()) {
-        newErrors.name = "Name is required";
-        isValid = false;
+  if (!formData.name.trim()) {
+    newErrors.name = 'Name is required';
+    isValid = false;
+  }
+
+  if (!formData.email.trim()) {
+    newErrors.email = 'Email is required';
+    isValid = false;
+  } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
+    newErrors.email = 'Invalid email address';
+    isValid = false;
+  }
+
+  if (!formData.password) {
+    newErrors.password = 'Password is required';
+    isValid = false;
+  } else if (formData.password.length < 6) {
+    newErrors.password = 'Password must be at least 6 characters';
+    isValid = false;
+  }
+
+  if (additionChecks.role) {
+    if (!formData.role || !roles.includes(formData.role)) {
+      newErrors.password = 'Role is invalid';
+      isValid = false;
     }
+  }
 
-    if (!formData.email.trim()) {
-        newErrors.email = "Email is required";
-        isValid = false;
-    } else if (
-        !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)
-    ) {
-        newErrors.email = "Invalid email address";
-        isValid = false;
-    }
-
-    if (!formData.password) {
-        newErrors.password = "Password is required";
-        isValid = false;
-    } else if (formData.password.length < 6) {
-        newErrors.password = "Password must be at least 6 characters";
-        isValid = false;
-    }
-
-    if (additionChecks.role) {
-        if (!formData.role || !roles.includes(formData.role)) {
-            newErrors.password = "Role is invalid";
-            isValid = false;
-        }
-    }
-
-    setErrors(newErrors);
-    return isValid;
+  setErrors(newErrors);
+  return isValid;
 };
 
 export const validateOrgRegistration = ({ formData }) => {
-    const {
-        password,
-        owner_name,
-        email,
-    } = formData;
+  const { password, owner_name, email } = formData;
 
-    // Initialize response object
-    const response = {
-        isValid: true,
-        message: "",
-    };
+  // Initialize response object
+  const response = {
+    isValid: true,
+    message: '',
+  };
 
-  
+  if (!owner_name || typeof owner_name !== 'string' || owner_name.trim().length === 0) {
+    response.isValid = false;
+    response.message = 'Owner name is required';
+    return response;
+  }
 
+  if (!email || !validator.isEmail(email)) {
+    response.isValid = false;
+    response.message = 'Invalid email address';
+    return response;
+  }
 
-    if (
-        !owner_name ||
-        typeof owner_name !== "string" ||
-        owner_name.trim().length === 0
-    ) {
-        response.isValid = false;
-        response.message = "Owner name is required";
-        return response;
-    }
-
-    if (!email || !validator.isEmail(email)) {
-        response.isValid = false;
-        response.message = "Invalid email address";
-        return response;
-    }
-
-    const strongPasswordRegex =
+  const strongPasswordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
   if (!password || !strongPasswordRegex.test(password)) {
     response.isValid = false;
-    response.message =
-      "Please check inputs provided.";
+    response.message = 'Please check inputs provided.';
     return response;
   }
 
-    // All validations passed
-    return response;
+  // All validations passed
+  return response;
 };
 
 export const downloadPDF = async ({
-    data, // testData or attempt
-    answers, // answers object { q0: 'a', q1: 'b' }
-    currentUser, // current logged in user object
-    timeLeft = 0, // remaining seconds
-    logoBase64 = "", // optional logo in base64
+  data, // testData or attempt
+  answers, // answers object { q0: 'a', q1: 'b' }
+  currentUser, // current logged in user object
+  timeLeft = 0, // remaining seconds
+  logoBase64 = '', // optional logo in base64
 }) => {
+  if (!data) return;
+  const { jsPDF } = await import('jspdf');
 
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
+  const margin = 40;
+  let y = 60;
+  let total = 0,
+    obtained = 0,
+    correctCount = 0;
 
-    if (!data) return;
-    const { jsPDF } = await import('jspdf');
+  // ===== Watermark =====
+  doc.setTextColor(230);
+  doc.setFontSize(80);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CONFIDENTIAL', pageWidth / 2, pageHeight / 2, {
+    align: 'center',
+    angle: 45,
+  });
+  doc.setTextColor(0);
 
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
-    const margin = 40;
-    let y = 60;
-    let total = 0,
-        obtained = 0,
-        correctCount = 0;
+  // ===== Logo =====
+  // if (logoBase64) {
+  //     doc.addImage(logoBase64, "PNG", margin, 20, 50, 50);
+  //     y += 10;
+  // }
 
-    // ===== Watermark =====
-    doc.setTextColor(230);
-    doc.setFontSize(80);
-    doc.setFont("helvetica", "bold");
-    doc.text("CONFIDENTIAL", pageWidth / 2, pageHeight / 2, {
-        align: "center",
-        angle: 45,
-    });
-    doc.setTextColor(0);
+  // ===== Header =====
+  doc.setFont('helvetica', 'bold').setFontSize(20);
+  doc.text(`${data.test_name} - Result Summary`, margin + (logoBase64 ? 60 : 0), y);
+  y += 26;
+  doc.setFontSize(12).setFont('helvetica', 'normal');
+  doc.text(`Student: ${currentUser?.user?.name || ''}`, margin, y);
+  y += 18;
+  doc.text(`Test Duration: ${data.duration_minutes} min`, margin, y);
+  y += 18;
+  doc.text(`Total Questions: ${data.questions.length}`, margin, y);
+  y += 18;
+  const now = new Date();
+  doc.text(`Date: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`, margin, y);
+  y += 20;
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 16;
 
-    // ===== Logo =====
-    // if (logoBase64) {
-    //     doc.addImage(logoBase64, "PNG", margin, 20, 50, 50);
-    //     y += 10;
-    // }
+  // ===== Summary Stats =====
+  data.questions.forEach((q, i) => {
+    const selected = answers[`q${i}`];
+    const correct = q.correct_answer;
+    const marks = selected === correct ? q.marks : 0;
+    total += q.marks;
+    obtained += marks;
+    if (selected === correct) correctCount++;
+  });
+  const mins = Math.floor((data.duration_minutes * 60 - timeLeft) / 60);
+  const secs = (data.duration_minutes * 60 - timeLeft) % 60;
 
-    // ===== Header =====
-    doc.setFont("helvetica", "bold").setFontSize(20);
-    doc.text(
-        `${data.test_name} - Result Summary`,
-        margin + (logoBase64 ? 60 : 0),
-        y
-    );
-    y += 26;
-    doc.setFontSize(12).setFont("helvetica", "normal");
-    doc.text(`Student: ${currentUser?.user?.name || ""}`, margin, y);
-    y += 18;
-    doc.text(`Test Duration: ${data.duration_minutes} min`, margin, y);
-    y += 18;
-    doc.text(`Total Questions: ${data.questions.length}`, margin, y);
-    y += 18;
-    const now = new Date();
-    doc.text(
-        `Date: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`,
-        margin,
-        y
-    );
-    y += 20;
-    doc.setLineWidth(0.5);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 16;
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Score: ${obtained} / ${total}`, margin, y);
+  doc.text(`Correct: ${correctCount} / ${data.questions.length}`, margin + 180, y);
+  doc.text(`Time: ${mins}m ${secs}s`, margin + 350, y);
+  y += 20;
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 18;
 
-    // ===== Summary Stats =====
-    data.questions.forEach((q, i) => {
-        const selected = answers[`q${i}`];
-        const correct = q.correct_answer;
-        const marks = selected === correct ? q.marks : 0;
-        total += q.marks;
-        obtained += marks;
-        if (selected === correct) correctCount++;
-    });
-    const mins = Math.floor((data.duration_minutes * 60 - timeLeft) / 60);
-    const secs = (data.duration_minutes * 60 - timeLeft) % 60;
+  // ===== Table Header =====
+  const colQ = margin + 2;
+  const colQuestion = margin + 30;
+  const colYour = margin + 230;
+  const colCorrect = margin + 370;
+  const colMarks = margin + 500;
+  const rowHeight = 18;
 
-    doc.setFont("helvetica", "bold");
-    doc.text(`Score: ${obtained} / ${total}`, margin, y);
-    doc.text(
-        `Correct: ${correctCount} / ${data.questions.length}`,
-        margin + 180,
-        y
-    );
-    doc.text(`Time: ${mins}m ${secs}s`, margin + 350, y);
-    y += 20;
-    doc.setLineWidth(0.5);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 18;
+  doc.setFont('helvetica', 'bold');
+  doc.setFillColor(230, 230, 230);
+  doc.rect(margin, y - 12, pageWidth - margin * 2, rowHeight, 'F');
+  doc.text('Q#', colQ, y);
+  doc.text('Question', colQuestion, y);
+  doc.text('Your Answer', colYour, y);
+  doc.text('Correct', colCorrect, y);
+  doc.text('Marks', colMarks, y);
+  y += rowHeight;
+  doc.setFont('helvetica', 'normal');
 
-    // ===== Table Header =====
-    const colQ = margin + 2;
-    const colQuestion = margin + 30;
-    const colYour = margin + 230;
-    const colCorrect = margin + 370;
-    const colMarks = margin + 500;
-    const rowHeight = 18;
+  // ===== Table Rows =====
+  data.questions.forEach((q, i) => {
+    const selected = answers[`q${i}`];
+    const correct = q.correct_answer;
+    const marks = selected === correct ? q.marks : 0;
+    const yourAns =
+      selected && q.options[selected]
+        ? `${selected.toUpperCase()}. ${q.options[selected]}`
+        : 'Not Answered';
+    const correctAns =
+      correct && q.options[correct] ? `${correct.toUpperCase()}. ${q.options[correct]}` : '';
+    const markStr = marks > 0 ? `+${marks}` : '0';
 
-    doc.setFont("helvetica", "bold");
-    doc.setFillColor(230, 230, 230);
-    doc.rect(margin, y - 12, pageWidth - margin * 2, rowHeight, "F");
-    doc.text("Q#", colQ, y);
-    doc.text("Question", colQuestion, y);
-    doc.text("Your Answer", colYour, y);
-    doc.text("Correct", colCorrect, y);
-    doc.text("Marks", colMarks, y);
-    y += rowHeight;
-    doc.setFont("helvetica", "normal");
+    const questionLines = doc.splitTextToSize(q.question_text, colYour - colQuestion - 10);
+    const maxLines = Math.max(1, questionLines.length);
 
-    // ===== Table Rows =====
-    data.questions.forEach((q, i) => {
-        const selected = answers[`q${i}`];
-        const correct = q.correct_answer;
-        const marks = selected === correct ? q.marks : 0;
-        const yourAns =
-            selected && q.options[selected]
-                ? `${selected.toUpperCase()}. ${q.options[selected]}`
-                : "Not Answered";
-        const correctAns =
-            correct && q.options[correct]
-                ? `${correct.toUpperCase()}. ${q.options[correct]}`
-                : "";
-        const markStr = marks > 0 ? `+${marks}` : "0";
+    // Row background
+    if (selected === correct) doc.setFillColor(220, 255, 220);
+    else if (selected) doc.setFillColor(255, 220, 220);
+    else doc.setFillColor(240, 240, 240);
 
-        const questionLines = doc.splitTextToSize(
-            q.question_text,
-            colYour - colQuestion - 10
-        );
-        const maxLines = Math.max(1, questionLines.length);
+    doc.rect(margin, y - 12, pageWidth - margin * 2, rowHeight * maxLines, 'F');
 
-        // Row background
-        if (selected === correct) doc.setFillColor(220, 255, 220);
-        else if (selected) doc.setFillColor(255, 220, 220);
-        else doc.setFillColor(240, 240, 240);
+    doc.text(`${i + 1}`, colQ, y);
+    doc.text(questionLines, colQuestion, y);
+    doc.text(doc.splitTextToSize(yourAns, colCorrect - colYour - 10), colYour, y);
+    doc.text(doc.splitTextToSize(correctAns, colMarks - colCorrect - 10), colCorrect, y);
+    doc.text(markStr, colMarks, y);
 
-        doc.rect(
-            margin,
-            y - 12,
-            pageWidth - margin * 2,
-            rowHeight * maxLines,
-            "F"
-        );
+    y += rowHeight * maxLines;
 
-        doc.text(`${i + 1}`, colQ, y);
-        doc.text(questionLines, colQuestion, y);
-        doc.text(
-            doc.splitTextToSize(yourAns, colCorrect - colYour - 10),
-            colYour,
-            y
-        );
-        doc.text(
-            doc.splitTextToSize(correctAns, colMarks - colCorrect - 10),
-            colCorrect,
-            y
-        );
-        doc.text(markStr, colMarks, y);
+    // Row separator
+    doc.setDrawColor(200);
+    doc.line(margin, y - 12, pageWidth - margin, y - 12);
 
-        y += rowHeight * maxLines;
+    // Page break
+    if (y > pageHeight - 80) {
+      doc.setFontSize(10).setTextColor(120);
+      doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth / 2, pageHeight - 20, {
+        align: 'center',
+      });
+      doc.addPage();
+      y = 60;
+      doc.setFontSize(12).setTextColor(0);
+    }
+  });
 
-        // Row separator
-        doc.setDrawColor(200);
-        doc.line(margin, y - 12, pageWidth - margin, y - 12);
+  // ===== Footer =====
+  y += 10;
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 18;
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Total Marks: ${obtained} / ${total}`, margin, y);
 
-        // Page break
-        if (y > pageHeight - 80) {
-            doc.setFontSize(10).setTextColor(120);
-            doc.text(
-                `Page ${doc.internal.getNumberOfPages()}`,
-                pageWidth / 2,
-                pageHeight - 20,
-                { align: "center" }
-            );
-            doc.addPage();
-            y = 60;
-            doc.setFontSize(12).setTextColor(0);
-        }
-    });
+  const finalPageNum = doc.internal.getNumberOfPages();
+  doc.setFontSize(10).setTextColor(120);
+  doc.text(`Page ${finalPageNum}`, pageWidth / 2, pageHeight - 20, {
+    align: 'center',
+  });
 
-    // ===== Footer =====
-    y += 10;
-    doc.setLineWidth(0.5);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 18;
-    doc.setFont("helvetica", "bold");
-    doc.text(`Total Marks: ${obtained} / ${total}`, margin, y);
-
-    const finalPageNum = doc.internal.getNumberOfPages();
-    doc.setFontSize(10).setTextColor(120);
-    doc.text(`Page ${finalPageNum}`, pageWidth / 2, pageHeight - 20, {
-        align: "center",
-    });
-
-    doc.save(`${data.test_name}-Result.pdf`);
+  doc.save(`${data.test_name}-Result.pdf`);
 };
+
+export function validateQuestions(data) {
+  if (!Array.isArray(data)) {
+    return { valid: false, error: '❌ Root JSON must be an array of questions.' };
+  }
+
+  if (data.length === 0) {
+    return { valid: false, error: 'Empty JSON array.' };
+  }
+
+  for (let i = 0; i < data.length; i++) {
+    const q = data[i];
+
+    // question_text
+    if (typeof q.question_text !== 'string') {
+      return { valid: false, error: `❌ Question ${i + 1}: "question_text" must be a string.` };
+    }
+    if (!/^[a-zA-Z0-9 ?!.,'-]+$/.test(q.question_text)) {
+      return {
+        valid: false,
+        error: `❌ Question ${i + 1}: "question_text" contains invalid characters.`,
+      };
+    }
+
+    // options
+    if (typeof q.options !== 'object' || q.options === null) {
+      return {
+        valid: false,
+        error: `❌ Question ${i + 1}: "options" must be an object with keys a, b, c, d.`,
+      };
+    }
+
+    const allowedOptionKeys = ['a', 'b', 'c', 'd']; // allow 4 options
+    const optionKeys = Object.keys(q.options);
+
+    // Missing required options
+    for (let key of allowedOptionKeys) {
+      if (!optionKeys.includes(key)) {
+        return { valid: false, error: `❌ Question ${i + 1}: missing option "${key}".` };
+      }
+    }
+
+    // Extra options not allowed
+    for (let key of optionKeys) {
+      if (!allowedOptionKeys.includes(key)) {
+        return {
+          valid: false,
+          error: `❌ Question ${i + 1}: invalid option key "${key}". Only a, b, c, d allowed.`,
+        };
+      }
+    }
+
+    // Option values validation
+    for (let key of optionKeys) {
+      if (typeof q.options[key] !== 'string') {
+        return { valid: false, error: `❌ Question ${i + 1}: option "${key}" must be a string.` };
+      }
+      if (!/^[a-zA-Z0-9 ?!.,'-]+$/.test(q.options[key])) {
+        return {
+          valid: false,
+          error: `❌ Question ${i + 1}: option "${key}" contains invalid characters.`,
+        };
+      }
+    }
+
+    // correct_answer
+    if (!allowedOptionKeys.includes(q.correct_answer)) {
+      return {
+        valid: false,
+        error: `❌ Question ${i + 1}: "correct_answer" must be one of ${allowedOptionKeys.join(', ')}.`,
+      };
+    }
+
+    // marks
+    if (typeof q.marks !== 'number' || isNaN(q.marks)) {
+      return { valid: false, error: `❌ Question ${i + 1}: "marks" must be a valid number.` };
+    }
+    if (q.marks < 1 || q.marks > 20) {
+      return { valid: false, error: `❌ Question ${i + 1}: "marks" must be between 1 and 20.` };
+    }
+  }
+
+  return { valid: true, message: '✅ All questions are valid.' };
+}
+
+export function isEmailValid(email){
+   return validator.isEmail(email);  
+}
 
 // TODO: Replace all Firestore logic with Supabase equivalents if needed.
